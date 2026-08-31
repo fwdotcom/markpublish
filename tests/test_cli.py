@@ -3,7 +3,9 @@ Tests for CLI commands.
 """
 
 from pathlib import Path
+
 from typer.testing import CliRunner
+
 from markpublish.cli import app
 
 runner = CliRunner()
@@ -17,7 +19,7 @@ def test_cli_version():
 
 def test_cli_init_and_build(tmp_path: Path):
     project_dir = tmp_path / "my_project"
-    
+
     # 1. Test init
     init_res = runner.invoke(app, ["init", str(project_dir), "--title", "CLI Test Doc"])
     assert init_res.exit_code == 0
@@ -46,6 +48,6 @@ def test_cli_export_template(tmp_path: Path):
     dest = tmp_path / "exported_templates"
     res = runner.invoke(app, ["export-template", "default", str(dest)])
     assert res.exit_code == 0
-    assert (dest / "pdf" / "default" / "layout.html").is_file()
-    assert (dest / "html" / "default" / "layout.html").is_file()
+    assert (dest / "default" / "pdf" / "layout.html").is_file()
+    assert (dest / "default" / "html" / "layout.html").is_file()
 

@@ -34,8 +34,6 @@ htmlcov/
 # Output directories & artifacts
 output/
 dist_output/
-*.pdf
-*.html
 !src/markpublish/templates/**/*.html
 
 # IDE & Editor files

@@ -6,7 +6,8 @@ from __future__ import annotations
 
 from enum import Enum
 from typing import Any, Dict, List, Optional, Union
-from pydantic import BaseModel, Field, field_validator, model_validator
+
+from pydantic import BaseModel, Field, field_validator
 
 
 class AutonumType(str, Enum):
@@ -27,7 +28,12 @@ class DocumentConfig(BaseModel):
     date: Optional[str] = Field(default="auto", description="Date string or 'auto'/'today'")
     version: Optional[str] = Field(default="1.0.0", description="Version string")
     language: str = Field(default="de", description="ISO language code, e.g. 'de' or 'en'")
-    
+    labels: Dict[str, str] = Field(
+        default_factory=dict,
+        description="Overrides for static template texts, e.g. {toc_title: 'Contents'}. "
+                    "See markpublish.i18n.LABELS for the available keys.",
+    )
+
     # Global Layout Switches
     cover: bool = Field(default=True, description="Enable cover page")
     toc: bool = Field(default=True, description="Enable global table of contents")
@@ -57,6 +63,14 @@ class ChapterTOCConfig(BaseModel):
     """Configuration for per-chapter local table of contents."""
     enabled: bool = Field(default=True, description="Enable local chapter TOC")
     max_depth: int = Field(default=3, description="Maximum heading depth for chapter TOC")
+
+    def __bool__(self) -> bool:
+        """
+        A BaseModel is truthy by default, so `if chapter.toc:` would render the
+        local TOC even for `toc: {enabled: false}`. Templates and pipeline both
+        test the object directly - make that test mean what it reads like.
+        """
+        return self.enabled and self.max_depth > 0
 
 
 class ChapterItem(BaseModel):

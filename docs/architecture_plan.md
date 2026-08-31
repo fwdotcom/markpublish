@@ -10,10 +10,10 @@ Ein modernes, modulares und erweiterbares Open-Source-Publishing-Tool für Markd
 
 ### Kernmerkmale:
 - **WeasyPrint-Engine**: Native Nutzung von W3C CSS Paged Media (`@page`, Margin-Boxes, Counter, Seitenumbrüche, Running Elements).
-- **Target-basierte Templates**: Gliederung nach Zielformat (`templates/pdf/<theme>`, `templates/html/<theme>`).
+- **Theme-basierte Templates**: Gliederung nach Theme, darunter das Zielformat (`templates/<theme>/pdf`, `templates/<theme>/html`).
 - **3-stufige Template-Auflösung**:
-  1. *User-Verzeichnis*: `~/.markpublish/templates/<target>/<theme>/`
-  2. *Gemeinsamer Ordner*: `<templates_dir>/<target>/<theme>/` (konfigurierbar via CLI, YAML `templates_dir`, ENV `MARKPUBLISH_TEMPLATES_DIR` oder Default `./templates`)
+  1. *User-Verzeichnis*: `~/.markpublish/templates/<theme>/<target>/`
+  2. *Gemeinsamer Ordner*: `<templates_dir>/<theme>/<target>/` (konfigurierbar via CLI, YAML `templates_dir`, ENV `MARKPUBLISH_TEMPLATES_DIR` oder Default `./templates`)
   3. *Paket-Templates*: Built-in in `markpublish`
   - *Priorität*: User vor Common/Projekt vor Paket.
 - **Hierarchische Kapitel & Parts**:

@@ -1,0 +1,1652 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>markpublish Benutzerhandbuch</title>
+  <style>
+    /* ==========================================================================
+   markpublish - Default HTML Theme Stylesheet (Responsive Web Preview)
+   ========================================================================== */
+
+:root {
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --text-main: #1e293b;
+  --text-muted: #64748b;
+  --bg-main: #ffffff;
+  --bg-subtle: #f8fafc;
+  --border-color: #e2e8f0;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.65;
+  color: var(--text-main);
+  background: var(--bg-subtle);
+  margin: 0;
+  padding: 0;
+}
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border-color);
+  padding: 0.75rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.875rem;
+}
+
+.header-left .doc-title {
+  font-weight: 700;
+  color: #0f172a;
+  margin-right: 0.75rem;
+}
+
+.header-left .doc-subtitle {
+  color: var(--text-muted);
+}
+
+.header-right {
+  display: flex;
+  gap: 1rem;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.container {
+  display: flex;
+  max-width: 1300px;
+  margin: 0 auto;
+  min-height: calc(100vh - 120px);
+}
+
+.sidebar {
+  width: 280px;
+  flex-shrink: 0;
+  padding: 2rem 1.5rem;
+  border-right: 1px solid var(--border-color);
+  background: #ffffff;
+  position: sticky;
+  top: 48px;
+  height: calc(100vh - 48px);
+  overflow-y: auto;
+}
+
+.sidebar-title {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.main-content {
+  flex-grow: 1;
+  max-width: 860px;
+  padding: 3rem 4rem;
+  background: #ffffff;
+  margin: 0 auto;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.site-footer {
+  border-top: 1px solid var(--border-color);
+  background: #ffffff;
+  padding: 1.5rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+  color: #0f172a;
+  font-weight: 700;
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+  line-height: 1.3;
+}
+
+h1 { font-size: 2rem; border-bottom: 2px solid var(--border-color); padding-bottom: 0.5rem; }
+h2 { font-size: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.3rem; }
+h3 { font-size: 1.25rem; }
+h4 { font-size: 1.1rem; }
+
+p { margin-top: 0; margin-bottom: 1rem; }
+a { color: var(--primary); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* Cover / Hero */
+.cover-hero {
+  padding: 3rem 0 4rem 0;
+  border-bottom: 2px solid var(--border-color);
+  margin-bottom: 3rem;
+}
+
+.cover-title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 1rem 0;
+  border: none;
+}
+
+.cover-subtitle {
+  font-size: 1.25rem;
+  color: var(--text-muted);
+  margin-bottom: 1.5rem;
+}
+
+.cover-summary {
+  background: var(--bg-subtle);
+  border-left: 4px solid var(--primary);
+  padding: 1rem 1.25rem;
+  border-radius: 4px;
+  margin-bottom: 2rem;
+}
+
+.cover-meta {
+  display: flex;
+  gap: 2rem;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+/* Divider Sections */
+.part-divider-container {
+  padding: 2.5rem 0 1.5rem 0;
+  border-bottom: 2px solid var(--primary);
+  margin-bottom: 2.5rem;
+}
+
+.part-tag {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.part-title {
+  font-size: 2rem;
+  margin: 0.5rem 0;
+  border: none;
+}
+
+.chapter-divider-container {
+  padding: 2rem 0 1rem 0;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 2rem;
+}
+
+.chapter-tag {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
+.chapter-divider-title {
+  font-size: 1.75rem;
+  margin: 0.25rem 0;
+  border: none;
+}
+
+/* TOC */
+.toc-list {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+
+.toc-list .toc-list {
+  padding-left: 1rem;
+}
+
+.toc-item {
+  margin-bottom: 0.4rem;
+  font-size: 0.9rem;
+}
+
+.toc-item-part {
+  font-weight: 700;
+  margin-top: 1rem;
+  color: #0f172a;
+}
+
+.toc-link {
+  color: var(--text-main);
+}
+
+.toc-link:hover {
+  color: var(--primary);
+}
+
+/* Code & Pygments */
+pre {
+  background: #0f172a;
+  color: #f8fafc;
+  padding: 1rem 1.25rem;
+  border-radius: 6px;
+  overflow-x: auto;
+  font-family: "JetBrains Mono", Consolas, Menlo, monospace;
+  font-size: 0.875rem;
+}
+
+code {
+  font-family: "JetBrains Mono", Consolas, Menlo, monospace;
+  font-size: 0.875em;
+  background: #f1f5f9;
+  padding: 0.15em 0.35em;
+  border-radius: 4px;
+}
+
+pre code {
+  background: transparent;
+  padding: 0;
+  color: inherit;
+}
+
+/* Tables */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+}
+
+th, td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border-color);
+  text-align: left;
+}
+
+th {
+  background: var(--bg-subtle);
+  font-weight: 600;
+}
+
+/* Admonitions */
+.admonition {
+  margin: 1.5rem 0;
+  padding: 1rem 1.25rem;
+  border-left: 4px solid var(--primary);
+  background: var(--bg-subtle);
+  border-radius: 0 6px 6px 0;
+}
+
+.admonition-title {
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+}
+
+.admonition-title::before {
+  content: "";
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
+  margin-right: 0.5rem;
+  vertical-align: -0.125rem;
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: center;
+}
+
+.admonition.note { border-left-color: #2563eb; background: #eff6ff; }
+.admonition.note .admonition-title { color: #1d4ed8; }
+.admonition.note .admonition-title::before {
+  background-image: url('data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2016%2016%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%231d4ed8%22%3E%0A%20%20%3Cpath%20d%3D%22M0%208a8%208%200%201%201%2016%200A8%208%200%200%201%200%208Zm8-6.5a6.5%206.5%200%201%200%200%2013%206.5%206.5%200%200%200%200-13ZM6.5%207.75A.75.75%200%200%201%207.25%207h1a.75.75%200%200%201%20.75.75v2.75h.25a.75.75%200%200%201%200%201.5h-2a.75.75%200%200%201%200-1.5h.25v-2h-.25a.75.75%200%200%201-.75-.75ZM8%206a1%201%200%201%201%200-2%201%201%200%200%201%200%202Z%22/%3E%0A%3C/svg%3E');
+}
+
+.admonition.tip { border-left-color: #10b981; background: #f0fdf4; }
+.admonition.tip .admonition-title { color: #047857; }
+.admonition.tip .admonition-title::before {
+  background-image: url('data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2016%2016%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%23047857%22%3E%0A%20%20%3Cpath%20d%3D%22M8%201.5c-2.36%200-4.25%201.9-4.25%204.25%200%201.34.61%202.5%201.56%203.25.4.32.69.75.69%201.25v.75c0%20.41.34.75.75.75h2.5c.41%200%20.75-.34.75-.75V10.25c0-.5.29-.93.69-1.25.95-.75%201.56-1.91%201.56-3.25%200-2.35-1.89-4.25-4.25-4.25ZM6.5%2013.5c0%20.41.34.75.75.75h1.5c.41%200%20.75-.34.75-.75v-.5h-3v.5Z%22/%3E%0A%3C/svg%3E');
+}
+
+.admonition.important { border-left-color: #8b5cf6; background: #f5f3ff; }
+.admonition.important .admonition-title { color: #6d28d9; }
+.admonition.important .admonition-title::before {
+  background-image: url('data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2016%2016%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%236d28d9%22%3E%0A%20%20%3Cpath%20d%3D%22M0%201.75C0%20.784.784%200%201.75%200h12.5C15.216%200%2016%20.784%2016%201.75v9.5A1.75%201.75%200%200%201%2014.25%2013H8.06l-2.573%202.573A1.458%201.458%200%200%201%203%2014.543V13H1.75A1.75%201.75%200%200%201%200%2011.25Zm1.75-.25a.25.25%200%200%200-.25.25v9.5c0%20.138.112.25.25.25h2a.75.75%200%200%201%20.75.75v2.19l2.72-2.72a.749.749%200%200%201%20.53-.22h6.5a.25.25%200%200%200%20.25-.25v-9.5a.25.25%200%200%200-.25-.25Zm7%202.25v2.5a.75.75%200%200%201-1.5%200v-2.5a.75.75%200%200%201%201.5%200ZM9%209a1%201%200%201%201-2%200%201%201%200%200%201%202%200Z%22/%3E%0A%3C/svg%3E');
+}
+
+.admonition.warning { border-left-color: #f59e0b; background: #fffbeb; }
+.admonition.warning .admonition-title { color: #b45309; }
+.admonition.warning .admonition-title::before {
+  background-image: url('data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2016%2016%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%23b45309%22%3E%0A%20%20%3Cpath%20d%3D%22M6.457%201.047c.659-1.234%202.427-1.234%203.086%200l6.082%2011.378A1.75%201.75%200%200%201%2014.082%2015H1.918a1.75%201.75%200%200%201-1.543-2.575Zm1.763.707a.25.25%200%200%200-.44%200L1.698%2013.132a.25.25%200%200%200%20.22.368h12.164a.25.25%200%200%200%20.22-.368Zm.53%203.996v2.5a.75.75%200%200%201-1.5%200v-2.5a.75.75%200%200%201%201.5%200ZM9%2011a1%201%200%201%201-2%200%201%201%200%200%201%202%200Z%22/%3E%0A%3C/svg%3E');
+}
+
+.admonition.caution, .admonition.danger { border-left-color: #ef4444; background: #fef2f2; }
+.admonition.caution .admonition-title, .admonition.danger .admonition-title { color: #b91c1c; }
+.admonition.caution .admonition-title::before, .admonition.danger .admonition-title::before {
+  background-image: url('data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2016%2016%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%23b91c1c%22%3E%0A%20%20%3Cpath%20d%3D%22M4.47.22A.749.749%200%200%201%205%200h6c.199%200%20.389.079.53.22l4.25%204.25c.141.14.22.331.22.53v6a.749.749%200%200%201-.22.53l-4.25%204.25A.749.749%200%200%201%2011%2016H5a.749.749%200%200%201-.53-.22L.22%2011.53A.749.749%200%200%201%200%2011V5c0-.199.079-.389.22-.53Zm.84%201.28L1.5%205.31v5.38l3.81%203.81h5.38l3.81-3.81V5.31L10.69%201.5ZM8%204a.75.75%200%200%201%20.75.75v3.5a.75.75%200%200%201-1.5%200v-3.5A.75.75%200%200%201%208%204Zm0%208a1%201%200%201%201%200-2%201%201%200%200%201%200%202Z%22/%3E%0A%3C/svg%3E');
+}
+
+/* --- Task Lists --- */
+/* pymdownx.tasklist runs with custom_checkbox=True and emits
+   <label class="task-list-control"><input type="checkbox" [checked]>
+   <span class="task-list-indicator"></span></label>. The native widget is
+   hidden so PDF and HTML output share one checkbox design. */
+ul.task-list {
+  list-style: none;
+  padding-left: 0;
+}
+
+ul.task-list ul.task-list {
+  /* The parent <li> already supplies the gutter, so a nested checkbox
+     lines up exactly under its parent's text. */
+  padding-left: 0;
+  margin: 0.35rem 0 0 0;
+}
+
+li.task-list-item {
+  list-style: none;
+  position: relative;
+  padding-left: 1.6rem;
+  margin-bottom: 0.35rem;
+}
+
+.task-list-control {
+  position: absolute;
+  left: 0;
+  top: 0.4em;
+  line-height: 0;
+}
+
+.task-list-control input[type="checkbox"] {
+  display: none;
+}
+
+.task-list-indicator {
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
+  border: 1px solid #94a3b8;
+  border-radius: 0.25rem;
+  background-color: var(--bg-main);
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: 0.75rem 0.75rem;
+}
+
+input[type="checkbox"][checked] + .task-list-indicator,
+input[type="checkbox"]:checked + .task-list-indicator {
+  border-color: var(--primary);
+  background-color: var(--primary);
+  background-image: url('data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2016%2016%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%23ffffff%22%3E%0A%20%20%3Cpath%20d%3D%22M13.78%204.22a.75.75%200%200%201%200%201.06l-7.25%207.25a.75.75%200%200%201-1.06%200L1.72%208.78a.75.75%200%201%201%201.06-1.06L6%2010.94l6.72-6.72a.75.75%200%200%201%201.06%200Z%22/%3E%0A%3C/svg%3E');
+}
+
+/* --- Lokales Kapitel-TOC --- */
+.local-toc {
+  margin-top: 1.5rem;
+  padding: 1rem 1.25rem;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+}
+
+.local-toc-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 0.6rem;
+}
+
+.local-toc .toc-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.local-toc .toc-item {
+  margin: 0.15rem 0;
+}
+
+/* Pygments Token Colors (GitHub-Light-Palette).
+   pymdownx.highlight laeuft mit noclasses=False, gibt also CSS-Klassen aus --
+   die Farben gehoeren deshalb hierher und nicht in die Extension-Konfiguration. */
+.highlight .k, .highlight .kc, .highlight .kd, .highlight .kn,
+.highlight .kp, .highlight .kr, .highlight .kt,
+.highlight .o, .highlight .ow,
+.highlight .cp { color: #d73a49; font-weight: 600; }               /* keyword, operator, preproc */
+
+.highlight .s, .highlight .sa, .highlight .sb, .highlight .sc, .highlight .dl,
+.highlight .s1, .highlight .s2, .highlight .sd, .highlight .sh, .highlight .si,
+.highlight .sr, .highlight .ss, .highlight .sx,
+.highlight .l, .highlight .ld { color: #032f62; }                  /* string, literal */
+.highlight .se { color: #22863a; font-weight: 600; }               /* string escape */
+
+.highlight .c, .highlight .c1, .highlight .cm, .highlight .ch,
+.highlight .cs { color: #6a737d; font-style: italic; }             /* comment */
+
+.highlight .nf, .highlight .fm, .highlight .nc, .highlight .nn,
+.highlight .nd, .highlight .ne { color: #6f42c1; font-weight: 600; } /* function, class, decorator */
+
+.highlight .m, .highlight .mb, .highlight .mf, .highlight .mh,
+.highlight .mi, .highlight .mo,
+.highlight .nb, .highlight .bp, .highlight .no { color: #005cc5; } /* number, builtin, constant */
+
+.highlight .na, .highlight .nt { color: #22863a; }                 /* attribute, tag */
+.highlight .nv, .highlight .vc, .highlight .vg, .highlight .vi,
+.highlight .py, .highlight .nl { color: #e36209; }                 /* variable, property, label */
+.highlight .p, .highlight .w, .highlight .n { color: inherit; }    /* punctuation, plain name */
+
+.highlight .err { color: #b31d28; background: #ffeef0; }           /* error */
+.highlight .gd { color: #b31d28; background: #ffeef0; }            /* diff deleted */
+.highlight .gi { color: #22863a; background: #f0fff4; }            /* diff inserted */
+.highlight .gh, .highlight .gu { color: #005cc5; font-weight: 600; }
+.highlight .ge { font-style: italic; }
+.highlight .gs { font-weight: 600; }
+
+@media (max-width: 900px) {
+  .container { flex-direction: column; }
+  .sidebar { width: 100%; height: auto; position: static; border-right: none; border-bottom: 1px solid var(--border-color); }
+  .main-content { padding: 1.5rem; }
+}
+
+  </style>
+</head>
+<body>
+
+
+  <div class="page-wrapper">
+      <header class="site-header">
+        <div class="header-left">
+          <span class="doc-title">markpublish Benutzerhandbuch</span>
+<span class="doc-subtitle">Moderne PDF- und HTML-Dokumentenerstellung aus Markdown</span>        </div>
+        <div class="header-right">
+          <span class="doc-version">v1.0.0</span>
+          <span class="doc-date">31.08.2026</span>
+        </div>
+      </header>
+
+    <div class="container">
+        <aside class="sidebar">
+          <nav class="sidebar-nav">
+            <div class="sidebar-title">Inhalt</div>
+
+  <ul class="toc-list">
+        <li class="toc-item toc-item-h1">
+          <a href="#einfuehrung-architektur" class="toc-link">
+1 Einführung &amp; Architektur
+          </a>
+              <ul class="toc-list">
+        <li class="toc-item toc-item-h2">
+          <a href="#motivation-zielsetzung" class="toc-link">
+1.1 Motivation &amp; Zielsetzung
+          </a>
+              <ul class="toc-list">
+        <li class="toc-item toc-item-h3">
+          <a href="#kernvorteile-auf-einen-blick" class="toc-link">
+1.1.1 Kernvorteile auf einen Blick:
+          </a>
+        </li>
+  </ul>
+
+        </li>
+        <li class="toc-item toc-item-h2">
+          <a href="#die-verarbeitungs-pipeline" class="toc-link">
+1.2 Die Verarbeitungs-Pipeline
+          </a>
+        </li>
+  </ul>
+
+        </li>
+        <li class="toc-item toc-item-h1">
+          <a href="#installation-schnellstart" class="toc-link">
+2 Installation &amp; Schnellstart
+          </a>
+              <ul class="toc-list">
+        <li class="toc-item toc-item-h2">
+          <a href="#voraussetzungen" class="toc-link">
+2.1 Voraussetzungen
+          </a>
+        </li>
+        <li class="toc-item toc-item-h2">
+          <a href="#installation-via-pip" class="toc-link">
+2.2 Installation via pip
+          </a>
+        </li>
+        <li class="toc-item toc-item-h2">
+          <a href="#erstes-projekt-initialisieren" class="toc-link">
+2.3 Erstes Projekt initialisieren
+          </a>
+        </li>
+        <li class="toc-item toc-item-h2">
+          <a href="#dokument-erstellen" class="toc-link">
+2.4 Dokument erstellen
+          </a>
+        </li>
+  </ul>
+
+        </li>
+        <li class="toc-item toc-item-h1">
+          <a href="#die-cli-befehle" class="toc-link">
+3 Die CLI-Befehle
+          </a>
+              <ul class="toc-list">
+        <li class="toc-item toc-item-h2">
+          <a href="#befehlsuebersicht" class="toc-link">
+3.1 Befehlsübersicht
+          </a>
+        </li>
+        <li class="toc-item toc-item-h2">
+          <a href="#markpublish-build" class="toc-link">
+3.2 markpublish build
+          </a>
+              <ul class="toc-list">
+        <li class="toc-item toc-item-h3">
+          <a href="#argumente-optionen" class="toc-link">
+3.2.1 Argumente &amp; Optionen:
+          </a>
+        </li>
+        <li class="toc-item toc-item-h3">
+          <a href="#beispiele" class="toc-link">
+3.2.2 Beispiele:
+          </a>
+        </li>
+  </ul>
+
+        </li>
+        <li class="toc-item toc-item-h2">
+          <a href="#markpublish-init" class="toc-link">
+3.3 markpublish init
+          </a>
+        </li>
+        <li class="toc-item toc-item-h2">
+          <a href="#markpublish-templates" class="toc-link">
+3.4 markpublish templates
+          </a>
+        </li>
+        <li class="toc-item toc-item-h2">
+          <a href="#markpublish-export-template" class="toc-link">
+3.5 markpublish export-template
+          </a>
+        </li>
+  </ul>
+
+        </li>
+        <li class="toc-item toc-item-h1">
+          <a href="#konfigurations-leitfaden" class="toc-link">
+4 Konfigurations-Leitfaden
+          </a>
+              <ul class="toc-list">
+        <li class="toc-item toc-item-h2">
+          <a href="#das-document-objekt" class="toc-link">
+4.1 Das document-Objekt
+          </a>
+              <ul class="toc-list">
+        <li class="toc-item toc-item-h3">
+          <a href="#automatische-datumsaufloesung" class="toc-link">
+4.1.1 Automatische Datumsauflösung
+          </a>
+        </li>
+        <li class="toc-item toc-item-h3">
+          <a href="#zusaetzliche-metadatenfelder" class="toc-link">
+4.1.2 Zusätzliche Metadatenfelder
+          </a>
+        </li>
+  </ul>
+
+        </li>
+        <li class="toc-item toc-item-h2">
+          <a href="#kapitel-unterkapitel-und-parts" class="toc-link">
+4.2 Kapitel, Unterkapitel und Parts
+          </a>
+              <ul class="toc-list">
+        <li class="toc-item toc-item-h3">
+          <a href="#kapitel-definition" class="toc-link">
+4.2.1 Kapitel-Definition
+          </a>
+        </li>
+        <li class="toc-item toc-item-h3">
+          <a href="#hierarchische-unterkapitel" class="toc-link">
+4.2.2 Hierarchische Unterkapitel
+          </a>
+        </li>
+        <li class="toc-item toc-item-h3">
+          <a href="#uebergeordnete-abschnitte-parts-bloecke" class="toc-link">
+4.2.3 Übergeordnete Abschnitte (Parts / Blöcke)
+          </a>
+        </li>
+  </ul>
+
+        </li>
+  </ul>
+
+        </li>
+        <li class="toc-item toc-item-h1">
+          <a href="#das-template-und-design-system" class="toc-link">
+5 Das Template- und Design-System
+          </a>
+              <ul class="toc-list">
+        <li class="toc-item toc-item-h2">
+          <a href="#theme-basierte-verzeichnisstruktur" class="toc-link">
+5.1 Theme-basierte Verzeichnisstruktur
+          </a>
+        </li>
+        <li class="toc-item toc-item-h2">
+          <a href="#die-3-stufige-aufloesungs-hierarchie" class="toc-link">
+5.2 Die 3-stufige Auflösungs-Hierarchie
+          </a>
+              <ul class="toc-list">
+        <li class="toc-item toc-item-h3">
+          <a href="#konfiguration-des-gemeinsamen-template-ordners" class="toc-link">
+5.2.1 Konfiguration des gemeinsamen Template-Ordners
+          </a>
+        </li>
+  </ul>
+
+        </li>
+        <li class="toc-item toc-item-h2">
+          <a href="#statische-texte-und-sprache" class="toc-link">
+5.3 Statische Texte und Sprache
+          </a>
+              <ul class="toc-list">
+        <li class="toc-item toc-item-h3">
+          <a href="#verfuegbare-schluessel" class="toc-link">
+5.3.1 Verfügbare Schlüssel
+          </a>
+        </li>
+        <li class="toc-item toc-item-h3">
+          <a href="#einzelne-texte-ueberschreiben" class="toc-link">
+5.3.2 Einzelne Texte überschreiben
+          </a>
+        </li>
+  </ul>
+
+        </li>
+        <li class="toc-item toc-item-h2">
+          <a href="#2-zeilige-kopf-und-fusszeilen" class="toc-link">
+5.4 2-zeilige Kopf- und Fußzeilen
+          </a>
+        </li>
+  </ul>
+
+        </li>
+        <li class="toc-item toc-item-h1">
+          <a href="#markdown-features-syntax" class="toc-link">
+6 Markdown-Features &amp; Syntax
+          </a>
+              <ul class="toc-list">
+        <li class="toc-item toc-item-h2">
+          <a href="#code-bloecke-syntax-highlighting" class="toc-link">
+6.1 Code-Blöcke &amp; Syntax Highlighting
+          </a>
+        </li>
+        <li class="toc-item toc-item-h2">
+          <a href="#tabellen" class="toc-link">
+6.2 Tabellen
+          </a>
+        </li>
+        <li class="toc-item toc-item-h2">
+          <a href="#github-style-callout-boxen-alerts" class="toc-link">
+6.3 GitHub-Style Callout-Boxen (Alerts)
+          </a>
+        </li>
+        <li class="toc-item toc-item-h2">
+          <a href="#tasklisten" class="toc-link">
+6.4 Tasklisten
+          </a>
+        </li>
+  </ul>
+
+        </li>
+        <li class="toc-item toc-item-part">
+          <a href="#part-anhaenge" class="toc-link">Anhänge</a>
+              <ul class="toc-list">
+        <li class="toc-item toc-item-h2">
+          <a href="#anhang-a-yaml-schema-referenz" class="toc-link">
+6.5 Anhang A: YAML-Schema-Referenz
+          </a>
+        </li>
+        <li class="toc-item toc-item-h3">
+          <a href="#dokumenten-eigenschaften-document" class="toc-link">
+6.5.1 Dokumenten-Eigenschaften (document)
+          </a>
+        </li>
+        <li class="toc-item toc-item-h3">
+          <a href="#kapitel-und-part-eigenschaften-chapters" class="toc-link">
+6.5.2 Kapitel- und Part-Eigenschaften (chapters)
+          </a>
+        </li>
+        <li class="toc-item toc-item-h2">
+          <a href="#anhang-b-fehlerbehebung-faq" class="toc-link">
+6.6 Anhang B: Fehlerbehebung &amp; FAQ
+          </a>
+        </li>
+        <li class="toc-item toc-item-h3">
+          <a href="#weasyprint-gtk-laufzeitumgebung-auf-windows" class="toc-link">
+6.6.1 WeasyPrint &amp; GTK-Laufzeitumgebung auf Windows
+          </a>
+        </li>
+        <li class="toc-item toc-item-h4">
+          <a href="#problem-cannot-load-library-libgobject-20-0" class="toc-link">
+6.6.1.1 Problem: cannot load library &#39;libgobject-2.0-0&#39;
+          </a>
+        </li>
+        <li class="toc-item toc-item-h3">
+          <a href="#bilder-werden-im-pdf-nicht-angezeigt" class="toc-link">
+6.6.2 Bilder werden im PDF nicht angezeigt
+          </a>
+        </li>
+        <li class="toc-item toc-item-h4">
+          <a href="#problem-leere-bildrahmen-oder-fehlende-grafiken" class="toc-link">
+6.6.2.1 Problem: Leere Bildrahmen oder fehlende Grafiken
+          </a>
+        </li>
+        <li class="toc-item toc-item-h3">
+          <a href="#inhaltsverzeichnis-zeigt-falsche-seitenzahlen" class="toc-link">
+6.6.3 Inhaltsverzeichnis zeigt falsche Seitenzahlen
+          </a>
+        </li>
+  </ul>
+
+        </li>
+  </ul>
+          </nav>
+        </aside>
+
+      <main class="main-content">
+<div class="cover-hero">
+  <h1 class="cover-title">markpublish Benutzerhandbuch</h1>
+    <div class="cover-subtitle">Moderne PDF- und HTML-Dokumentenerstellung aus Markdown</div>
+    <div class="cover-summary">
+      Dieses Handbuch bietet eine praxisorientierte Anleitung und vollständige Referenz zur Konfiguration, Template-Anpassung und Dokumentengenerierung mit markpublish.
+    </div>
+  <div class="cover-meta">
+<div><strong>Autor:</strong> Frank Winter</div><div><strong>Status:</strong> Freigegeben</div><div><strong>Version:</strong> 1.0.0</div><div><strong>Datum:</strong> 31.08.2026</div><div><strong>Copyright:</strong> © 2026 Frank Winter</div>  </div>
+</div>
+
+                <article class="chapter-article">
+<div class="chapter-divider-container">
+    <div class="chapter-tag">Kapitel 1</div>
+  <h1 class="chapter-divider-title">Einführung &amp; Architektur</h1>
+    <div class="chapter-divider-summary"><em>Überblick über Zielsetzung, Kernkonzepte und die modulare Verarbeitungs-Pipeline.</em></div>
+
+</div>
+      <div class="chapter-body">
+        <h1 id="einfuehrung-architektur"><span class="heading-number">1</span> Einführung &amp; Architektur</h1>
+<p>Willkommen beim <strong>markpublish Benutzerhandbuch</strong>. <code>markpublish</code> ist ein modernes, quelloffenes Publishing-Werkzeug, das aus einfachen Markdown-Dateien professionell gesetzte <strong>PDF-Publikationen</strong> und <strong>HTML-Vorschauen</strong> erzeugt.</p>
+<h2 id="motivation-zielsetzung"><span class="heading-number">1.1</span> Motivation &amp; Zielsetzung</h2>
+<p>Viele Dokumentationswerkzeuge erfordern entweder komplexe LaTeX-Setups oder beschränken sich auf reine HTML-Webseiten. <code>markpublish</code> verbindet die Einfachheit von Markdown mit der typografischen Präzision von <strong>CSS Paged Media</strong> über die <a href="https://weasyprint.org/">WeasyPrint</a>-Engine.</p>
+<h3 id="kernvorteile-auf-einen-blick"><span class="heading-number">1.1.1</span> Kernvorteile auf einen Blick:</h3>
+<ul>
+<li><strong>Modulare Kapitel</strong>: Jedes Kapitel wird als separate Markdown-Datei gepflegt.</li>
+<li><strong>Hierarchische Struktur</strong>: Beliebig tief schachtelbare Unterkapitel und übergeordnete Abschnitte (<em>Parts</em>).</li>
+<li><strong>Deklarative Steuerung</strong>: Ein zentrales Manifest (<code>markpublish.yaml</code>) steuert Inhalt, Metadaten und Layout.</li>
+<li><strong>W3C CSS Paged Media</strong>: Exakte Kontrolle über <code>@page</code>-Ränder, 2-zeilige Kopf- und Fußzeilen, Seitenzahlen und Trennseiten.</li>
+<li><strong>Erweiterbare Pipeline</strong>: Saubere Trennung zwischen Parser, Renderer und Template-Ebenen.</li>
+</ul>
+<h2 id="die-verarbeitungs-pipeline"><span class="heading-number">1.2</span> Die Verarbeitungs-Pipeline</h2>
+<p>Die Architektur von <code>markpublish</code> folgt einem mehrstufigen Prozess:</p>
+<ol>
+<li><strong>Konfigurations-Lader (<code>config.loader</code>)</strong>: Liest die YAML-Struktur ein, validiert Datentypen und löst dynamische Variablen (z. B. <code>date: auto</code>) auf.</li>
+<li><strong>Template-Resolver (<code>templates.resolver</code>)</strong>: Sucht nach der 3-stufigen Priorität (<em>User</em> &gt; <em>Common/Workspace</em> &gt; <em>Package</em>) nach dem passenden Theme für das Zielformat.</li>
+<li><strong>Markdown- &amp; TOC-Engine (<code>markdown.engine</code>)</strong>: Parst Markdown mit erweiterten Erweiterungen (Callouts, Tabellen, Pygments-Syntax-Highlighting), vergibt konsistente Überschriftennummern (<code>1.1</code>, <code>1.2</code>) und baut Inhaltsverzeichnisse auf.</li>
+<li><strong>Renderer (<code>renderers.pdf</code> &amp; <code>renderers.html</code>)</strong>: Übergibt die gerenderten HTML- und CSS-Fragmente an WeasyPrint für den PDF-Export oder speichert eigenständiges, responsives HTML.</li>
+</ol>
+      </div>
+    </article>
+
+
+                <article class="chapter-article">
+<div class="chapter-divider-container">
+    <div class="chapter-tag">Kapitel 2</div>
+  <h1 class="chapter-divider-title">Installation &amp; Schnellstart</h1>
+    <div class="chapter-divider-summary"><em>Schritt-für-Schritt-Anleitung zur Installation und Erstellung des ersten Dokuments.</em></div>
+
+    <nav class="local-toc">
+      <div class="local-toc-title">Inhalt dieses Kapitels</div>
+      <ul class="toc-list">
+          <li class="toc-item toc-item-h2">
+            <a href="#voraussetzungen" class="toc-link">
+2.1 Voraussetzungen
+            </a>
+          </li>
+          <li class="toc-item toc-item-h2">
+            <a href="#installation-via-pip" class="toc-link">
+2.2 Installation via pip
+            </a>
+          </li>
+          <li class="toc-item toc-item-h2">
+            <a href="#erstes-projekt-initialisieren" class="toc-link">
+2.3 Erstes Projekt initialisieren
+            </a>
+          </li>
+          <li class="toc-item toc-item-h2">
+            <a href="#dokument-erstellen" class="toc-link">
+2.4 Dokument erstellen
+            </a>
+          </li>
+      </ul>
+    </nav>
+</div>
+      <div class="chapter-body">
+        <h1 id="installation-schnellstart"><span class="heading-number">2</span> Installation &amp; Schnellstart</h1>
+<p>In diesem Kapitel erfahren Sie, wie Sie <code>markpublish</code> installieren und in weniger als zwei Minuten Ihr erstes Dokument kompilieren.</p>
+<h2 id="voraussetzungen"><span class="heading-number">2.1</span> Voraussetzungen</h2>
+<p><code>markpublish</code> benötigt <strong>Python 3.10 oder neuer</strong>. Es läuft nativ unter:
+- <strong>Windows</strong> (10, 11, Server)
+- <strong>macOS</strong> (Intel und Apple Silicon)
+- <strong>Linux</strong> (Debian, Ubuntu, Fedora, Arch, etc.)</p>
+<h2 id="installation-via-pip"><span class="heading-number">2.2</span> Installation via pip</h2>
+<p>Installieren Sie das Paket über den Python-Paketmanager:</p>
+<div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>markpublish
+</code></pre></div>
+<p>Für Entwickler oder zur Installation aus dem Quellcode:</p>
+<div class="highlight"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/your-username/markpublish.git
+<span class="nb">cd</span><span class="w"> </span>markpublish
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">".[dev]"</span>
+</code></pre></div>
+<h2 id="erstes-projekt-initialisieren"><span class="heading-number">2.3</span> Erstes Projekt initialisieren</h2>
+<p>Verwenden Sie den Befehl <code>init</code>, um eine neue Dokumentenstruktur zu erzeugen:</p>
+<div class="highlight"><pre><span></span><code>markpublish<span class="w"> </span>init<span class="w"> </span>mein-leitfaden<span class="w"> </span>--title<span class="w"> </span><span class="s2">"Mein Leitfaden"</span>
+<span class="nb">cd</span><span class="w"> </span>mein-leitfaden
+</code></pre></div>
+<p>Dieser Befehl erstellt die folgende Verzeichnisstruktur:</p>
+<div class="highlight"><pre><span></span><code>mein-leitfaden/
+├── markpublish.yaml          # Das Dokumenten-Manifest
+└── chapters/                 # Markdown-Kapiteldateien
+    ├── 01_introduction.md
+    ├── 02_architecture.md
+    ├── 02_1_details.md
+    └── 03_appendix.md
+</code></pre></div>
+<h2 id="dokument-erstellen"><span class="heading-number">2.4</span> Dokument erstellen</h2>
+<p>Rendern Sie Ihr Dokument mit dem <code>build</code>-Befehl:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># PDF erstellen (Standard)</span>
+markpublish<span class="w"> </span>build
+
+<span class="c1"># HTML-Vorschau erzeugen</span>
+markpublish<span class="w"> </span>build<span class="w"> </span>--target<span class="w"> </span>html
+
+<span class="c1"># Sowohl PDF als auch HTML in einem Durchgang bauen</span>
+markpublish<span class="w"> </span>build<span class="w"> </span>--target<span class="w"> </span>all
+</code></pre></div>
+<p>Die fertigen Dateien werden direkt im Projektordner abgelegt.</p>
+      </div>
+    </article>
+
+
+                <article class="chapter-article">
+<div class="chapter-divider-container">
+    <div class="chapter-tag">Kapitel 3</div>
+  <h1 class="chapter-divider-title">Die CLI-Befehle</h1>
+    <div class="chapter-divider-summary"><em>Detaillierte Erläuterung aller Befehle: build, init, templates und export-template.</em></div>
+
+    <nav class="local-toc">
+      <div class="local-toc-title">Inhalt dieses Kapitels</div>
+      <ul class="toc-list">
+          <li class="toc-item toc-item-h2">
+            <a href="#befehlsuebersicht" class="toc-link">
+3.1 Befehlsübersicht
+            </a>
+          </li>
+          <li class="toc-item toc-item-h2">
+            <a href="#markpublish-build" class="toc-link">
+3.2 markpublish build
+            </a>
+          </li>
+          <li class="toc-item toc-item-h2">
+            <a href="#markpublish-init" class="toc-link">
+3.3 markpublish init
+            </a>
+          </li>
+          <li class="toc-item toc-item-h2">
+            <a href="#markpublish-templates" class="toc-link">
+3.4 markpublish templates
+            </a>
+          </li>
+          <li class="toc-item toc-item-h2">
+            <a href="#markpublish-export-template" class="toc-link">
+3.5 markpublish export-template
+            </a>
+          </li>
+      </ul>
+    </nav>
+</div>
+      <div class="chapter-body">
+        <h1 id="die-cli-befehle"><span class="heading-number">3</span> Die CLI-Befehle</h1>
+<p><code>markpublish</code> bietet eine schlanke, intuitive Befehlszeilenschnittstelle (CLI), die über <code>markpublish</code> oder die Kurzform <code>mpub</code> aufgerufen werden kann.</p>
+<h2 id="befehlsuebersicht"><span class="heading-number">3.1</span> Befehlsübersicht</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Befehl</th>
+<th style="text-align: left;">Kurzbeschreibung</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>markpublish build</code></td>
+<td style="text-align: left;">Kompiliert das Dokument zu PDF und/oder HTML</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>markpublish init</code></td>
+<td style="text-align: left;">Erzeugt ein neues Projekt mit Beispieldateien</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>markpublish templates</code></td>
+<td style="text-align: left;">Listet alle gefundenen Templates und deren Quellen auf</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>markpublish export-template</code></td>
+<td style="text-align: left;">Exportiert ein Template zur individuellen Anpassung</td>
+</tr>
+</tbody>
+</table>
+<h2 id="markpublish-build"><span class="heading-number">3.2</span> <code>markpublish build</code></h2>
+<p>Kompiliert eine <code>markpublish.yaml</code>-Konfiguration.</p>
+<div class="highlight"><pre><span></span><code>markpublish<span class="w"> </span>build<span class="w"> </span><span class="o">[</span>CONFIG_FILE<span class="o">]</span><span class="w"> </span><span class="o">[</span>OPTIONEN<span class="o">]</span>
+</code></pre></div>
+<h3 id="argumente-optionen"><span class="heading-number">3.2.1</span> Argumente &amp; Optionen:</h3>
+<ul>
+<li><code>CONFIG_FILE</code> <em>(optional, Standard: <code>markpublish.yaml</code>)</em>: Pfad zur YAML-Datei.</li>
+<li><code>--target / -t</code> <em>(Standard: <code>pdf</code>)</em>: Zielformat (<code>pdf</code>, <code>html</code> oder <code>all</code>).</li>
+<li><code>--output / -o</code>: Benutzerdefinierter Ausgabepfad (Datei oder Verzeichnis).</li>
+<li><code>--templates-dir</code>: Spezifischer Pfad zu einem gemeinsamen Template-Verzeichnis.</li>
+</ul>
+<h3 id="beispiele"><span class="heading-number">3.2.2</span> Beispiele:</h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Standard-Build aus aktuellem Verzeichnis</span>
+markpublish<span class="w"> </span>build
+
+<span class="c1"># HTML-Version in ein bestimmtes Zielverzeichnis ausgeben</span>
+markpublish<span class="w"> </span>build<span class="w"> </span>markpublish.yaml<span class="w"> </span>-t<span class="w"> </span>html<span class="w"> </span>-o<span class="w"> </span>dist/
+
+<span class="c1"># Benutzerdefiniertes Template-Verzeichnis nutzen</span>
+markpublish<span class="w"> </span>build<span class="w"> </span>--templates-dir<span class="w"> </span>/shared/company-templates
+</code></pre></div>
+<h2 id="markpublish-init"><span class="heading-number">3.3</span> <code>markpublish init</code></h2>
+<p>Initialisiert ein neues Projektverzeichnis.</p>
+<div class="highlight"><pre><span></span><code>markpublish<span class="w"> </span>init<span class="w"> </span><span class="o">[</span>ZIELORDNER<span class="o">]</span><span class="w"> </span><span class="o">[</span>--title<span class="w"> </span><span class="s2">"Titel"</span><span class="o">]</span>
+</code></pre></div>
+<h2 id="markpublish-templates"><span class="heading-number">3.4</span> <code>markpublish templates</code></h2>
+<p>Zeigt eine tabellarische Übersicht aller Templates auf dem System und deren Prioritätsstatus:</p>
+<div class="highlight"><pre><span></span><code>markpublish<span class="w"> </span>templates
+markpublish<span class="w"> </span>templates<span class="w"> </span>--target<span class="w"> </span>pdf
+</code></pre></div>
+<h2 id="markpublish-export-template"><span class="heading-number">3.5</span> <code>markpublish export-template</code></h2>
+<p>Kopiert das eingebaute Standard-Template in Ihr lokales Arbeitsverzeichnis:</p>
+<div class="highlight"><pre><span></span><code>markpublish<span class="w"> </span>export-template<span class="w"> </span>default<span class="w"> </span>templates
+</code></pre></div>
+      </div>
+    </article>
+
+
+                <article class="chapter-article">
+<div class="chapter-divider-container">
+    <div class="chapter-tag">Kapitel 4</div>
+  <h1 class="chapter-divider-title">Konfigurations-Leitfaden</h1>
+    <div class="chapter-divider-summary"><em>Deklarative Definition von Dokumentenmetadaten, Kapiteln und Hierarchien.</em></div>
+
+    <nav class="local-toc">
+      <div class="local-toc-title">Inhalt dieses Kapitels</div>
+      <ul class="toc-list">
+          <li class="toc-item toc-item-h2">
+            <a href="#das-document-objekt" class="toc-link">
+4.1 Das document-Objekt
+            </a>
+          </li>
+      </ul>
+    </nav>
+</div>
+      <div class="chapter-body">
+        <h1 id="konfigurations-leitfaden"><span class="heading-number">4</span> Konfigurations-Leitfaden</h1>
+<p>Die Datei <code>markpublish.yaml</code> ist das zentrale Steuerungsdokument jeder Publikation. Sie gliedert sich in Metadaten, Template-Einstellungen und Kapiteldefinitionen.</p>
+<h2 id="das-document-objekt"><span class="heading-number">4.1</span> Das <code>document</code>-Objekt</h2>
+<p>Unter <code>document:</code> werden alle globalen Metadaten und Schalter hinterlegt:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">document</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">title</span><span class="p">:</span><span class="w"> </span><span class="s">"markpublish</span><span class="nv"> </span><span class="s">Benutzerhandbuch"</span>
+<span class="w">  </span><span class="nt">subtitle</span><span class="p">:</span><span class="w"> </span><span class="s">"Moderne</span><span class="nv"> </span><span class="s">PDF-</span><span class="nv"> </span><span class="s">und</span><span class="nv"> </span><span class="s">HTML-Dokumentenerstellung"</span>
+<span class="w">  </span><span class="nt">summary</span><span class="p">:</span><span class="w"> </span><span class="s">"Kurze</span><span class="nv"> </span><span class="s">Zusammenfassung</span><span class="nv"> </span><span class="s">für</span><span class="nv"> </span><span class="s">Deckblatt</span><span class="nv"> </span><span class="s">und</span><span class="nv"> </span><span class="s">Metadaten."</span>
+<span class="w">  </span><span class="nt">author</span><span class="p">:</span><span class="w"> </span><span class="s">"Frank</span><span class="nv"> </span><span class="s">Winter"</span>
+<span class="w">  </span><span class="nt">organisation</span><span class="p">:</span><span class="w"> </span><span class="s">"WASDCAT</span><span class="nv"> </span><span class="s">Games"</span>
+<span class="w">  </span><span class="nt">date</span><span class="p">:</span><span class="w"> </span><span class="s">"auto"</span><span class="w">                    </span><span class="c1"># "auto" (Tagesdatum) oder festes Datum "2026-08-31"</span>
+<span class="w">  </span><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="s">"1.0.0"</span>
+<span class="w">  </span><span class="nt">language</span><span class="p">:</span><span class="w"> </span><span class="s">"de"</span><span class="w">                 </span><span class="c1"># Sprachcode für Silbentrennung &amp; Formatierung</span>
+
+<span class="w">  </span><span class="c1"># Globale Schalter</span>
+<span class="w">  </span><span class="nt">cover</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span><span class="w">                    </span><span class="c1"># Deckblatt an/aus</span>
+<span class="w">  </span><span class="nt">toc</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span><span class="w">                      </span><span class="c1"># Globales Inhaltsverzeichnis</span>
+<span class="w">  </span><span class="nt">autonum_type</span><span class="p">:</span><span class="w"> </span><span class="s">"decimal"</span><span class="w">        </span><span class="c1"># "decimal", "roman", "legal", "none"</span>
+<span class="w">  </span><span class="nt">header</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span><span class="w">                   </span><span class="c1"># 2-zeilige Kopfzeile</span>
+<span class="w">  </span><span class="nt">footer</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span><span class="w">                   </span><span class="c1"># 2-zeilige Fußzeile</span>
+</code></pre></div>
+<h3 id="automatische-datumsaufloesung"><span class="heading-number">4.1.1</span> Automatische Datumsauflösung</h3>
+<p>Wird <code>date: "auto"</code> oder <code>date: "today"</code> angegeben, generiert <code>markpublish</code> automatisch das aktuelle Datum im passenden Sprachformat:
+- <code>language: "de"</code> $\rightarrow$ <code>31.08.2026</code>
+- <code>language: "en"</code> $\rightarrow$ <code>2026-08-31</code></p>
+<h3 id="zusaetzliche-metadatenfelder"><span class="heading-number">4.1.2</span> Zusätzliche Metadatenfelder</h3>
+<p>Beliebige zusätzliche Schlüssel (z. B. <code>status: "Entwurf"</code>, <code>department: "IT-Architektur"</code>) können frei definiert werden und stehen in allen Jinja2-Templates über <code>document.&lt;feldname&gt;</code> zur Verfügung.</p>
+      </div>
+    </article>
+
+          <article class="chapter-article">
+
+      <div class="chapter-body">
+        <h1 id="kapitel-unterkapitel-und-parts"><span class="heading-number">4.2</span> Kapitel, Unterkapitel und Parts</h1>
+<p><code>markpublish</code> unterstützt eine flexible und intuitive Strukturierung von Dokumenten.</p>
+<h2 id="kapitel-definition"><span class="heading-number">4.2.1</span> Kapitel-Definition</h2>
+<p>Ein einfaches Kapitel wird mit <code>file:</code>, optionalem <code>title:</code> und <code>summary:</code> angegeben:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">chapters</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">file</span><span class="p">:</span><span class="w"> </span><span class="s">"chapters/01_intro.md"</span>
+<span class="w">    </span><span class="nt">title</span><span class="p">:</span><span class="w"> </span><span class="s">"Einleitung"</span>
+<span class="w">    </span><span class="nt">summary</span><span class="p">:</span><span class="w"> </span><span class="s">"Zielsetzung</span><span class="nv"> </span><span class="s">des</span><span class="nv"> </span><span class="s">Leitfadens."</span>
+<span class="w">    </span><span class="nt">divider_page</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span><span class="w">           </span><span class="c1"># Erzeugt eine Trennseite vor dem Kapitel</span>
+<span class="w">    </span><span class="nt">toc</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span><span class="w">                   </span><span class="c1"># Kein kapitelweises Mini-TOC</span>
+</code></pre></div>
+<h2 id="hierarchische-unterkapitel"><span class="heading-number">4.2.2</span> Hierarchische Unterkapitel</h2>
+<p>Um ein Unterkapitel zu definieren, rücken Sie einfach weitere Kapitel unter <code>chapters:</code> ein:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">chapters</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">file</span><span class="p">:</span><span class="w"> </span><span class="s">"chapters/02_architecture.md"</span>
+<span class="w">    </span><span class="nt">title</span><span class="p">:</span><span class="w"> </span><span class="s">"Systemarchitektur"</span>
+<span class="w">    </span><span class="nt">divider_page</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">    </span><span class="nt">toc</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span><span class="w">                       </span><span class="c1"># Mini-TOC bis Überschriftstiefe 2</span>
+<span class="w">    </span><span class="nt">chapters</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">file</span><span class="p">:</span><span class="w"> </span><span class="s">"chapters/02_1_backend.md"</span>
+<span class="w">        </span><span class="nt">title</span><span class="p">:</span><span class="w"> </span><span class="s">"Backend</span><span class="nv"> </span><span class="s">Services"</span>
+<span class="w">        </span><span class="nt">divider_page</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">file</span><span class="p">:</span><span class="w"> </span><span class="s">"chapters/02_2_frontend.md"</span>
+<span class="w">        </span><span class="nt">title</span><span class="p">:</span><span class="w"> </span><span class="s">"Frontend</span><span class="nv"> </span><span class="s">Client"</span>
+<span class="w">        </span><span class="nt">divider_page</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+</code></pre></div>
+<p><code>markpublish</code> nummeriert die Unterkapitel automatisch konsistent als <code>2.1</code> und <code>2.2</code>.</p>
+<h2 id="uebergeordnete-abschnitte-parts-bloecke"><span class="heading-number">4.2.3</span> Übergeordnete Abschnitte (Parts / Blöcke)</h2>
+<p>Für Hauptabschnitte oder Anhangsblöcke, die mehrere Kapitel umfassen, verwenden Sie das Schlüsselwort <code>part:</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">chapters</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">part</span><span class="p">:</span><span class="w"> </span><span class="s">"Anhänge"</span>
+<span class="w">    </span><span class="nt">summary</span><span class="p">:</span><span class="w"> </span><span class="s">"Ergänzende</span><span class="nv"> </span><span class="s">Tabellen</span><span class="nv"> </span><span class="s">und</span><span class="nv"> </span><span class="s">Referenzen."</span>
+<span class="w">    </span><span class="nt">divider_page</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span><span class="w">           </span><span class="c1"># Große Trennseite für den gesamten Anhang</span>
+<span class="w">    </span><span class="nt">autonum</span><span class="p">:</span><span class="w"> </span><span class="s">"none"</span><span class="w">              </span><span class="c1"># Keine vorangestellte Ziffer</span>
+<span class="w">    </span><span class="nt">chapters</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">file</span><span class="p">:</span><span class="w"> </span><span class="s">"chapters/appendix_a.md"</span>
+<span class="w">        </span><span class="nt">title</span><span class="p">:</span><span class="w"> </span><span class="s">"Anhang</span><span class="nv"> </span><span class="s">A:</span><span class="nv"> </span><span class="s">Referenz"</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">file</span><span class="p">:</span><span class="w"> </span><span class="s">"chapters/appendix_b.md"</span>
+<span class="w">        </span><span class="nt">title</span><span class="p">:</span><span class="w"> </span><span class="s">"Anhang</span><span class="nv"> </span><span class="s">B:</span><span class="nv"> </span><span class="s">Glossar"</span>
+</code></pre></div>
+<p>Der Part-Titel (z. B. <em>&ldquo;Anhänge&rdquo;</em>) wird automatisch in die laufenden 2-zeiligen Kopfzeilen der Einzelseiten übernommen.</p>
+      </div>
+    </article>
+
+
+
+                <article class="chapter-article">
+<div class="chapter-divider-container">
+    <div class="chapter-tag">Kapitel 5</div>
+  <h1 class="chapter-divider-title">Das Template- und Design-System</h1>
+    <div class="chapter-divider-summary"><em>3-stufige Auflösungshierarchie, CSS Paged Media und 2-zeilige Kopf-/Fußzeilen.</em></div>
+
+    <nav class="local-toc">
+      <div class="local-toc-title">Inhalt dieses Kapitels</div>
+      <ul class="toc-list">
+          <li class="toc-item toc-item-h2">
+            <a href="#theme-basierte-verzeichnisstruktur" class="toc-link">
+5.1 Theme-basierte Verzeichnisstruktur
+            </a>
+          </li>
+          <li class="toc-item toc-item-h2">
+            <a href="#die-3-stufige-aufloesungs-hierarchie" class="toc-link">
+5.2 Die 3-stufige Auflösungs-Hierarchie
+            </a>
+          </li>
+          <li class="toc-item toc-item-h2">
+            <a href="#statische-texte-und-sprache" class="toc-link">
+5.3 Statische Texte und Sprache
+            </a>
+          </li>
+          <li class="toc-item toc-item-h2">
+            <a href="#2-zeilige-kopf-und-fusszeilen" class="toc-link">
+5.4 2-zeilige Kopf- und Fußzeilen
+            </a>
+          </li>
+      </ul>
+    </nav>
+</div>
+      <div class="chapter-body">
+        <h1 id="das-template-und-design-system"><span class="heading-number">5</span> Das Template- und Design-System</h1>
+<p>Das Template-System von <code>markpublish</code> ermöglicht vollständige visuelle Anpassbarkeit bei gleichzeitiger Wartbarkeit.</p>
+<h2 id="theme-basierte-verzeichnisstruktur"><span class="heading-number">5.1</span> Theme-basierte Verzeichnisstruktur</h2>
+<p>Templates sind nach Theme gruppiert, darunter liegt das Ausgabeformat. So gehören
+alle Dateien eines Designs zusammen und ein Theme lässt sich als Ganzes kopieren,
+weitergeben oder versionieren:</p>
+<div class="highlight"><pre><span></span><code>templates/
+└── default/                       # Theme-Name
+    ├── pdf/
+    │   ├── layout.html            # HTML-Grundgerüst
+    │   ├── styles.css             # CSS Paged Media &amp; 2-zeilige Kopf-/Fußzeilen
+    │   ├── cover.html             # Deckblatt-Template
+    │   ├── part_divider.html      # Trennseite für übergeordnete Parts
+    │   ├── chapter_divider.html   # Trennseite für Kapitel mit Mini-TOC
+    │   └── toc.html               # Globales Inhaltsverzeichnis
+    └── html/
+        ├── layout.html            # Standalone Web-Layout
+        ├── styles.css             # Screen/Responsive Stylesheet
+        └── ...
+</code></pre></div>
+<div class="admonition note">
+<p class="admonition-title">Hinweis</p>
+<p>Bis einschließlich Version 0.1 lag die Struktur umgekehrt (<code>templates/pdf/default</code>).
+Templates im alten Layout werden weiterhin gefunden, <code>markpublish templates</code> markiert
+sie in der Spalte <em>Layout</em> und gibt einen Hinweis aus. Verschieben Sie sie bei
+Gelegenheit — die alte Auflösung entfällt in einer künftigen Version.</p>
+</div>
+<h2 id="die-3-stufige-aufloesungs-hierarchie"><span class="heading-number">5.2</span> Die 3-stufige Auflösungs-Hierarchie</h2>
+<p>Beim Suchen nach einem Template (z. B. <code>default/pdf</code>) gilt folgende strikte Priorität:</p>
+<div class="highlight"><pre><span></span><code>1. User-Verzeichnis (~/.markpublish/templates/default/pdf/)
+   │ (höchste Priorität)
+   ▼
+2. Gemeinsamer / Projekt-Ordner (&lt;templates_dir&gt;/default/pdf/)
+   │
+   ▼
+3. Paket Built-in (im markpublish Python-Paket)
+</code></pre></div>
+<h3 id="konfiguration-des-gemeinsamen-template-ordners"><span class="heading-number">5.2.1</span> Konfiguration des gemeinsamen Template-Ordners</h3>
+<p>Sie können den gemeinsamen Template-Pfad auf 4 Wegen festlegen:
+1. <strong>CLI-Parameter</strong>: <code>markpublish build --templates-dir /pfad/zu/templates</code>
+2. <strong>In <code>markpublish.yaml</code></strong>: <code>templates_dir: "./custom-templates"</code>
+3. <strong>Umgebungsvariable</strong>: <code>MARKPUBLISH_TEMPLATES_DIR=/pfad/zu/templates</code>
+4. <strong>Automatischer Fallback</strong>: <code>./templates</code> im Projektordner.</p>
+<h2 id="statische-texte-und-sprache"><span class="heading-number">5.3</span> Statische Texte und Sprache</h2>
+<p>Die festen Beschriftungen in den Templates — Überschrift des Inhaltsverzeichnisses,
+Kapitel-Marken, Cover-Labels, Seitenzahl-Fußzeile — stehen nicht im Template selbst,
+sondern in einer Übersetzungstabelle. Ausgewählt wird sie über <code>document.language</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">document</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">title</span><span class="p">:</span><span class="w"> </span><span class="s">"User</span><span class="nv"> </span><span class="s">Guide"</span>
+<span class="w">  </span><span class="nt">language</span><span class="p">:</span><span class="w"> </span><span class="s">"en"</span><span class="w">      </span><span class="c1"># steuert Beschriftungen, Callout-Titel und Datumsformat</span>
+</code></pre></div>
+<p>Mitgeliefert sind <code>de</code> und <code>en</code>. Regionale Formen werden zugeordnet (<code>de-AT</code> → <code>de</code>),
+eine unbekannte Sprache fällt auf Englisch zurück.</p>
+<h3 id="verfuegbare-schluessel"><span class="heading-number">5.3.1</span> Verfügbare Schlüssel</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Schlüssel</th>
+<th style="text-align: left;"><code>de</code></th>
+<th style="text-align: left;"><code>en</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>toc_title</code></td>
+<td style="text-align: left;">Inhaltsverzeichnis</td>
+<td style="text-align: left;">Table of Contents</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>toc_sidebar</code></td>
+<td style="text-align: left;">Inhalt</td>
+<td style="text-align: left;">Contents</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>chapter_toc_title</code></td>
+<td style="text-align: left;">Inhalt dieses Kapitels</td>
+<td style="text-align: left;">In this chapter</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>chapter</code></td>
+<td style="text-align: left;">Kapitel</td>
+<td style="text-align: left;">Chapter</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>part</code></td>
+<td style="text-align: left;">Teil</td>
+<td style="text-align: left;">Part</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>author</code></td>
+<td style="text-align: left;">Autor</td>
+<td style="text-align: left;">Author</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>status</code></td>
+<td style="text-align: left;">Status</td>
+<td style="text-align: left;">Status</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>version</code></td>
+<td style="text-align: left;">Version</td>
+<td style="text-align: left;">Version</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>date</code></td>
+<td style="text-align: left;">Datum</td>
+<td style="text-align: left;">Date</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>copyright</code></td>
+<td style="text-align: left;">Copyright</td>
+<td style="text-align: left;">Copyright</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>page</code></td>
+<td style="text-align: left;">Seite</td>
+<td style="text-align: left;">Page</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>page_of</code></td>
+<td style="text-align: left;">von</td>
+<td style="text-align: left;">of</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>alert_note</code></td>
+<td style="text-align: left;">Hinweis</td>
+<td style="text-align: left;">Note</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>alert_tip</code></td>
+<td style="text-align: left;">Tipp</td>
+<td style="text-align: left;">Tip</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>alert_important</code></td>
+<td style="text-align: left;">Wichtig</td>
+<td style="text-align: left;">Important</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>alert_warning</code></td>
+<td style="text-align: left;">Warnung</td>
+<td style="text-align: left;">Warning</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>alert_caution</code></td>
+<td style="text-align: left;">Achtung</td>
+<td style="text-align: left;">Caution</td>
+</tr>
+</tbody>
+</table>
+<h3 id="einzelne-texte-ueberschreiben"><span class="heading-number">5.3.2</span> Einzelne Texte überschreiben</h3>
+<p>Unter <code>document.labels</code> lässt sich jeder Schlüssel gezielt ersetzen, ohne ein Template
+anzufassen:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">document</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">language</span><span class="p">:</span><span class="w"> </span><span class="s">"de"</span>
+<span class="w">  </span><span class="nt">labels</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">chapter_toc_title</span><span class="p">:</span><span class="w"> </span><span class="s">"Auf</span><span class="nv"> </span><span class="s">dieser</span><span class="nv"> </span><span class="s">Seite"</span>
+<span class="w">    </span><span class="nt">part</span><span class="p">:</span><span class="w"> </span><span class="s">"Abschnitt"</span>
+</code></pre></div>
+<p>Dieselbe Stelle dient dazu, eine noch nicht mitgelieferte Sprache vollständig selbst zu
+setzen — die Tabelle wird geschichtet: Englisch als Basis, darüber die Dokumentsprache,
+darüber <code>labels</code>. Ein fehlender Eintrag erzeugt deshalb nie einen leeren Text.</p>
+<div class="admonition tip">
+<p class="admonition-title">Tipp</p>
+<p>In eigenen Templates greifen Sie mit <code>{{ labels.chapter }}</code> auf die Tabelle zu — auch
+in <code>styles.css</code>, das durch dieselbe Jinja-Umgebung läuft. So ist die Fußzeile
+<code>"{{ labels.page }} " counter(page) " {{ labels.page_of }} " counter(pages)</code> gebaut.</p>
+</div>
+<h2 id="2-zeilige-kopf-und-fusszeilen"><span class="heading-number">5.4</span> 2-zeilige Kopf- und Fußzeilen</h2>
+<p>Kopf- und Fußzeilen werden im Template via CSS Paged Media <code>@page</code> Margin-Boxes definiert:</p>
+<div class="highlight"><pre><span></span><code><span class="p">@</span><span class="k">page</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nt">size</span><span class="o">:</span><span class="w"> </span><span class="nt">A4</span><span class="o">;</span>
+<span class="w">  </span><span class="nt">margin</span><span class="o">:</span><span class="w"> </span><span class="nt">25mm</span><span class="w"> </span><span class="nt">20mm</span><span class="w"> </span><span class="nt">25mm</span><span class="w"> </span><span class="nt">20mm</span><span class="o">;</span>
+
+<span class="w">  </span><span class="p">@</span><span class="k">top-left</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">content</span><span class="o">:</span><span class="w"> </span><span class="s2">"{{ document.title }}\A"</span><span class="w"> </span><span class="nt">string</span><span class="o">(</span><span class="nt">current_section</span><span class="o">);</span>
+<span class="w">    </span><span class="nt">font-size</span><span class="o">:</span><span class="w"> </span><span class="nt">8pt</span><span class="o">;</span>
+<span class="w">    </span><span class="nt">white-space</span><span class="o">:</span><span class="w"> </span><span class="nt">pre-wrap</span><span class="o">;</span>
+<span class="w">    </span><span class="nt">border-bottom</span><span class="o">:</span><span class="w"> </span><span class="nt">0</span><span class="p">.</span><span class="nc">5pt</span><span class="w"> </span><span class="nt">solid</span><span class="w"> </span><span class="p">#</span><span class="nn">cbd5e1</span><span class="o">;</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="p">@</span><span class="k">top-right</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">content</span><span class="o">:</span><span class="w"> </span><span class="s2">"v{{ document.version }}\A{{ document.date }}"</span><span class="o">;</span>
+<span class="w">    </span><span class="nt">font-size</span><span class="o">:</span><span class="w"> </span><span class="nt">8pt</span><span class="o">;</span>
+<span class="w">    </span><span class="nt">text-align</span><span class="o">:</span><span class="w"> </span><span class="nt">right</span><span class="o">;</span>
+<span class="w">    </span><span class="nt">white-space</span><span class="o">:</span><span class="w"> </span><span class="nt">pre-wrap</span><span class="o">;</span>
+<span class="w">    </span><span class="nt">border-bottom</span><span class="o">:</span><span class="w"> </span><span class="nt">0</span><span class="p">.</span><span class="nc">5pt</span><span class="w"> </span><span class="nt">solid</span><span class="w"> </span><span class="p">#</span><span class="nn">cbd5e1</span><span class="o">;</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="p">@</span><span class="k">bottom-left</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">content</span><span class="o">:</span><span class="w"> </span><span class="s2">"{{ document.author or '' }}\A{{ document.copyright or document.status or '' }}"</span><span class="o">;</span>
+<span class="w">    </span><span class="nt">font-size</span><span class="o">:</span><span class="w"> </span><span class="nt">8pt</span><span class="o">;</span>
+<span class="w">    </span><span class="nt">white-space</span><span class="o">:</span><span class="w"> </span><span class="nt">pre-wrap</span><span class="o">;</span>
+<span class="w">    </span><span class="nt">border-top</span><span class="o">:</span><span class="w"> </span><span class="nt">0</span><span class="p">.</span><span class="nc">5pt</span><span class="w"> </span><span class="nt">solid</span><span class="w"> </span><span class="p">#</span><span class="nn">cbd5e1</span><span class="o">;</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="p">@</span><span class="k">bottom-right</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">content</span><span class="o">:</span><span class="w"> </span><span class="s2">"Seite "</span><span class="w"> </span><span class="nt">counter</span><span class="o">(</span><span class="nt">page</span><span class="o">)</span><span class="w"> </span><span class="s2">" von "</span><span class="w"> </span><span class="nt">counter</span><span class="o">(</span><span class="nt">pages</span><span class="o">);</span>
+<span class="w">    </span><span class="nt">font-size</span><span class="o">:</span><span class="w"> </span><span class="nt">8pt</span><span class="o">;</span>
+<span class="w">    </span><span class="nt">text-align</span><span class="o">:</span><span class="w"> </span><span class="nt">right</span><span class="o">;</span>
+<span class="w">    </span><span class="nt">border-top</span><span class="o">:</span><span class="w"> </span><span class="nt">0</span><span class="p">.</span><span class="nc">5pt</span><span class="w"> </span><span class="nt">solid</span><span class="w"> </span><span class="p">#</span><span class="nn">cbd5e1</span><span class="o">;</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+      </div>
+    </article>
+
+
+                <article class="chapter-article">
+<div class="chapter-divider-container">
+    <div class="chapter-tag">Kapitel 6</div>
+  <h1 class="chapter-divider-title">Markdown-Features &amp; Syntax</h1>
+    <div class="chapter-divider-summary"><em>Tabellen, Admonitions/Callouts, Pygments Syntax-Highlighting und Tasklisten.</em></div>
+
+</div>
+      <div class="chapter-body">
+        <h1 id="markdown-features-syntax"><span class="heading-number">6</span> Markdown-Features &amp; Syntax</h1>
+<p><code>markpublish</code> beinhaltet eine leistungsfähige Markdown-Engine mit voller Unterstützung moderner Dokumentations-Elemente.</p>
+<h2 id="code-bloecke-syntax-highlighting"><span class="heading-number">6.1</span> Code-Blöcke &amp; Syntax Highlighting</h2>
+<p>Quellcode wird durch Pygments hervorgehoben:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">markpublish.config.loader</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_config</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">markpublish.markdown.engine</span><span class="w"> </span><span class="kn">import</span> <span class="n">MarkdownPipeline</span>
+
+<span class="c1"># Manifest laden</span>
+<span class="n">config</span> <span class="o">=</span> <span class="n">load_config</span><span class="p">(</span><span class="s2">"markpublish.yaml"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Building: </span><span class="si">{</span><span class="n">config</span><span class="o">.</span><span class="n">document</span><span class="o">.</span><span class="n">title</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</code></pre></div>
+<h2 id="tabellen"><span class="heading-number">6.2</span> Tabellen</h2>
+<p>Tabellen werden mit sauberem CSS-Zebramuster und Seitenumbruchschutz gerendert:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Parameter</th>
+<th style="text-align: left;">Typ</th>
+<th style="text-align: left;">Standard</th>
+<th style="text-align: left;">Beschreibung</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>title</code></td>
+<td style="text-align: left;">String</td>
+<td style="text-align: left;"><em>Pflicht</em></td>
+<td style="text-align: left;">Haupttitel des Dokuments</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>author</code></td>
+<td style="text-align: left;">String</td>
+<td style="text-align: left;"><code>None</code></td>
+<td style="text-align: left;">Name des Autors</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>status</code></td>
+<td style="text-align: left;">String</td>
+<td style="text-align: left;"><code>None</code></td>
+<td style="text-align: left;">Dokumentstatus (z.B. &ldquo;Freigegeben&rdquo;, &ldquo;Draft&rdquo;)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>copyright</code></td>
+<td style="text-align: left;">String</td>
+<td style="text-align: left;"><code>None</code></td>
+<td style="text-align: left;">Copyright-Vermerk (z.B. &ldquo;© 2026 Frank Winter&rdquo;)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>version</code></td>
+<td style="text-align: left;">String</td>
+<td style="text-align: left;"><code>"1.0.0"</code></td>
+<td style="text-align: left;">Versionskennung</td>
+</tr>
+</tbody>
+</table>
+<h2 id="github-style-callout-boxen-alerts"><span class="heading-number">6.3</span> GitHub-Style Callout-Boxen (Alerts)</h2>
+<p><code>markpublish</code> unterstützt die gängige <strong>GitHub-Alert-Syntax</strong> mit fünf semantischen Typen. Die Icons stammen dabei direkt aus dem Template:</p>
+<div class="admonition note">
+<p class="admonition-title">Hinweis</p>
+<p>Dies ist eine informative Notiz mit blauem Akzent und passendem Info-Icon.</p>
+</div>
+<div class="admonition tip">
+<p class="admonition-title">Tipp</p>
+<p>Nutzen Sie <code>markpublish build --target all</code>, um PDF und HTML parallel in einem Durchgang zu erstellen.</p>
+</div>
+<div class="admonition important">
+<p class="admonition-title">Wichtig</p>
+<p>GitHub-Callouts werden automatisch anhand der Dokumentensprache lokalisiert (z. B. <em>Hinweis</em>, <em>Tipp</em>, <em>Wichtig</em>, <em>Warnung</em>, <em>Achtung</em>).</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warnung</p>
+<p>Achten Sie bei relativen Bildpfaden darauf, dass diese relativ zur jeweiligen Markdown-Datei liegen.</p>
+</div>
+<div class="admonition caution">
+<p class="admonition-title">Achtung</p>
+<p>Fehlerhafte YAML-Einrückungen führen zu Abbruchfehlern beim Parsen des Manifests.</p>
+</div>
+<div class="admonition tip">
+<p class="admonition-title">Eigener Titel</p>
+<p>Sie können nach dem Alert-Typ auch einen individuellen Titel angeben, der die Standardbeschriftung überschreibt.</p>
+</div>
+<p>Alternativ wird auch weiterhin die klassische <code>!!! note</code>-Syntax unterstützt.</p>
+<h2 id="tasklisten"><span class="heading-number">6.4</span> Tasklisten</h2>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Projekt initialisieren</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Kapitel schreiben</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Dokument veröffentlichen</li>
+</ul>
+      </div>
+    </article>
+
+
+            <section class="part-section" id="part-anhaenge">
+<div class="part-divider-container">
+  <div class="part-tag">Teil</div>
+  <h1 class="part-title">Anhänge</h1>
+    <div class="part-summary">Vollständige Spezifikations-Tabellen, Troubleshooting und Best Practices.</div>
+</div>
+
+                    <article class="chapter-article">
+
+      <div class="chapter-body">
+        <h1 id="anhang-a-yaml-schema-referenz"><span class="heading-number">6.5</span> Anhang A: YAML-Schema-Referenz</h1>
+<p>Vollständige Übersicht aller Konfigurationsoptionen in <code>markpublish.yaml</code>.</p>
+<h2 id="dokumenten-eigenschaften-document"><span class="heading-number">6.5.1</span> Dokumenten-Eigenschaften (<code>document</code>)</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Schlüssel</th>
+<th style="text-align: left;">Typ</th>
+<th style="text-align: left;">Standard</th>
+<th style="text-align: left;">Beschreibung</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>title</code></td>
+<td style="text-align: left;">String</td>
+<td style="text-align: left;"><em>Pflicht</em></td>
+<td style="text-align: left;">Titel der Publikation</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>subtitle</code></td>
+<td style="text-align: left;">String</td>
+<td style="text-align: left;"><code>null</code></td>
+<td style="text-align: left;">Untertitel</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>summary</code></td>
+<td style="text-align: left;">String</td>
+<td style="text-align: left;"><code>null</code></td>
+<td style="text-align: left;">Zusammenfassung für Deckblatt</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>author</code></td>
+<td style="text-align: left;">String</td>
+<td style="text-align: left;"><code>null</code></td>
+<td style="text-align: left;">Name des Autors</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>status</code></td>
+<td style="text-align: left;">String</td>
+<td style="text-align: left;"><code>null</code></td>
+<td style="text-align: left;">Dokumentstatus (z. B. &ldquo;Entwurf&rdquo;, &ldquo;Freigegeben&rdquo;)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>copyright</code></td>
+<td style="text-align: left;">String</td>
+<td style="text-align: left;"><code>null</code></td>
+<td style="text-align: left;">Copyright-Angabe (z. B. &ldquo;© 2026 Frank Winter&rdquo;)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>date</code></td>
+<td style="text-align: left;">String</td>
+<td style="text-align: left;"><code>"auto"</code></td>
+<td style="text-align: left;">Datum oder <code>"auto"</code> für Tagesdatum</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>version</code></td>
+<td style="text-align: left;">String</td>
+<td style="text-align: left;"><code>"1.0.0"</code></td>
+<td style="text-align: left;">Versionskennung</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>language</code></td>
+<td style="text-align: left;">String</td>
+<td style="text-align: left;"><code>"de"</code></td>
+<td style="text-align: left;">ISO-Sprachcode (<code>de</code>, <code>en</code>, &hellip;). Steuert Template-Beschriftungen, Callout-Titel und Datumsformat</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>labels</code></td>
+<td style="text-align: left;">Map</td>
+<td style="text-align: left;"><code>{}</code></td>
+<td style="text-align: left;">Überschreibt einzelne statische Template-Texte, z. B. <code>toc_title: "Übersicht"</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>cover</code></td>
+<td style="text-align: left;">Bool</td>
+<td style="text-align: left;"><code>true</code></td>
+<td style="text-align: left;">Deckblatt aktivieren/deaktivieren</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>toc</code></td>
+<td style="text-align: left;">Bool</td>
+<td style="text-align: left;"><code>true</code></td>
+<td style="text-align: left;">Globales Inhaltsverzeichnis aktivieren</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>autonum_type</code></td>
+<td style="text-align: left;">String</td>
+<td style="text-align: left;"><code>"decimal"</code></td>
+<td style="text-align: left;"><code>"decimal"</code>, <code>"roman"</code>, <code>"legal"</code>, <code>"none"</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>header</code></td>
+<td style="text-align: left;">Bool</td>
+<td style="text-align: left;"><code>true</code></td>
+<td style="text-align: left;">2-zeilige Kopfzeile aktivieren</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>footer</code></td>
+<td style="text-align: left;">Bool</td>
+<td style="text-align: left;"><code>true</code></td>
+<td style="text-align: left;">2-zeilige Fußzeile aktivieren</td>
+</tr>
+</tbody>
+</table>
+<h2 id="kapitel-und-part-eigenschaften-chapters"><span class="heading-number">6.5.2</span> Kapitel- und Part-Eigenschaften (<code>chapters</code>)</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Schlüssel</th>
+<th style="text-align: left;">Typ</th>
+<th style="text-align: left;">Standard</th>
+<th style="text-align: left;">Beschreibung</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>file</code></td>
+<td style="text-align: left;">String</td>
+<td style="text-align: left;"><code>null</code></td>
+<td style="text-align: left;">Pfad zur Markdown-Datei</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>title</code></td>
+<td style="text-align: left;">String</td>
+<td style="text-align: left;"><code>null</code></td>
+<td style="text-align: left;">Überschreibt den Titel der Datei</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>summary</code></td>
+<td style="text-align: left;">String</td>
+<td style="text-align: left;"><code>null</code></td>
+<td style="text-align: left;">Zusammenfassung für Trennseite</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>part</code></td>
+<td style="text-align: left;">String</td>
+<td style="text-align: left;"><code>null</code></td>
+<td style="text-align: left;">Deklariert einen übergeordneten Part</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>divider_page</code></td>
+<td style="text-align: left;">Bool</td>
+<td style="text-align: left;"><code>false</code></td>
+<td style="text-align: left;">Fügt eine separate Trennseite ein</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>toc</code></td>
+<td style="text-align: left;">Bool/Int</td>
+<td style="text-align: left;"><code>false</code></td>
+<td style="text-align: left;">Lokales Kapitel-TOC (z. B. <code>2</code> für max. Tiefe)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>autonum</code></td>
+<td style="text-align: left;">String</td>
+<td style="text-align: left;"><code>null</code></td>
+<td style="text-align: left;">Lokaler Override des Nummerierungsstils</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>chapters</code></td>
+<td style="text-align: left;">Liste</td>
+<td style="text-align: left;"><code>[]</code></td>
+<td style="text-align: left;">Verschachtelte Unterkapitel</td>
+</tr>
+</tbody>
+</table>
+      </div>
+    </article>
+
+
+                    <article class="chapter-article">
+
+      <div class="chapter-body">
+        <h1 id="anhang-b-fehlerbehebung-faq"><span class="heading-number">6.6</span> Anhang B: Fehlerbehebung &amp; FAQ</h1>
+<p>Häufige Fragen und Lösungen bei der Dokumentenerstellung.</p>
+<h2 id="weasyprint-gtk-laufzeitumgebung-auf-windows"><span class="heading-number">6.6.1</span> WeasyPrint &amp; GTK-Laufzeitumgebung auf Windows</h2>
+<h3 id="problem-cannot-load-library-libgobject-20-0"><span class="heading-number">6.6.1.1</span> Problem: <code>cannot load library 'libgobject-2.0-0'</code></h3>
+<p>WeasyPrint benötigt auf Windows-Systemen die nativen C-Bibliotheken von Pango und GTK.</p>
+<p><strong>Lösung</strong>:
+<code>markpublish</code> sucht automatisch nach installierten GTK-Umgebungen (wie MSYS2, GTK3-Runtime, darktable oder Inkscape). Sollten diese fehlen, installieren Sie das offizielle GTK3-Runtime-Paket:
+- Download: <a href="https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer">GTK-for-Windows-Runtime-Environment-Installer</a>
+- Alternativ via MSYS2: <code>pacman -S mingw-w64-x86_64-pango</code></p>
+<h2 id="bilder-werden-im-pdf-nicht-angezeigt"><span class="heading-number">6.6.2</span> Bilder werden im PDF nicht angezeigt</h2>
+<h3 id="problem-leere-bildrahmen-oder-fehlende-grafiken"><span class="heading-number">6.6.2.1</span> Problem: Leere Bildrahmen oder fehlende Grafiken</h3>
+<p>WeasyPrint benötigt gültige relative Pfade oder absolute File-URIs.</p>
+<p><strong>Lösung</strong>:
+Geben Sie relative Bildpfade immer relativ zur jeweiligen Markdown-Datei an:
+<div class="highlight"><pre><span></span><code>![<span class="nt">Architekturdiagramm</span>](<span class="na">images/architecture.png</span>)
+</code></pre></div>
+<code>markpublish</code> löst relative Pfade automatisch zu absoluten Datei-URIs auf.</p>
+<h2 id="inhaltsverzeichnis-zeigt-falsche-seitenzahlen"><span class="heading-number">6.6.3</span> Inhaltsverzeichnis zeigt falsche Seitenzahlen</h2>
+<p>Das PDF-Rendering erfolgt in mehreren Layout-Durchläufen (Zweipass-Rendering von WeasyPrint). Stellen Sie sicher, dass alle internen Überschriften-IDs eindeutig sind – <code>markpublish</code> übernimmt diese Eindeutigkeit automatisch über seinen internen Slug-Generator.</p>
+      </div>
+    </article>
+
+
+            </section>
+      </main>
+    </div>
+
+      <footer class="site-footer">
+        <div class="footer-left">
+          <span>Frank Winter</span>
+        </div>
+        <div class="footer-right">
+          <span>markpublish Benutzerhandbuch — 31.08.2026</span>
+        </div>
+      </footer>
+  </div>
+
+</body>
+</html>

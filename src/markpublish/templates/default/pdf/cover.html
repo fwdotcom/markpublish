@@ -14,35 +14,35 @@
   <div class="cover-meta-grid">
     {% if document.author %}
     <div class="meta-item">
-      <div class="meta-item-label">Autor</div>
+      <div class="meta-item-label">{{ labels.author }}</div>
       <div class="meta-item-value">{{ document.author }}</div>
     </div>
     {% endif %}
 
     {% if document.status %}
     <div class="meta-item">
-      <div class="meta-item-label">Status</div>
+      <div class="meta-item-label">{{ labels.status }}</div>
       <div class="meta-item-value">{{ document.status }}</div>
     </div>
     {% endif %}
 
     {% if document.version %}
     <div class="meta-item">
-      <div class="meta-item-label">Version</div>
+      <div class="meta-item-label">{{ labels.version }}</div>
       <div class="meta-item-value">{{ document.version }}</div>
     </div>
     {% endif %}
 
     {% if document.date %}
     <div class="meta-item">
-      <div class="meta-item-label">Datum</div>
+      <div class="meta-item-label">{{ labels.date }}</div>
       <div class="meta-item-value">{{ document.date }}</div>
     </div>
     {% endif %}
 
     {% if document.copyright %}
     <div class="meta-item">
-      <div class="meta-item-label">Copyright</div>
+      <div class="meta-item-label">{{ labels.copyright }}</div>
       <div class="meta-item-value">{{ document.copyright }}</div>
     </div>
     {% endif %}

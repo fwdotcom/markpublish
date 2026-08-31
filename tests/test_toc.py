@@ -19,7 +19,7 @@ def test_roman_numerals():
 
 def test_autonumbering_decimal():
     ctx = NumberingContext(default_autonum_type=AutonumType.DECIMAL)
-    
+
     html = """
 <h1>First Chapter</h1>
 <h2>First Section</h2>

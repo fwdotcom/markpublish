@@ -3,13 +3,14 @@ Tests for Markdown parsing, extensions, and asset resolution.
 """
 
 from pathlib import Path
+
 from markpublish.markdown.assets import rewrite_html_asset_paths
 from markpublish.markdown.engine import MarkdownEngine
 
 
 def test_markdown_extensions():
     engine = MarkdownEngine()
-    
+
     # Table test
     table_md = """
 | Col 1 | Col 2 |
@@ -49,8 +50,21 @@ def test_asset_path_rewriting(tmp_path: Path):
 
     html = '<p><img src="images/diagram.png" alt="Diagram"></p>'
     rewritten = rewrite_html_asset_paths(html, tmp_path)
-    
-    assert img_file.as_uri() in rewritten
+
+    # Lokale Assets werden als Data-URI eingebettet, damit die erzeugte HTML-
+    # Datei portabel bleibt und nicht auf absolute file://-Pfade zeigt.
+    assert "data:image/png;base64," in rewritten
+    assert "file://" not in rewritten
+
+
+def test_asset_rewriting_leaves_remote_urls_alone(tmp_path: Path):
+    html = (
+        '<img src="https://example.com/a.png">'
+        '<img src="data:image/gif;base64,R0lGOD">'
+    )
+    rewritten = rewrite_html_asset_paths(html, tmp_path)
+    assert 'src="https://example.com/a.png"' in rewritten
+    assert 'src="data:image/gif;base64,R0lGOD"' in rewritten
 
 
 def test_github_alerts():

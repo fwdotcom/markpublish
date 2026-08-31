@@ -5,6 +5,7 @@ HTML Preview and Static Site Renderer for markpublish.
 from __future__ import annotations
 
 from pathlib import Path
+
 from markpublish.renderers.base import BaseRenderer, DocumentContext
 
 

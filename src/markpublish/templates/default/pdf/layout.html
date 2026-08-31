@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="{{ document.language or 'de' }}">
+<head>
+  <meta charset="utf-8">
+  <title>{{ document.title }}</title>
+  <style>
+    {{ rendered_css | safe }}
+  </style>
+</head>
+<body>
+
+  {# Rendert ein Kapitel samt aller Unterkapitel. Der Selbstaufruf am Ende ist
+     entscheidend: ohne ihn fallen verschachtelte Unterkapitel aus der Ausgabe,
+     obwohl ihre Ueberschriften im Inhaltsverzeichnis stehen.
+
+     Der Bezeichner in string-set muss exakt dem string() in der @page-Regel
+     entsprechen -- current-section, nicht current_section. #}
+  {% macro render_chapter(item, section_label) %}
+    <article class="chapter-article" style="string-set: current-section '{{ section_label | css_string }}';">
+      {% if item.divider_page %}
+        {% with chapter = item %}
+          {% include "chapter_divider.html" %}
+        {% endwith %}
+      {% endif %}
+
+      <div class="chapter-body">
+        {{ item.html_content | safe }}
+      </div>
+    </article>
+
+    {% for child in item.children %}
+      {{ render_chapter(child, section_label ~ " – " ~ child.display_title) }}
+    {% endfor %}
+  {% endmacro %}
+
+  {# 1. Deckblatt (Cover) #}
+  {% if document.cover %}
+    {% include "cover.html" %}
+  {% endif %}
+
+  {# 2. Globales Inhaltsverzeichnis (TOC) #}
+  {% if document.toc and toc_tree %}
+    {% include "toc.html" %}
+  {% endif %}
+
+  {# 3. Hauptinhalt: Parts und Kapitel #}
+  <main class="document-content">
+    {% for item in content_items %}
+      {% if item.is_part %}
+        <section class="part-section" id="part-{{ item.slug }}">
+          {% if item.divider_page %}
+            {% with part = item %}
+              {% include "part_divider.html" %}
+            {% endwith %}
+          {% endif %}
+
+          {% for child in item.children %}
+            {{ render_chapter(child, item.title ~ " – " ~ child.display_title) }}
+          {% endfor %}
+        </section>
+      {% else %}
+        {{ render_chapter(item, item.display_title) }}
+      {% endif %}
+    {% endfor %}
+  </main>
+
+</body>
+</html>

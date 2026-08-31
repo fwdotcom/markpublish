@@ -4,11 +4,11 @@ markpublish CLI Interface.
 
 from __future__ import annotations
 
-import os
 import shutil
 import sys
 from pathlib import Path
 from typing import List, Optional
+
 import typer
 from rich.console import Console
 from rich.panel import Panel
@@ -27,6 +27,7 @@ if sys.platform == "win32":
 from markpublish import __version__
 from markpublish.config.loader import load_config
 from markpublish.markdown.engine import MarkdownPipeline
+from markpublish.markdown.toc import slugify
 from markpublish.renderers.base import DocumentContext
 from markpublish.renderers.html import HTMLRenderer
 from markpublish.renderers.pdf import PDFRenderer
@@ -99,7 +100,7 @@ def build_cmd(
             config = load_config(config_file)
         except Exception as e:
             console.print(f"[bold red]Configuration error:[/bold red] {e}")
-            raise typer.Exit(code=1)
+            raise typer.Exit(code=1) from e
 
     console.print(
         Panel(
@@ -140,7 +141,7 @@ def build_cmd(
                 )
             except Exception as e:
                 console.print(f"[bold red]Template error for {tgt}:[/bold red] {e}")
-                raise typer.Exit(code=1)
+                raise typer.Exit(code=1) from e
 
             context = DocumentContext(
                 config=config,
@@ -152,7 +153,7 @@ def build_cmd(
             )
 
             # Determine output file path
-            doc_slug = config.document.title.lower().replace(" ", "_")
+            doc_slug = slugify(config.document.title, separator="_")
             if output:
                 if output.is_dir() or str(output).endswith(("/", "\\")):
                     out_file = output / f"{doc_slug}.{tgt}"
@@ -173,7 +174,7 @@ def build_cmd(
                 console.print(f"[bold green][OK][/bold green] {tgt.upper()} successfully generated: [cyan]{out_result}[/cyan]")
             except Exception as e:
                 console.print(f"[bold red]Rendering error ({tgt}):[/bold red] {e}")
-                raise typer.Exit(code=1)
+                raise typer.Exit(code=1) from e
 
 
 @app.command(name="init")
@@ -321,16 +322,29 @@ def templates_list_cmd(
     table.add_column("Target", style="yellow")
     table.add_column("Theme", style="bold")
     table.add_column("Source", style="cyan")
+    table.add_column("Layout", style="magenta")
     table.add_column("Active", justify="center")
     table.add_column("Path", style="dim")
 
+    has_legacy = False
     for t in all_tmpls:
         if target and t["target"] != target.lower().strip():
             continue
         active_str = "[bold green]Yes[/bold green]" if t["is_active"] else "[dim]No[/dim]"
-        table.add_row(t["target"], t["theme"], t["source"], active_str, t["path"])
+        legacy = t.get("layout") == "legacy"
+        has_legacy = has_legacy or legacy
+        layout_str = "[yellow]<target>/<theme>[/yellow]" if legacy else "[dim]<theme>/<target>[/dim]"
+        table.add_row(t["target"], t["theme"], t["source"], layout_str, active_str, t["path"])
 
     console.print(table)
+
+    if has_legacy:
+        console.print(
+            "\n[yellow]Hinweis:[/yellow] Die gelb markierten Templates liegen im alten Layout "
+            "[bold]<target>/<theme>[/bold]. Bitte nach [bold]<theme>/<target>[/bold] verschieben "
+            "(z. B. [cyan]templates/pdf/mytheme[/cyan] -> [cyan]templates/mytheme/pdf[/cyan]); "
+            "die alte Aufloesung entfaellt in einer kuenftigen Version."
+        )
 
 
 @app.command(name="export-template")
@@ -346,12 +360,12 @@ def export_template_cmd(
     targets = ["pdf", "html"] if target.lower() in ("all", "both") else [target.lower()]
 
     for tgt in targets:
-        src = pkg_base / tgt / theme
+        src = pkg_base / theme / tgt
         if not src.exists():
             console.print(f"[yellow]Warning:[/yellow] Built-in template '{theme}' for target '{tgt}' not found at {src}")
             continue
 
-        dest = destination / tgt / theme
+        dest = destination / theme / tgt
         dest.parent.mkdir(parents=True, exist_ok=True)
         shutil.copytree(src, dest, dirs_exist_ok=True)
         console.print(f"[bold green][OK][/bold green] Exported template [cyan]{tgt}/{theme}[/cyan] to [yellow]{dest}[/yellow]")

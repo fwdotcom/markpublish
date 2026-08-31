@@ -6,8 +6,10 @@ Manages resolution hierarchy: User directory > Common/Project directory > Packag
 from __future__ import annotations
 
 import os
+import warnings
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Union
+
 import platformdirs
 
 
@@ -58,6 +60,40 @@ def get_common_templates_dir(
     return None
 
 
+def _search_bases(
+    custom_templates_dir: Optional[Union[str, Path]] = None,
+    config_base_dir: Optional[Path] = None,
+) -> List[Tuple[str, Path]]:
+    """
+    Returns the template base directories in resolution order:
+    User > Common/Project > Package. Duplicates are dropped.
+    """
+    bases: List[Tuple[str, Path]] = [
+        ("user", get_user_templates_dir()),
+        ("user", Path.home() / ".markpublish" / "templates"),
+    ]
+
+    common_base = get_common_templates_dir(custom_templates_dir, config_base_dir)
+    if common_base:
+        bases.append(("common", common_base))
+
+    bases.append(("package", get_package_templates_dir()))
+
+    # get_user_templates_dir() gibt ~/.markpublish/templates zurueck, sobald es
+    # existiert - dann waeren die beiden User-Eintraege identisch.
+    deduped: List[Tuple[str, Path]] = []
+    seen: set = set()
+    for source_name, base_path in bases:
+        try:
+            key = base_path.resolve()
+        except OSError:
+            key = base_path
+        if key not in seen:
+            seen.add(key)
+            deduped.append((source_name, base_path))
+    return deduped
+
+
 def resolve_template_path(
     target: str,
     theme: str,
@@ -66,54 +102,55 @@ def resolve_template_path(
 ) -> Path:
     """
     Resolves the theme template directory for a given target format.
+
+    Layout is <base>/<theme>/<target>, e.g. templates/default/pdf. The older
+    <base>/<target>/<theme> layout is still resolved as a fallback so that
+    existing custom templates keep working, but it raises a DeprecationWarning
+    naming the directory to move.
+
     Hierarchy: User > Common/Project > Package.
-    
+
     Args:
         target: Target format, e.g. "pdf" or "html"
         theme: Theme name, e.g. "default"
         custom_templates_dir: Optional explicit templates directory path
         config_base_dir: Base directory of the config file
-        
+
     Returns:
         Resolved Path to template directory.
-        
+
     Raises:
         FileNotFoundError if no matching template directory is found.
     """
     target = target.lower().strip()
     theme = theme.lower().strip()
 
-    # 1. Check User Directory
-    user_dir = get_user_templates_dir() / target / theme
-    if user_dir.exists() and user_dir.is_dir():
-        return user_dir
+    bases = _search_bases(custom_templates_dir, config_base_dir)
 
-    # Also check ~/.markpublish/templates/<target>/<theme> directly if different from platformdirs
-    direct_home = Path.home() / ".markpublish" / "templates" / target / theme
-    if direct_home.exists() and direct_home.is_dir():
-        return direct_home
+    # 1. Aktuelles Layout: <base>/<theme>/<target>
+    for _, base_path in bases:
+        candidate = base_path / theme / target
+        if candidate.is_dir():
+            return candidate
 
-    # 2. Check Common / Project Directory
-    common_base = get_common_templates_dir(custom_templates_dir, config_base_dir)
-    if common_base:
-        common_dir = common_base / target / theme
-        if common_dir.exists() and common_dir.is_dir():
-            return common_dir
+    # 2. Altes Layout: <base>/<target>/<theme>
+    for _, base_path in bases:
+        legacy = base_path / target / theme
+        if legacy.is_dir():
+            warnings.warn(
+                f"Template '{theme}' liegt im alten Layout unter {legacy}. "
+                f"Bitte nach {base_path / theme / target} verschieben - "
+                "die Aufloesung ueber <target>/<theme> entfaellt in einer "
+                "kuenftigen Version.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            return legacy
 
-    # 3. Check Package Built-ins
-    pkg_dir = get_package_templates_dir() / target / theme
-    if pkg_dir.exists() and pkg_dir.is_dir():
-        return pkg_dir
-
-    searched_locations = [
-        str(user_dir),
-        str(direct_home),
-        str((common_base / target / theme) if common_base else "<none>"),
-        str(pkg_dir),
-    ]
+    searched = [str(base / theme / target) for _, base in bases]
     raise FileNotFoundError(
         f"Template '{theme}' for target '{target}' not found. Searched locations:\n"
-        + "\n".join(f" - {loc}" for loc in searched_locations)
+        + "\n".join(f" - {loc}" for loc in searched)
     )
 
 
@@ -123,50 +160,47 @@ def list_templates(
 ) -> List[Dict[str, str]]:
     """
     Lists all available templates across User, Common, and Package locations.
+
+    Reports both the current <theme>/<target> layout and the deprecated
+    <target>/<theme> one; the latter is marked via the "layout" key so
+    `markpublish templates` can point at what needs moving.
     """
     results: List[Dict[str, str]] = []
     seen: set = set()
 
-    sources: List[Tuple[str, Path]] = []
+    def add(target_name: str, theme_name: str, source: str, path: Path, layout: str) -> None:
+        if not ((path / "layout.html").is_file() or (path / "styles.css").is_file()):
+            return
+        key = (target_name, theme_name)
+        results.append({
+            "target": target_name,
+            "theme": theme_name,
+            "source": source,
+            "path": str(path),
+            "layout": layout,
+            "is_active": key not in seen,
+        })
+        seen.add(key)
 
-    # User dirs
-    sources.append(("user", get_user_templates_dir()))
-    sources.append(("user", Path.home() / ".markpublish" / "templates"))
+    known_targets = {"pdf", "html"}
 
-    # Common dir
-    common_base = get_common_templates_dir(custom_templates_dir, config_base_dir)
-    if common_base:
-        sources.append(("common", common_base))
-
-    # Package dir
-    sources.append(("package", get_package_templates_dir()))
-
-    for source_name, base_path in sources:
-        if not base_path.exists() or not base_path.is_dir():
+    for source_name, base_path in _search_bases(custom_templates_dir, config_base_dir):
+        if not base_path.is_dir():
             continue
 
-        for target_dir in base_path.iterdir():
-            if not target_dir.is_dir() or target_dir.name.startswith((".", "_")):
+        for entry in sorted(base_path.iterdir()):
+            if not entry.is_dir() or entry.name.startswith((".", "_")):
                 continue
-            target_name = target_dir.name
-            for theme_dir in target_dir.iterdir():
-                if not theme_dir.is_dir() or theme_dir.name.startswith((".", "_")):
-                    continue
-                theme_name = theme_dir.name
-                key = (target_name, theme_name)
-                
-                # Check if it has layout.html or styles.css
-                has_layout = (theme_dir / "layout.html").is_file()
-                has_styles = (theme_dir / "styles.css").is_file()
-                if has_layout or has_styles:
-                    results.append({
-                        "target": target_name,
-                        "theme": theme_name,
-                        "source": source_name,
-                        "path": str(theme_dir),
-                        "is_active": key not in seen,
-                    })
-                    seen.add(key)
+
+            if entry.name.lower() in known_targets:
+                # Altes Layout: <base>/<target>/<theme>
+                for theme_dir in sorted(entry.iterdir()):
+                    if theme_dir.is_dir() and not theme_dir.name.startswith((".", "_")):
+                        add(entry.name, theme_dir.name, source_name, theme_dir, "legacy")
+            else:
+                # Aktuelles Layout: <base>/<theme>/<target>
+                for target_dir in sorted(entry.iterdir()):
+                    if target_dir.is_dir() and not target_dir.name.startswith((".", "_")):
+                        add(target_dir.name, entry.name, source_name, target_dir, "current")
 
     return results
-

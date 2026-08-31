@@ -1,7 +1,7 @@
 <div class="divider-page-container chapter-divider-container">
   <div class="chapter-divider">
     {% if chapter.number_prefix %}
-      <div class="chapter-tag">Kapitel {{ chapter.number_prefix }}</div>
+      <div class="chapter-tag">{{ labels.chapter }} {{ chapter.number_prefix }}</div>
     {% endif %}
     <h1 class="chapter-divider-title">{{ chapter.display_title }}</h1>
     {% if chapter.summary %}
@@ -11,7 +11,7 @@
     {# Lokales Kapitel-TOC falls aktiviert #}
     {% if chapter.toc and chapter.local_toc_items %}
       <div class="local-toc">
-        <div class="local-toc-title">Inhalt dieses Kapitels</div>
+        <div class="local-toc-title">{{ labels.chapter_toc_title }}</div>
         <ul class="toc-list">
           {% for toc_item in chapter.local_toc_items %}
             <li class="toc-item toc-item-h{{ toc_item.level }}">
@@ -20,7 +20,6 @@
                   {% if toc_item.number %}{{ toc_item.number }} {% endif %}{{ toc_item.title }}
                 </span>
                 <span class="toc-leader"></span>
-                <span class="toc-page-number"></span>
               </a>
             </li>
           {% endfor %}
@@ -29,4 +28,3 @@
     {% endif %}
   </div>
 </div>
-

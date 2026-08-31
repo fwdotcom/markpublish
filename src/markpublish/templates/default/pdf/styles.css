@@ -9,7 +9,7 @@
 
   {% if document.header %}
   @top-left {
-    content: "{{ document.title }}\A" string(current_section);
+    content: "{{ document.title }}\A " string(current-section);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     font-size: 8pt;
     font-weight: 500;
@@ -22,7 +22,7 @@
   }
 
   @top-right {
-    content: "v{{ document.version }}\A{{ document.date }}";
+    content: "v{{ document.version }}\A {{ document.date }}";
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     font-size: 8pt;
     font-weight: 500;
@@ -38,7 +38,7 @@
 
   {% if document.footer %}
   @bottom-left {
-    content: "{{ document.author or '' }}\A{{ document.copyright or document.status or document.footer_note or '' }}";
+    content: "{{ document.author or '' }}\A {{ document.copyright or document.status or document.footer_note or '' }}";
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     font-size: 8pt;
     color: #64748b;
@@ -50,7 +50,7 @@
   }
 
   @bottom-right {
-    content: "Seite " counter(page) " von " counter(pages);
+    content: "{{ labels.page }} " counter(page) " {{ labels.page_of }} " counter(pages);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     font-size: 8pt;
     color: #64748b;
@@ -373,14 +373,14 @@ strong, b {
   height: 1em;
 }
 
-.toc-page-number {
+/* Die Seitenzahl haengt am <a>, nicht an einem Kind-<span>: attr(href) liest
+   das Attribut DES Elements, auf dem die Eigenschaft steht. Auf einem span
+   ohne href liefert target-counter() nichts. */
+.toc-link::after {
+  content: target-counter(attr(href), page);
   flex-shrink: 0;
   font-variant-numeric: tabular-nums;
   font-weight: 500;
-}
-
-.toc-page-number::after {
-  content: target-counter(attr(href), page);
 }
 
 /* --- Code & Syntax Highlighting --- */
@@ -414,15 +414,41 @@ pre code {
   font-size: inherit;
 }
 
-/* Pygments Token Colors */
-.highlight .k, .highlight .kd, .highlight .kn, .highlight .kr { color: #d73a49; font-weight: 600; } /* keyword */
-.highlight .s, .highlight .s1, .highlight .s2, .highlight .sb { color: #032f62; } /* string */
-.highlight .c, .highlight .c1, .highlight .cm { color: #6a737d; font-style: italic; } /* comment */
-.highlight .nf, .highlight .fm { color: #6f42c1; font-weight: 600; } /* function */
-.highlight .nc, .highlight .nn { color: #6f42c1; font-weight: 600; } /* class/namespace */
-.highlight .mi, .highlight .mf, .highlight .mh { color: #005cc5; } /* number */
-.highlight .na, .highlight .nt { color: #22863a; } /* attribute/tag */
-.highlight .nb { color: #005cc5; } /* builtin */
+/* Pygments Token Colors (GitHub-Light-Palette).
+   pymdownx.highlight laeuft mit noclasses=False, gibt also CSS-Klassen aus --
+   die Farben gehoeren deshalb hierher und nicht in die Extension-Konfiguration. */
+.highlight .k, .highlight .kc, .highlight .kd, .highlight .kn,
+.highlight .kp, .highlight .kr, .highlight .kt,
+.highlight .o, .highlight .ow,
+.highlight .cp { color: #d73a49; font-weight: 600; }               /* keyword, operator, preproc */
+
+.highlight .s, .highlight .sa, .highlight .sb, .highlight .sc, .highlight .dl,
+.highlight .s1, .highlight .s2, .highlight .sd, .highlight .sh, .highlight .si,
+.highlight .sr, .highlight .ss, .highlight .sx,
+.highlight .l, .highlight .ld { color: #032f62; }                  /* string, literal */
+.highlight .se { color: #22863a; font-weight: 600; }               /* string escape */
+
+.highlight .c, .highlight .c1, .highlight .cm, .highlight .ch,
+.highlight .cs { color: #6a737d; font-style: italic; }             /* comment */
+
+.highlight .nf, .highlight .fm, .highlight .nc, .highlight .nn,
+.highlight .nd, .highlight .ne { color: #6f42c1; font-weight: 600; } /* function, class, decorator */
+
+.highlight .m, .highlight .mb, .highlight .mf, .highlight .mh,
+.highlight .mi, .highlight .mo,
+.highlight .nb, .highlight .bp, .highlight .no { color: #005cc5; } /* number, builtin, constant */
+
+.highlight .na, .highlight .nt { color: #22863a; }                 /* attribute, tag */
+.highlight .nv, .highlight .vc, .highlight .vg, .highlight .vi,
+.highlight .py, .highlight .nl { color: #e36209; }                 /* variable, property, label */
+.highlight .p, .highlight .w, .highlight .n { color: inherit; }    /* punctuation, plain name */
+
+.highlight .err { color: #b31d28; background: #ffeef0; }           /* error */
+.highlight .gd { color: #b31d28; background: #ffeef0; }            /* diff deleted */
+.highlight .gi { color: #22863a; background: #f0fff4; }            /* diff inserted */
+.highlight .gh, .highlight .gu { color: #005cc5; font-weight: 600; }
+.highlight .ge { font-style: italic; }
+.highlight .gs { font-weight: 600; }
 
 /* --- Tables --- */
 table {
@@ -541,13 +567,59 @@ li {
   margin-bottom: 0.3em;
 }
 
-li.task-list-item {
-  list-style-type: none;
-  margin-left: -5mm;
+/* Task lists: the native checkbox widget is replaced by a styled indicator.
+   pymdownx.tasklist runs with custom_checkbox=True, which emits
+   <label class="task-list-control"><input type="checkbox" [checked]>
+   <span class="task-list-indicator"></span></label>. WeasyPrint's UA
+   stylesheet lays inputs out as display:block, so the raw widget would break
+   the line and print as a plain black square - it is hidden here instead. */
+ul.task-list {
+  list-style: none;
+  padding-left: 0;
 }
 
-input[type="checkbox"] {
-  margin-right: 2mm;
+ul.task-list ul.task-list {
+  /* The parent <li> already supplies the 6mm gutter, so a nested checkbox
+     lines up exactly under its parent's text. */
+  padding-left: 0;
+  margin: 0.35em 0 0 0;
+}
+
+li.task-list-item {
+  list-style: none;
+  position: relative;
+  padding-left: 6mm;
+  margin-bottom: 0.35em;
+  page-break-inside: avoid;
+}
+
+.task-list-control {
+  position: absolute;
+  left: 0;
+  top: 0.42em;
+  line-height: 0;
+}
+
+.task-list-control input[type="checkbox"] {
+  display: none;
+}
+
+.task-list-indicator {
+  display: inline-block;
+  width: 3.1mm;
+  height: 3.1mm;
+  border: 0.6pt solid #94a3b8;
+  border-radius: 0.7mm;
+  background-color: #ffffff;
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: 2.3mm 2.3mm;
+}
+
+input[type="checkbox"][checked] + .task-list-indicator {
+  border-color: #2563eb;
+  background-color: #2563eb;
+  background-image: url('{{ asset_url("assets/icons/checkbox-check.svg") }}');
 }
 
 /* --- Media --- */

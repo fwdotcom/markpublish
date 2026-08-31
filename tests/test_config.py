@@ -3,11 +3,9 @@ Tests for configuration parsing and data models.
 """
 
 import datetime
-from pathlib import Path
-import pytest
 
 from markpublish.config.loader import format_current_date, load_config
-from markpublish.config.models import AutonumType, ChapterTOCConfig, MarkpublishConfig
+from markpublish.config.models import AutonumType, ChapterTOCConfig
 
 
 def test_format_current_date():

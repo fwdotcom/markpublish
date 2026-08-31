@@ -1,0 +1,26 @@
+<div class="chapter-divider-container">
+  {% if chapter.number_prefix %}
+    <div class="chapter-tag">{{ labels.chapter }} {{ chapter.number_prefix }}</div>
+  {% endif %}
+  <h1 class="chapter-divider-title">{{ chapter.display_title }}</h1>
+  {% if chapter.summary %}
+    <div class="chapter-divider-summary"><em>{{ chapter.summary }}</em></div>
+  {% endif %}
+
+  {# Lokales Kapitel-TOC falls aktiviert -- Gegenstueck zum PDF-Theme, damit
+     `toc:` in beiden Zielformaten dieselbe Wirkung hat. #}
+  {% if chapter.toc and chapter.local_toc_items %}
+    <nav class="local-toc">
+      <div class="local-toc-title">{{ labels.chapter_toc_title }}</div>
+      <ul class="toc-list">
+        {% for toc_item in chapter.local_toc_items %}
+          <li class="toc-item toc-item-h{{ toc_item.level }}">
+            <a href="#{{ toc_item.slug }}" class="toc-link">
+              {% if toc_item.number %}{{ toc_item.number }} {% endif %}{{ toc_item.title }}
+            </a>
+          </li>
+        {% endfor %}
+      </ul>
+    </nav>
+  {% endif %}
+</div>

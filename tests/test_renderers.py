@@ -3,6 +3,7 @@ Tests for PDF and HTML rendering.
 """
 
 from pathlib import Path
+
 from markpublish.config.loader import load_config
 from markpublish.markdown.engine import MarkdownPipeline
 from markpublish.renderers.base import DocumentContext
@@ -15,11 +16,11 @@ def test_full_pipeline_html_and_pdf(tmp_path: Path):
     # Create sample document setup in tmp_path
     chapters_dir = tmp_path / "chapters"
     chapters_dir.mkdir()
-    
+
     (chapters_dir / "01.md").write_text("# Einleitung\n\nDas ist die Einleitung.", encoding="utf-8")
     (chapters_dir / "02.md").write_text("# Hauptteil\n\n## Detail\n\nInhalt hier.", encoding="utf-8")
 
-    yaml_content = f"""
+    yaml_content = """
 document:
   title: "End-to-End Test Document"
   subtitle: "Integration Test"

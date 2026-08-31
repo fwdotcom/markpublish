@@ -5,7 +5,8 @@ Markdown parsing and compilation engine for markpublish.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple
+
 import frontmatter
 import markdown
 
@@ -18,14 +19,16 @@ from markpublish.markdown.toc import (
     process_html_headings_and_toc,
 )
 
-
-DEFAULT_MARKDOWN_EXTENSIONS = [
-    GitHubAlertsExtension(),
+#: Namen der String-Extensions. Der GitHubAlertsExtension wird pro Sprache
+#: instanziiert und deshalb erst in _build_default_extensions() vorangestellt --
+#: eine Liste, damit Aenderungen nicht an zwei Stellen gepflegt werden muessen.
+DEFAULT_EXTENSION_NAMES = [
     "tables",
     "admonition",
     "def_list",
     "attr_list",
     "footnotes",
+    "sane_lists",
     "smarty",
     "pymdownx.superfences",
     "pymdownx.highlight",
@@ -40,8 +43,10 @@ DEFAULT_MARKDOWN_EXTENSIONS = [
 DEFAULT_EXTENSION_CONFIGS = {
     "pymdownx.highlight": {
         "use_pygments": True,
+        # Mit noclasses=False gibt Pygments CSS-Klassen aus; die Farben stehen
+        # dann im Theme-Stylesheet (.highlight .k usw.), nicht hier. Ein
+        # pygments_style waere an dieser Stelle wirkungslos.
         "noclasses": False,
-        "pygments_style": "github-dark",
     },
     "pymdownx.tasklist": {
         "custom_checkbox": True,
@@ -62,28 +67,18 @@ class MarkdownEngine:
         extension_configs: Optional[Dict[str, Any]] = None
     ):
         self.language = language
-        self.extensions = extensions or self._build_default_extensions(language)
-        self.extension_configs = extension_configs or DEFAULT_EXTENSION_CONFIGS
+        # `is None` statt `or`: ein bewusst leeres extensions=[] soll leer
+        # bleiben und nicht stillschweigend auf die Defaults zurueckfallen.
+        self.extensions = (
+            self._build_default_extensions(language) if extensions is None else extensions
+        )
+        self.extension_configs = (
+            DEFAULT_EXTENSION_CONFIGS if extension_configs is None else extension_configs
+        )
 
     @staticmethod
     def _build_default_extensions(language: str = "de") -> List[Any]:
-        return [
-            GitHubAlertsExtension(language=language),
-            "tables",
-            "admonition",
-            "def_list",
-            "attr_list",
-            "footnotes",
-            "smarty",
-            "pymdownx.superfences",
-            "pymdownx.highlight",
-            "pymdownx.inlinehilite",
-            "pymdownx.magiclink",
-            "pymdownx.tasklist",
-            "pymdownx.tilde",
-            "pymdownx.caret",
-            "pymdownx.smartsymbols",
-        ]
+        return [GitHubAlertsExtension(language=language), *DEFAULT_EXTENSION_NAMES]
 
     def create_markdown_instance(self) -> markdown.Markdown:
         return markdown.Markdown(
@@ -166,7 +161,7 @@ class MarkdownPipeline:
                 # Part container
                 part_title = item_cfg.part or item_cfg.title or "Part"
                 part_slug = self.numbering_ctx.unique_slug(part_title)
-                
+
                 part_item = ContentItem(
                     title=part_title,
                     display_title=part_title,
@@ -259,15 +254,22 @@ class MarkdownPipeline:
         slug = toc_nodes[0].slug if toc_nodes else self.numbering_ctx.unique_slug(display_title)
         number_prefix = toc_nodes[0].number if toc_nodes else None
 
-        # Filter local TOC items if enabled
+        # Filter local TOC items if enabled.
+        # Tiefe wird innerhalb des Kapitels gezaehlt: die Kapitelueberschrift
+        # ist Tiefe 1, ihre h2 Tiefe 2 usw. `toc: 2` liefert also die h2-Ebene.
+        # n.level ist dagegen absolut (enthaelt base_level_offset), deshalb die
+        # Umrechnung ueber chapter_level -- so bedeutet `toc: 2` dasselbe, egal
+        # wie tief das Kapitel selbst haengt.
+        # Tiefe 1 bleibt draussen: die eigene Ueberschrift steht auf der
+        # Trennseite bereits als Titel darueber.
         local_toc_items: List[TOCNode] = []
         if toc_config:
-            max_depth = 3
-            if hasattr(toc_config, "max_depth"):
-                max_depth = toc_config.max_depth
-            elif isinstance(toc_config, int):
-                max_depth = toc_config
-            local_toc_items = [n for n in toc_nodes if n.level <= max_depth]
+            max_depth = getattr(toc_config, "max_depth", 3)
+            chapter_level = base_level
+            local_toc_items = [
+                n for n in toc_nodes
+                if chapter_level < n.level <= chapter_level + max_depth - 1
+            ]
 
         item = ContentItem(
             title=display_title,

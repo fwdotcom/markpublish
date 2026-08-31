@@ -48,6 +48,10 @@ dependencies = [
 dev = [
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",
+    # Textextraktion aus erzeugten PDFs - die Regressionstests fuer Kopfzeile
+    # und TOC-Seitenzahlen pruefen den Inhalt, nicht nur die Dateigroesse.
+    "pypdfium2>=4.0.0",
+    "ruff>=0.6.0",
 ]
 
 [project.scripts]
@@ -67,3 +71,20 @@ minversion = "7.0"
 testpaths = ["tests"]
 pythonpath = ["src"]
 
+[tool.ruff]
+line-length = 110
+target-version = "py310"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+# F821 haette den fehlenden Union-Import in resolver.py sofort gemeldet -
+# `from __future__ import annotations` verdeckt ihn zur Laufzeit.
+# UP* ist bewusst nicht aktiv: die Regeln wuerden den gesamten Typing-Stil
+# umschreiben, was mit der Fehlersuche nichts zu tun hat.
+select = ["E", "F", "W", "I", "B"]
+ignore = ["E501"]
+
+[tool.ruff.lint.per-file-ignores]
+# typer.Option()/Argument() im Default-Wert ist das vorgesehene Typer-Idiom.
+"src/markpublish/cli.py" = ["B008"]
+"tests/*" = ["B011"]

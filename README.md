@@ -14,7 +14,7 @@
 - ⚙️ **Declarative YAML Configuration**: Configure metadata, covers, TOCs, headers, and footers in `markpublish.yaml`.
 - 📁 **Modular Chapters & Parts**: Split your content into separate `.md` files, organize them hierarchically, and group them under overarching **Parts** (e.g. *Appendices*).
 - 🎨 **Target-Based Template Hierarchy**:
-  - `templates/pdf/<theme>` and `templates/html/<theme>`
+  - `templates/<theme>/pdf` and `templates/<theme>/html`
   - 3-tier resolution: **User directory** > **Common/Project folder** > **Package built-ins**.
 - 📑 **2-Line Headers & Footers**: Cleanly designed inside templates and automatically populated from document metadata.
 - 🔢 **Autonumbering & TOC**:
@@ -147,9 +147,30 @@ templates/
 
 ### Template Resolution Order:
 When rendering `pdf` with theme `default`:
-1. **User directory**: `~/.markpublish/templates/pdf/default/` (or OS config dir)
-2. **Common / Project directory**: `<templates_dir>/pdf/default/` (configured via `--templates-dir`, YAML `templates_dir`, `MARKPUBLISH_TEMPLATES_DIR`, or `./templates`)
+1. **User directory**: `~/.markpublish/templates/default/pdf/` (or OS config dir)
+2. **Common / Project directory**: `<templates_dir>/default/pdf/` (configured via `--templates-dir`, YAML `templates_dir`, `MARKPUBLISH_TEMPLATES_DIR`, or `./templates`)
 3. **Package built-ins**: Embedded inside `markpublish`.
+
+
+### Static texts and language
+
+Fixed labels in the templates (table of contents heading, chapter tags, cover labels,
+page footer, callout titles) come from a translation table selected by
+`document.language`. `de` and `en` ship with the package; regional forms map onto them
+(`de-AT` -> `de`) and an unknown language falls back to English.
+
+```yaml
+document:
+  language: "en"
+  labels:                      # optional, overrides single keys
+    chapter_toc_title: "On this page"
+```
+
+The layering is English -> document language -> `labels`, so a missing entry never
+renders as an empty string. `document.labels` is also the way to supply a language the
+table does not cover yet, without touching a template. In custom templates the table is
+reachable as `{{ labels.chapter }}` -- including inside `styles.css`, which is rendered
+through the same Jinja environment.
 
 ### Exporting Templates for Customization:
 ```bash

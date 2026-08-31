@@ -7,24 +7,37 @@ from __future__ import annotations
 import html
 import re
 import unicodedata
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple
+
 from markpublish.config.models import AutonumType
 
-
+#: Der Attributteil erlaubt '>' innerhalb von Anfuehrungszeichen -- ein
+#: <h2 title="a > b"> wuerde ein simples [^>]* sonst mitten im Attribut kappen.
 HEADING_REGEX = re.compile(
-    r'<h([1-6])([^>]*)>(.*?)</h\1>',
+    r"""<h([1-6])((?:[^>"']|"[^"]*"|'[^']*')*)>(.*?)</h\1>""",
     re.IGNORECASE | re.DOTALL
 )
 STRIP_TAGS_REGEX = re.compile(r'<[^>]+>')
 
 
-def slugify(text: str) -> str:
+#: Umlaute und Eszett werden lautgetreu ersetzt, bevor die NFKD-Normalisierung
+#: greift - sonst wird aus "Anhaenge" ein "anhange".
+TRANSLITERATIONS = {
+    "\u00e4": "ae", "\u00f6": "oe", "\u00fc": "ue",
+    "\u00c4": "Ae", "\u00d6": "Oe", "\u00dc": "Ue",
+    "\u00df": "ss",
+}
+
+
+def slugify(text: str, separator: str = "-") -> str:
     """Creates a URL-safe, lowercase slug from arbitrary text."""
+    for src, dst in TRANSLITERATIONS.items():
+        text = text.replace(src, dst)
     # Normalize unicode
     text = unicodedata.normalize('NFKD', text).encode('ascii', 'ignore').decode('utf-8')
     text = re.sub(r'[^\w\s-]', '', text).strip().lower()
-    text = re.sub(r'[-\s]+', '-', text)
-    return text or "section"
+    text = re.sub(r'[-\s_]+', separator, text)
+    return text.strip(separator) or "section"
 
 
 def int_to_roman(num: int) -> str:
@@ -136,6 +149,15 @@ def process_html_headings_and_toc(
     """
     toc_nodes: List[TOCNode] = []
 
+    # Explizit gesetzte IDs (attr_list: "## Titel {#einleitung}") vorab
+    # reservieren. Wuerden sie erst beim Durchlauf registriert, koennte eine
+    # frueher generierte Ueberschrift denselben Slug bereits belegt haben und
+    # das Dokument enthielte zwei Elemente mit gleicher id.
+    for heading_match in HEADING_REGEX.finditer(html_content):
+        existing_id = re.search(r'id=["\']([^"\']+)["\']', heading_match.group(2))
+        if existing_id:
+            numbering_ctx.used_slugs.add(existing_id.group(1))
+
     def _replace_heading(match: re.Match) -> str:
         orig_level = int(match.group(1))
         attrs = match.group(2)
@@ -169,7 +191,9 @@ def process_html_headings_and_toc(
         else:
             new_inner = inner_html
 
-        return f'<h{orig_level} {attrs}>{new_inner}</h{orig_level}>'
+        attrs = attrs.strip()
+        open_tag = f'<h{orig_level} {attrs}>' if attrs else f'<h{orig_level}>'
+        return f'{open_tag}{new_inner}</h{orig_level}>'
 
     modified_html = HEADING_REGEX.sub(_replace_heading, html_content)
     return modified_html, toc_nodes
