@@ -25,7 +25,7 @@ Tabellen werden mit sauberem CSS-Zebramuster und Seitenumbruchschutz gerendert:
 | `author` | String | `None` | Name des Autors |
 | `status` | String | `None` | Dokumentstatus (z.B. "Freigegeben", "Draft") |
 | `copyright` | String | `None` | Copyright-Vermerk (z.B. "© 2026 Frank Winter") |
-| `version` | String | `"1.0.0"` | Versionskennung |
+| `version` | String | `null` | Versionskennung. Ohne Angabe entfällt das Feld auf dem Deckblatt; ist sie gesetzt, steht sie in der Fußzeile links neben dem Datum |
 
 ## GitHub-Style Callout-Boxen (Alerts)
 

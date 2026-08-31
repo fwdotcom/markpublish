@@ -112,7 +112,7 @@ def build_cmd(
     console.print(
         Panel(
             f"[bold]{config.document.title}[/bold]\n"
-            f"Author: {config.document.author or 'N/A'} | Version: {config.document.version} | Date: {config.document.date}\n"
+            f"Author: {config.document.author or 'N/A'} | Version: {config.document.version or 'N/A'} | Date: {config.document.date}\n"
             f"Theme: [cyan]{config.theme}[/cyan] | Targets: [yellow]{target.upper()}[/yellow]",
             title="[bold blue]markpublish build[/bold blue]",
             border_style="blue",

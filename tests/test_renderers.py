@@ -85,3 +85,66 @@ chapters:
     assert pdf_out.is_file()
     assert pdf_out.stat().st_size > 1000  # Generated valid PDF
 
+
+# --------------------------------------------------------------------------
+# Deckblatt: leere Felder erscheinen nicht
+# --------------------------------------------------------------------------
+
+COVER_YAML = """
+document:
+  title: "Deckblatt Test"
+{version}
+  author: "Test"
+  date: "01.09.2026"
+  language: "de"
+  cover: true
+  toc: false
+
+theme: "default"
+
+chapters:
+  - file: "chapters/01.md"
+    title: "Kapitel"
+"""
+
+
+def _render_cover_html(tmp_path: Path, version: str = "") -> str:
+    chapters = tmp_path / "chapters"
+    chapters.mkdir(parents=True, exist_ok=True)
+    (chapters / "01.md").write_text("# K\n\nText.\n", encoding="utf-8")
+    (tmp_path / "markpublish.yaml").write_text(
+        COVER_YAML.format(version=f'  version: "{version}"' if version else ""),
+        encoding="utf-8",
+    )
+
+    config = load_config(tmp_path / "markpublish.yaml")
+    pipeline = MarkdownPipeline(config, base_dir=tmp_path)
+    content_items, toc_tree = pipeline.process_document()
+    context = DocumentContext(
+        config=config,
+        content_items=content_items,
+        toc_tree=toc_tree,
+        template_path=resolve_template_path("html", "default"),
+        base_dir=tmp_path,
+        target="html",
+    )
+    out = tmp_path / "cover.html"
+    HTMLRenderer().render(context, out)
+    return out.read_text(encoding="utf-8")
+
+
+def test_cover_shows_the_version_when_given(tmp_path: Path):
+    html = _render_cover_html(tmp_path, version="2.3.0")
+    assert "2.3.0" in html
+
+
+def test_cover_omits_the_version_field_when_unset(tmp_path: Path):
+    """
+    Kein Default-Wert im Modell mehr - sonst stuende auf jedem Deckblatt eine
+    erfundene "1.0.0", die sich nicht abschalten liesse.
+    """
+    html = _render_cover_html(tmp_path)
+
+    # Der Titel enthaelt das Wort nicht, also ist jeder Treffer das Label.
+    assert "Version" not in html
+    assert "1.0.0" not in html

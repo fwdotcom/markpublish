@@ -26,15 +26,18 @@ class DocumentConfig(BaseModel):
     status: Optional[str] = Field(default=None, description="Document status, e.g. 'Entwurf', 'Freigegeben', 'Draft'")
     copyright: Optional[str] = Field(default=None, description="Copyright statement, e.g. '© 2026 Frank Winter'")
     date: Optional[str] = Field(default="auto", description="Date string or 'auto'/'today'")
-    version: Optional[str] = Field(default="1.0.0", description="Version string")
+    # Kein Default-Wert: eine erfundene "1.0.0" liesse sich im Dokument nicht
+    # mehr abschalten - jedes Template saehe eine gesetzte Version und druckte
+    # sie. Wer eine Version will, schreibt sie hin.
+    version: Optional[str] = Field(default=None, description="Version string, e.g. '1.0.0'")
     language: str = Field(default="de", description="ISO language code, e.g. 'de' or 'en'")
 
     # Global Layout Switches
     cover: bool = Field(default=True, description="Enable cover page")
     toc: bool = Field(default=True, description="Enable global table of contents")
     autonum_type: AutonumType = Field(default=AutonumType.DECIMAL, description="Numbering style")
-    header: bool = Field(default=True, description="Enable 2-line header")
-    footer: bool = Field(default=True, description="Enable 2-line footer")
+    header: bool = Field(default=True, description="Enable the running header; its lines are laid out in the theme")
+    footer: bool = Field(default=True, description="Enable the running footer; its lines are laid out in the theme")
 
     # Allow custom extra fields for custom template needs
     model_config = {

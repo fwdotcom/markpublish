@@ -552,14 +552,39 @@ def test_builtin_values_come_from_the_yaml_file():
     assert raw["en"]["page_of"] == LABELS["en"]["page_of"]
 
 
-def test_default_theme_ships_pattern_files():
-    """Muster fuer Ebene 2 und 3 - vorhanden, aber ohne Wirkung."""
+def test_default_theme_ships_all_three_files():
+    """Ebene 2 und 3 liegen dem Theme bei - als Datei, nicht nur als Doku."""
     theme = resolve_template_path("pdf", "default").parent
     assert (theme / "i18n.yaml").is_file()
     assert (theme / "pdf" / "i18n.yaml").is_file()
     assert (theme / "html" / "i18n.yaml").is_file()
 
-    # Sie duerfen den Standard nicht veraendern
-    assert read_i18n_file(theme) == {}
+
+def test_default_theme_sets_its_own_wording():
+    """
+    Das Theme spricht bewusst nicht wie der Programmstandard: "Abschnitt"
+    statt "Teil", "Auf einen Blick" statt "Inhalt dieses Kapitels". Der Test
+    haelt fest, dass es in JEDER mitgelieferten Sprache dieselben Schluessel
+    setzt - eine einseitig gepflegte Sprache faellt sonst erst im fertigen
+    Dokument auf.
+    """
+    theme = resolve_template_path("pdf", "default").parent
+    table = read_i18n_file(theme)
+
+    assert set(table) == {"de", "en"}
+    assert set(table["de"]) == set(table["en"]), (
+        f"Sprachen weichen ab: {set(table['de']) ^ set(table['en'])}"
+    )
+    assert table["de"]["part"] == "Abschnitt"
+    assert table["en"]["part"] == "Section"
+
+    # Nur bekannte Programm-Schluessel - ein Tippfehler waere hier sonst ein
+    # freies Label, das niemand im Template benutzt und das stumm bleibt.
+    assert set(table["de"]) <= set(LABELS["de"])
+
+
+def test_default_theme_target_levels_stay_inert():
+    """Ebene 3 ist reines Muster - PDF und HTML sollen gleich sprechen."""
+    theme = resolve_template_path("pdf", "default").parent
     assert read_i18n_file(theme / "pdf") == {}
     assert read_i18n_file(theme / "html") == {}

@@ -471,8 +471,7 @@ input[type="checkbox"]:checked + .task-list-indicator {
           <span class="doc-title">markpublish Benutzerhandbuch</span>
 <span class="doc-subtitle">Moderne PDF- und HTML-Dokumentenerstellung aus Markdown</span>        </div>
         <div class="header-right">
-          <span class="doc-version">v1.0.0</span>
-          <span class="doc-date">31.08.2026</span>
+<span class="doc-version">v1.0.0</span>          <span class="doc-date">01.09.2026</span>
         </div>
       </header>
 
@@ -706,9 +705,22 @@ input[type="checkbox"]:checked + .task-list-indicator {
 
         </li>
         <li class="toc-item toc-item-h2">
-          <a href="#2-zeilige-kopf-und-fusszeilen" class="toc-link">
-5.4 2-zeilige Kopf- und Fußzeilen
+          <a href="#kopf-und-fusszeilen" class="toc-link">
+5.4 Kopf- und Fußzeilen
           </a>
+              <ul class="toc-list">
+        <li class="toc-item toc-item-h3">
+          <a href="#geometrie" class="toc-link">
+5.4.1 Geometrie
+          </a>
+        </li>
+        <li class="toc-item toc-item-h3">
+          <a href="#standardbelegung-des-themes" class="toc-link">
+5.4.2 Standardbelegung des Themes
+          </a>
+        </li>
+  </ul>
+
         </li>
   </ul>
 
@@ -804,7 +816,7 @@ input[type="checkbox"]:checked + .task-list-indicator {
       Dieses Handbuch bietet eine praxisorientierte Anleitung und vollständige Referenz zur Konfiguration, Template-Anpassung und Dokumentengenerierung mit markpublish.
     </div>
   <div class="cover-meta">
-<div><strong>Autor:</strong> Frank Winter</div><div><strong>Status:</strong> Freigegeben</div><div><strong>Version:</strong> 1.0.0</div><div><strong>Datum:</strong> 31.08.2026</div><div><strong>Copyright:</strong> © 2026 Frank Winter</div>  </div>
+<div><strong>Autor:</strong> Frank Winter</div><div><strong>Status:</strong> Freigegeben</div><div><strong>Version:</strong> 1.0.0</div><div><strong>Datum:</strong> 01.09.2026</div><div><strong>Copyright:</strong> © 2026 Frank Winter</div>  </div>
 </div>
 
                 <article class="chapter-article">
@@ -824,7 +836,7 @@ input[type="checkbox"]:checked + .task-list-indicator {
 <li><strong>Modulare Kapitel</strong>: Jedes Kapitel wird als separate Markdown-Datei gepflegt.</li>
 <li><strong>Hierarchische Struktur</strong>: Beliebig tief schachtelbare Unterkapitel und übergeordnete Abschnitte (<em>Parts</em>).</li>
 <li><strong>Deklarative Steuerung</strong>: Ein zentrales Manifest (<code>markpublish.yaml</code>) steuert Inhalt, Metadaten und Layout.</li>
-<li><strong>W3C CSS Paged Media</strong>: Exakte Kontrolle über <code>@page</code>-Ränder, 2-zeilige Kopf- und Fußzeilen, Seitenzahlen und Trennseiten.</li>
+<li><strong>W3C CSS Paged Media</strong>: Exakte Kontrolle über <code>@page</code>-Ränder, mehrzeilige Kopf- und Fußzeilen, Seitenzahlen und Trennseiten.</li>
 <li><strong>Erweiterbare Pipeline</strong>: Saubere Trennung zwischen Parser, Renderer und Template-Ebenen.</li>
 </ul>
 <h2 id="die-verarbeitungs-pipeline"><span class="heading-number">1.2</span> Die Verarbeitungs-Pipeline</h2>
@@ -846,7 +858,7 @@ input[type="checkbox"]:checked + .task-list-indicator {
     <div class="chapter-divider-summary"><em>Schritt-für-Schritt-Anleitung zur Installation und Erstellung des ersten Dokuments.</em></div>
 
     <nav class="local-toc">
-      <div class="local-toc-title">Inhalt dieses Kapitels</div>
+      <div class="local-toc-title">Auf einen Blick</div>
       <ul class="toc-list">
           <li class="toc-item toc-item-h2">
             <a href="#voraussetzungen" class="toc-link">
@@ -925,7 +937,7 @@ markpublish<span class="w"> </span>build<span class="w"> </span>--target<span cl
     <div class="chapter-divider-summary"><em>Detaillierte Erläuterung aller Befehle: build, init, templates und export-template.</em></div>
 
     <nav class="local-toc">
-      <div class="local-toc-title">Inhalt dieses Kapitels</div>
+      <div class="local-toc-title">Auf einen Blick</div>
       <ul class="toc-list">
           <li class="toc-item toc-item-h2">
             <a href="#befehlsuebersicht" class="toc-link">
@@ -1093,7 +1105,7 @@ Dateien nach Overrides gesucht wurde und welche existieren.</p>
     <div class="chapter-divider-summary"><em>Deklarative Definition von Dokumentenmetadaten, Kapiteln und Hierarchien.</em></div>
 
     <nav class="local-toc">
-      <div class="local-toc-title">Inhalt dieses Kapitels</div>
+      <div class="local-toc-title">Auf einen Blick</div>
       <ul class="toc-list">
           <li class="toc-item toc-item-h2">
             <a href="#das-document-objekt" class="toc-link">
@@ -1115,15 +1127,15 @@ Dateien nach Overrides gesucht wurde und welche existieren.</p>
 <span class="w">  </span><span class="nt">author</span><span class="p">:</span><span class="w"> </span><span class="s">"Frank</span><span class="nv"> </span><span class="s">Winter"</span>
 <span class="w">  </span><span class="nt">organisation</span><span class="p">:</span><span class="w"> </span><span class="s">"WASDCAT</span><span class="nv"> </span><span class="s">Games"</span>
 <span class="w">  </span><span class="nt">date</span><span class="p">:</span><span class="w"> </span><span class="s">"auto"</span><span class="w">                    </span><span class="c1"># "auto" (Tagesdatum) oder festes Datum "2026-08-31"</span>
-<span class="w">  </span><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="s">"1.0.0"</span>
+<span class="w">  </span><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="s">"1.0.0"</span><span class="w">               </span><span class="c1"># optional - ohne Angabe entfällt das Feld</span>
 <span class="w">  </span><span class="nt">language</span><span class="p">:</span><span class="w"> </span><span class="s">"de"</span><span class="w">                 </span><span class="c1"># Sprachcode für Silbentrennung &amp; Formatierung</span>
 
 <span class="w">  </span><span class="c1"># Globale Schalter</span>
 <span class="w">  </span><span class="nt">cover</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span><span class="w">                    </span><span class="c1"># Deckblatt an/aus</span>
 <span class="w">  </span><span class="nt">toc</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span><span class="w">                      </span><span class="c1"># Globales Inhaltsverzeichnis</span>
 <span class="w">  </span><span class="nt">autonum_type</span><span class="p">:</span><span class="w"> </span><span class="s">"decimal"</span><span class="w">        </span><span class="c1"># "decimal", "roman", "legal", "none"</span>
-<span class="w">  </span><span class="nt">header</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span><span class="w">                   </span><span class="c1"># 2-zeilige Kopfzeile</span>
-<span class="w">  </span><span class="nt">footer</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span><span class="w">                   </span><span class="c1"># 2-zeilige Fußzeile</span>
+<span class="w">  </span><span class="nt">header</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span><span class="w">                   </span><span class="c1"># Laufende Kopfzeile</span>
+<span class="w">  </span><span class="nt">footer</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span><span class="w">                   </span><span class="c1"># Laufende Fußzeile</span>
 </code></pre></div>
 <h3 id="automatische-datumsaufloesung"><span class="heading-number">4.1.1</span> Automatische Datumsauflösung</h3>
 <p>Wird <code>date: "auto"</code> oder <code>date: "today"</code> angegeben, generiert <code>markpublish</code> automatisch das aktuelle Datum im passenden Sprachformat:
@@ -1177,7 +1189,7 @@ Dateien nach Overrides gesucht wurde und welche existieren.</p>
 <span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">file</span><span class="p">:</span><span class="w"> </span><span class="s">"chapters/appendix_b.md"</span>
 <span class="w">        </span><span class="nt">title</span><span class="p">:</span><span class="w"> </span><span class="s">"Anhang</span><span class="nv"> </span><span class="s">B:</span><span class="nv"> </span><span class="s">Glossar"</span>
 </code></pre></div>
-<p>Der Part-Titel (z. B. <em>&ldquo;Anhänge&rdquo;</em>) wird automatisch in die laufenden 2-zeiligen Kopfzeilen der Einzelseiten übernommen.</p>
+<p>Der Part-Titel (z. B. <em>&ldquo;Anhänge&rdquo;</em>) wird automatisch in die laufende Kopfzeile der Einzelseiten übernommen.</p>
       </div>
     </article>
 
@@ -1190,7 +1202,7 @@ Dateien nach Overrides gesucht wurde und welche existieren.</p>
     <div class="chapter-divider-summary"><em>3-stufige Auflösungshierarchie, CSS Paged Media und 2-zeilige Kopf-/Fußzeilen.</em></div>
 
     <nav class="local-toc">
-      <div class="local-toc-title">Inhalt dieses Kapitels</div>
+      <div class="local-toc-title">Auf einen Blick</div>
       <ul class="toc-list">
           <li class="toc-item toc-item-h2">
             <a href="#theme-basierte-verzeichnisstruktur" class="toc-link">
@@ -1208,8 +1220,8 @@ Dateien nach Overrides gesucht wurde und welche existieren.</p>
             </a>
           </li>
           <li class="toc-item toc-item-h2">
-            <a href="#2-zeilige-kopf-und-fusszeilen" class="toc-link">
-5.4 2-zeilige Kopf- und Fußzeilen
+            <a href="#kopf-und-fusszeilen" class="toc-link">
+5.4 Kopf- und Fußzeilen
             </a>
           </li>
       </ul>
@@ -1226,7 +1238,7 @@ weitergeben oder versionieren:</p>
 └── default/                       # Theme-Name
     ├── pdf/
     │   ├── layout.html            # HTML-Grundgerüst
-    │   ├── styles.css             # CSS Paged Media &amp; 2-zeilige Kopf-/Fußzeilen
+    │   ├── styles.css             # CSS Paged Media &amp; Kopf-/Fußzeilen
     │   ├── cover.html             # Deckblatt-Template
     │   ├── part_divider.html      # Trennseite für übergeordnete Parts
     │   ├── chapter_divider.html   # Trennseite für Kapitel mit Mini-TOC
@@ -1497,42 +1509,85 @@ Schlüssel unter dem gewünschten Sprachcode setzen.</p>
 in <code>styles.css</code>, das durch dieselbe Jinja-Umgebung läuft. So ist die Fußzeile
 <code>"{{ labels.page }} " counter(page) " {{ labels.page_of }} " counter(pages)</code> gebaut.</p>
 </div>
-<h2 id="2-zeilige-kopf-und-fusszeilen"><span class="heading-number">5.4</span> 2-zeilige Kopf- und Fußzeilen</h2>
-<p>Kopf- und Fußzeilen werden im Template via CSS Paged Media <code>@page</code> Margin-Boxes definiert:</p>
-<div class="highlight"><pre><span></span><code><span class="p">@</span><span class="k">page</span><span class="w"> </span><span class="p">{</span>
-<span class="w">  </span><span class="nt">size</span><span class="o">:</span><span class="w"> </span><span class="nt">A4</span><span class="o">;</span>
-<span class="w">  </span><span class="nt">margin</span><span class="o">:</span><span class="w"> </span><span class="nt">25mm</span><span class="w"> </span><span class="nt">20mm</span><span class="w"> </span><span class="nt">25mm</span><span class="w"> </span><span class="nt">20mm</span><span class="o">;</span>
+<h2 id="kopf-und-fusszeilen"><span class="heading-number">5.4</span> Kopf- und Fußzeilen</h2>
+<p>Kopf- und Fußzeile sind <strong>Running Elements</strong>: ein Block im <code>layout.html</code> bekommt
+<code>position: running(name)</code> und wird damit aus dem Textfluss genommen; die
+<code>@page</code>-Regel setzt ihn über <code>content: element(name)</code> in die Margin-Box ein.</p>
+<p>Der Unterschied zu einer <code>content:</code>-Zeichenkette ist wesentlich: In der Margin-Box
+steht dadurch <strong>echtes Markup</strong>. Damit sind beliebig viele Zeilen möglich, jede mit
+eigener Auszeichnung — eine Zeichenkette kennt nur eine Formatierung für alles.</p>
+<div class="highlight"><pre><span></span><code><span class="cm">&lt;!-- layout.html --&gt;</span>
+<span class="p">&lt;</span><span class="nt">div</span> <span class="na">class</span><span class="o">=</span><span class="s">"page-header-runner"</span><span class="p">&gt;</span>
+  <span class="p">&lt;</span><span class="nt">div</span> <span class="na">class</span><span class="o">=</span><span class="s">"hf-left"</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">div</span> <span class="na">class</span><span class="o">=</span><span class="s">"hf-doc-title"</span><span class="p">&gt;</span>{{ document.title }}<span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">div</span> <span class="na">class</span><span class="o">=</span><span class="s">"hf-doc-subtitle"</span><span class="p">&gt;</span>{{ document.subtitle }}<span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+  <span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+  <span class="p">&lt;</span><span class="nt">div</span> <span class="na">class</span><span class="o">=</span><span class="s">"hf-right"</span><span class="p">&gt;&lt;</span><span class="nt">span</span> <span class="na">class</span><span class="o">=</span><span class="s">"hf-section"</span><span class="p">&gt;&lt;/</span><span class="nt">span</span><span class="p">&gt;&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+<span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="c">/* styles.css */</span>
+<span class="p">.</span><span class="nc">page-header-runner</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">position</span><span class="p">:</span><span class="w"> </span><span class="nf">running</span><span class="p">(</span><span class="n">pageheader</span><span class="p">);</span>
+<span class="w">  </span><span class="k">display</span><span class="p">:</span><span class="w"> </span><span class="kc">flex</span><span class="p">;</span>
+<span class="w">  </span><span class="k">justify-content</span><span class="p">:</span><span class="w"> </span><span class="kc">space-between</span><span class="p">;</span>
+<span class="w">  </span><span class="k">align-items</span><span class="p">:</span><span class="w"> </span><span class="kc">flex-start</span><span class="p">;</span><span class="w">    </span><span class="c">/* rechte Spalte bleibt oben */</span>
+<span class="p">}</span>
+<span class="p">.</span><span class="nc">hf-doc-title</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">font-weight</span><span class="p">:</span><span class="w"> </span><span class="mi">700</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+<span class="p">.</span><span class="nc">hf-section</span><span class="p">::</span><span class="nd">before</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">content</span><span class="p">:</span><span class="w"> </span><span class="nf">string</span><span class="p">(</span><span class="n">current</span><span class="nv">-section</span><span class="p">);</span><span class="w"> </span><span class="p">}</span>
 
+<span class="p">@</span><span class="k">page</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="p">@</span><span class="k">top-left</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">content</span><span class="o">:</span><span class="w"> </span><span class="s2">"{{ document.title }}\A"</span><span class="w"> </span><span class="nt">string</span><span class="o">(</span><span class="nt">current_section</span><span class="o">);</span>
-<span class="w">    </span><span class="nt">font-size</span><span class="o">:</span><span class="w"> </span><span class="nt">8pt</span><span class="o">;</span>
-<span class="w">    </span><span class="nt">white-space</span><span class="o">:</span><span class="w"> </span><span class="nt">pre-wrap</span><span class="o">;</span>
+<span class="w">    </span><span class="nt">content</span><span class="o">:</span><span class="w"> </span><span class="nt">element</span><span class="o">(</span><span class="nt">pageheader</span><span class="o">);</span>
+<span class="w">    </span><span class="nt">width</span><span class="o">:</span><span class="w"> </span><span class="nt">100</span><span class="o">%;</span>
+<span class="w">    </span><span class="nt">vertical-align</span><span class="o">:</span><span class="w"> </span><span class="nt">top</span><span class="o">;</span>
+<span class="w">    </span><span class="nt">margin-top</span><span class="o">:</span><span class="w"> </span><span class="nt">12mm</span><span class="o">;</span><span class="w">          </span><span class="c">/* Abstand zur Papierkante */</span>
+<span class="w">    </span><span class="nt">padding-bottom</span><span class="o">:</span><span class="w"> </span><span class="nt">0</span><span class="o">;</span>
 <span class="w">    </span><span class="nt">border-bottom</span><span class="o">:</span><span class="w"> </span><span class="nt">0</span><span class="p">.</span><span class="nc">5pt</span><span class="w"> </span><span class="nt">solid</span><span class="w"> </span><span class="p">#</span><span class="nn">cbd5e1</span><span class="o">;</span>
-<span class="w">  </span><span class="p">}</span>
-
-<span class="w">  </span><span class="p">@</span><span class="k">top-right</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">content</span><span class="o">:</span><span class="w"> </span><span class="s2">"v{{ document.version }}\A{{ document.date }}"</span><span class="o">;</span>
-<span class="w">    </span><span class="nt">font-size</span><span class="o">:</span><span class="w"> </span><span class="nt">8pt</span><span class="o">;</span>
-<span class="w">    </span><span class="nt">text-align</span><span class="o">:</span><span class="w"> </span><span class="nt">right</span><span class="o">;</span>
-<span class="w">    </span><span class="nt">white-space</span><span class="o">:</span><span class="w"> </span><span class="nt">pre-wrap</span><span class="o">;</span>
-<span class="w">    </span><span class="nt">border-bottom</span><span class="o">:</span><span class="w"> </span><span class="nt">0</span><span class="p">.</span><span class="nc">5pt</span><span class="w"> </span><span class="nt">solid</span><span class="w"> </span><span class="p">#</span><span class="nn">cbd5e1</span><span class="o">;</span>
-<span class="w">  </span><span class="p">}</span>
-
-<span class="w">  </span><span class="p">@</span><span class="k">bottom-left</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">content</span><span class="o">:</span><span class="w"> </span><span class="s2">"{{ document.author or '' }}\A{{ document.copyright or document.status or '' }}"</span><span class="o">;</span>
-<span class="w">    </span><span class="nt">font-size</span><span class="o">:</span><span class="w"> </span><span class="nt">8pt</span><span class="o">;</span>
-<span class="w">    </span><span class="nt">white-space</span><span class="o">:</span><span class="w"> </span><span class="nt">pre-wrap</span><span class="o">;</span>
-<span class="w">    </span><span class="nt">border-top</span><span class="o">:</span><span class="w"> </span><span class="nt">0</span><span class="p">.</span><span class="nc">5pt</span><span class="w"> </span><span class="nt">solid</span><span class="w"> </span><span class="p">#</span><span class="nn">cbd5e1</span><span class="o">;</span>
-<span class="w">  </span><span class="p">}</span>
-
-<span class="w">  </span><span class="p">@</span><span class="k">bottom-right</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">content</span><span class="o">:</span><span class="w"> </span><span class="s2">"Seite "</span><span class="w"> </span><span class="nt">counter</span><span class="o">(</span><span class="nt">page</span><span class="o">)</span><span class="w"> </span><span class="s2">" von "</span><span class="w"> </span><span class="nt">counter</span><span class="o">(</span><span class="nt">pages</span><span class="o">);</span>
-<span class="w">    </span><span class="nt">font-size</span><span class="o">:</span><span class="w"> </span><span class="nt">8pt</span><span class="o">;</span>
-<span class="w">    </span><span class="nt">text-align</span><span class="o">:</span><span class="w"> </span><span class="nt">right</span><span class="o">;</span>
-<span class="w">    </span><span class="nt">border-top</span><span class="o">:</span><span class="w"> </span><span class="nt">0</span><span class="p">.</span><span class="nc">5pt</span><span class="w"> </span><span class="nt">solid</span><span class="w"> </span><span class="p">#</span><span class="nn">cbd5e1</span><span class="o">;</span>
+<span class="w">    </span><span class="nt">margin-bottom</span><span class="o">:</span><span class="w"> </span><span class="nt">5mm</span><span class="o">;</span><span class="w">        </span><span class="c">/* Abstand zum Inhalt */</span>
 <span class="w">  </span><span class="p">}</span>
 <span class="p">}</span>
 </code></pre></div>
+<h3 id="geometrie"><span class="heading-number">5.4.1</span> Geometrie</h3>
+<p>Von der Papierkante nach innen:</p>
+<div class="highlight"><pre><span></span><code>Kante ── margin ── Zeilen (top-aligned) ── Linie ── margin ── Inhalt
+</code></pre></div>
+<p>Beide Spalten sitzen in einem Flex-Container mit <code>align-items: flex-start</code>. Die
+rechte Spalte beginnt deshalb auf der Höhe der <strong>ersten</strong> linken Zeile, auch wenn
+links drei Zeilen stehen und rechts nur eine.</p>
+<div class="admonition important">
+<p class="admonition-title">Wichtig</p>
+<p>Der Abstand zum Inhalt kommt aus <code>margin-bottom</code>, nicht aus <code>padding-bottom</code>.
+In CSS liegt der Rahmen <strong>außerhalb</strong> des Paddings — ein <code>padding-bottom</code> würde
+die Trennlinie vom Text wegschieben und an den Inhalt drücken. Gewollt ist das
+Gegenteil: Linie direkt am Text, Abstand danach.</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warnung</p>
+<p>Eine Margin-Box <strong>schiebt den Inhalt nicht</strong>. Ihre Höhe ist durch den Seitenrand
+gedeckelt; zusätzliche Zeilen laufen aus der Seite heraus, statt den Satzspiegel
+zu verkleinern. Der Seitenrand wird deshalb in <code>styles.css</code> aus der Zeilenzahl
+gerechnet:</p>
+<div class="highlight"><pre><span></span><code>margin-top = Rand zur Kante + Zeilen × Zeilenhöhe + Linienstärke + Abstand zum Inhalt
+</code></pre></div>
+<p>Wer in <code>layout.html</code> eine Zeile ergänzt, zieht <code>hf_header_lines</code> bzw.
+<code>hf_footer_lines</code> in <code>styles.css</code> mit.</p>
+</div>
+<h3 id="standardbelegung-des-themes"><span class="heading-number">5.4.2</span> Standardbelegung des Themes</h3>
+<div class="highlight"><pre><span></span><code>Kopfzeile     Dokumenttitel (fett)                        Kapiteltitel
+              Untertitel
+
+Fußzeile      Copyright                     Version 1.0.0 | 01.09.2026
+                                                        Seite X von Y
+</code></pre></div>
+<p>Untertitel und Version sind optional. Fehlt der Untertitel, hat die Kopfzeile nur
+eine Zeile und der Satzspiegel rückt entsprechend nach oben. Fehlt die Version,
+entfällt sie samt Trenner — in der Fußzeile steht dann nur das Datum, und auf dem
+Deckblatt fehlt das Feld ganz.</p>
+<p>Der Kapiteltitel kommt aus <code>string(current-section)</code>, das die Kapitel-<code>&lt;article&gt;</code>
+per <code>string-set</code> setzen; <code>counter(page)</code> funktioniert innerhalb des Running
+Elements ebenso wie in einer Margin-Box. Die Schalter <code>document.header</code> und
+<code>document.footer</code> blenden den jeweiligen Block ab; auf Deck- und Trennseiten ist
+er ohnehin abgeschaltet.</p>
       </div>
     </article>
 
@@ -1595,8 +1650,8 @@ in <code>styles.css</code>, das durch dieselbe Jinja-Umgebung läuft. So ist die
 <tr>
 <td style="text-align: left;"><code>version</code></td>
 <td style="text-align: left;">String</td>
-<td style="text-align: left;"><code>"1.0.0"</code></td>
-<td style="text-align: left;">Versionskennung</td>
+<td style="text-align: left;"><code>null</code></td>
+<td style="text-align: left;">Versionskennung. Ohne Angabe entfällt das Feld auf dem Deckblatt; ist sie gesetzt, steht sie in der Fußzeile links neben dem Datum</td>
 </tr>
 </tbody>
 </table>
@@ -1639,7 +1694,7 @@ in <code>styles.css</code>, das durch dieselbe Jinja-Umgebung läuft. So ist die
 
             <section class="part-section" id="part-anhaenge">
 <div class="part-divider-container">
-  <div class="part-tag">Teil</div>
+  <div class="part-tag">Abschnitt</div>
   <h1 class="part-title">Anhänge</h1>
     <div class="part-summary">Vollständige Spezifikations-Tabellen, Troubleshooting und Best Practices.</div>
 </div>
@@ -1705,8 +1760,8 @@ in <code>styles.css</code>, das durch dieselbe Jinja-Umgebung läuft. So ist die
 <tr>
 <td style="text-align: left;"><code>version</code></td>
 <td style="text-align: left;">String</td>
-<td style="text-align: left;"><code>"1.0.0"</code></td>
-<td style="text-align: left;">Versionskennung</td>
+<td style="text-align: left;"><code>null</code></td>
+<td style="text-align: left;">Versionskennung. Ohne Angabe entfällt das Feld auf dem Deckblatt; ist sie gesetzt, steht sie in der Fußzeile links neben dem Datum</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>language</code></td>
@@ -1736,13 +1791,13 @@ in <code>styles.css</code>, das durch dieselbe Jinja-Umgebung läuft. So ist die
 <td style="text-align: left;"><code>header</code></td>
 <td style="text-align: left;">Bool</td>
 <td style="text-align: left;"><code>true</code></td>
-<td style="text-align: left;">2-zeilige Kopfzeile aktivieren</td>
+<td style="text-align: left;">Laufende Kopfzeile aktivieren (Aufbau im Theme)</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>footer</code></td>
 <td style="text-align: left;">Bool</td>
 <td style="text-align: left;"><code>true</code></td>
-<td style="text-align: left;">2-zeilige Fußzeile aktivieren</td>
+<td style="text-align: left;">Laufende Fußzeile aktivieren (Aufbau im Theme)</td>
 </tr>
 </tbody>
 </table>
@@ -1846,7 +1901,7 @@ Geben Sie relative Bildpfade immer relativ zur jeweiligen Markdown-Datei an:
           <span>Frank Winter</span>
         </div>
         <div class="footer-right">
-          <span>markpublish Benutzerhandbuch — 31.08.2026</span>
+          <span>markpublish Benutzerhandbuch — 01.09.2026</span>
         </div>
       </footer>
   </div>

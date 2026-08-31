@@ -13,13 +13,13 @@ Vollständige Übersicht aller Konfigurationsoptionen in `markpublish.yaml`.
 | `status` | String | `null` | Dokumentstatus (z. B. "Entwurf", "Freigegeben") |
 | `copyright` | String | `null` | Copyright-Angabe (z. B. "© 2026 Frank Winter") |
 | `date` | String | `"auto"` | Datum oder `"auto"` für Tagesdatum |
-| `version` | String | `"1.0.0"` | Versionskennung |
+| `version` | String | `null` | Versionskennung. Ohne Angabe entfällt das Feld auf dem Deckblatt; ist sie gesetzt, steht sie in der Fußzeile links neben dem Datum |
 | `language` | String | `"de"` | ISO-Sprachcode (`de`, `en`, ...). Steuert Template-Beschriftungen, Callout-Titel und Datumsformat |
 | `cover` | Bool | `true` | Deckblatt aktivieren/deaktivieren |
 | `toc` | Bool | `true` | Globales Inhaltsverzeichnis aktivieren |
 | `autonum_type` | String | `"decimal"` | `"decimal"`, `"roman"`, `"legal"`, `"none"` |
-| `header` | Bool | `true` | 2-zeilige Kopfzeile aktivieren |
-| `footer` | Bool | `true` | 2-zeilige Fußzeile aktivieren |
+| `header` | Bool | `true` | Laufende Kopfzeile aktivieren (Aufbau im Theme) |
+| `footer` | Bool | `true` | Laufende Fußzeile aktivieren (Aufbau im Theme) |
 
 ## Kapitel- und Part-Eigenschaften (`chapters`)
 

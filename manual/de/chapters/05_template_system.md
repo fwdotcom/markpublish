@@ -13,7 +13,7 @@ templates/
 └── default/                       # Theme-Name
     ├── pdf/
     │   ├── layout.html            # HTML-Grundgerüst
-    │   ├── styles.css             # CSS Paged Media & 2-zeilige Kopf-/Fußzeilen
+    │   ├── styles.css             # CSS Paged Media & Kopf-/Fußzeilen
     │   ├── cover.html             # Deckblatt-Template
     │   ├── part_divider.html      # Trennseite für übergeordnete Parts
     │   ├── chapter_divider.html   # Trennseite für Kapitel mit Mini-TOC
@@ -250,43 +250,100 @@ Schlüssel unter dem gewünschten Sprachcode setzen.
 > in `styles.css`, das durch dieselbe Jinja-Umgebung läuft. So ist die Fußzeile
 > `"{{ labels.page }} " counter(page) " {{ labels.page_of }} " counter(pages)` gebaut.
 
-## 2-zeilige Kopf- und Fußzeilen
+## Kopf- und Fußzeilen
 
-Kopf- und Fußzeilen werden im Template via CSS Paged Media `@page` Margin-Boxes definiert:
+Kopf- und Fußzeile sind **Running Elements**: ein Block im `layout.html` bekommt
+`position: running(name)` und wird damit aus dem Textfluss genommen; die
+`@page`-Regel setzt ihn über `content: element(name)` in die Margin-Box ein.
+
+Der Unterschied zu einer `content:`-Zeichenkette ist wesentlich: In der Margin-Box
+steht dadurch **echtes Markup**. Damit sind beliebig viele Zeilen möglich, jede mit
+eigener Auszeichnung — eine Zeichenkette kennt nur eine Formatierung für alles.
+
+```html
+<!-- layout.html -->
+<div class="page-header-runner">
+  <div class="hf-left">
+    <div class="hf-doc-title">{{ document.title }}</div>
+    <div class="hf-doc-subtitle">{{ document.subtitle }}</div>
+  </div>
+  <div class="hf-right"><span class="hf-section"></span></div>
+</div>
+```
 
 ```css
+/* styles.css */
+.page-header-runner {
+  position: running(pageheader);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;    /* rechte Spalte bleibt oben */
+}
+.hf-doc-title { font-weight: 700; }
+.hf-section::before { content: string(current-section); }
+
 @page {
-  size: A4;
-  margin: 25mm 20mm 25mm 20mm;
-
   @top-left {
-    content: "{{ document.title }}\A" string(current_section);
-    font-size: 8pt;
-    white-space: pre-wrap;
+    content: element(pageheader);
+    width: 100%;
+    vertical-align: top;
+    margin-top: 12mm;          /* Abstand zur Papierkante */
+    padding-bottom: 0;
     border-bottom: 0.5pt solid #cbd5e1;
-  }
-
-  @top-right {
-    content: "v{{ document.version }}\A{{ document.date }}";
-    font-size: 8pt;
-    text-align: right;
-    white-space: pre-wrap;
-    border-bottom: 0.5pt solid #cbd5e1;
-  }
-
-  @bottom-left {
-    content: "{{ document.author or '' }}\A{{ document.copyright or document.status or '' }}";
-    font-size: 8pt;
-    white-space: pre-wrap;
-    border-top: 0.5pt solid #cbd5e1;
-  }
-
-  @bottom-right {
-    content: "Seite " counter(page) " von " counter(pages);
-    font-size: 8pt;
-    text-align: right;
-    border-top: 0.5pt solid #cbd5e1;
+    margin-bottom: 5mm;        /* Abstand zum Inhalt */
   }
 }
 ```
+
+### Geometrie
+
+Von der Papierkante nach innen:
+
+```
+Kante ── margin ── Zeilen (top-aligned) ── Linie ── margin ── Inhalt
+```
+
+Beide Spalten sitzen in einem Flex-Container mit `align-items: flex-start`. Die
+rechte Spalte beginnt deshalb auf der Höhe der **ersten** linken Zeile, auch wenn
+links drei Zeilen stehen und rechts nur eine.
+
+> [!IMPORTANT]
+> Der Abstand zum Inhalt kommt aus `margin-bottom`, nicht aus `padding-bottom`.
+> In CSS liegt der Rahmen **außerhalb** des Paddings — ein `padding-bottom` würde
+> die Trennlinie vom Text wegschieben und an den Inhalt drücken. Gewollt ist das
+> Gegenteil: Linie direkt am Text, Abstand danach.
+
+> [!WARNING]
+> Eine Margin-Box **schiebt den Inhalt nicht**. Ihre Höhe ist durch den Seitenrand
+> gedeckelt; zusätzliche Zeilen laufen aus der Seite heraus, statt den Satzspiegel
+> zu verkleinern. Der Seitenrand wird deshalb in `styles.css` aus der Zeilenzahl
+> gerechnet:
+>
+> ```
+> margin-top = Rand zur Kante + Zeilen × Zeilenhöhe + Linienstärke + Abstand zum Inhalt
+> ```
+>
+> Wer in `layout.html` eine Zeile ergänzt, zieht `hf_header_lines` bzw.
+> `hf_footer_lines` in `styles.css` mit.
+
+### Standardbelegung des Themes
+
+```
+Kopfzeile     Dokumenttitel (fett)                        Kapiteltitel
+              Untertitel
+
+Fußzeile      Copyright                     Version 1.0.0 | 01.09.2026
+                                                        Seite X von Y
+```
+
+Untertitel und Version sind optional. Fehlt der Untertitel, hat die Kopfzeile nur
+eine Zeile und der Satzspiegel rückt entsprechend nach oben. Fehlt die Version,
+entfällt sie samt Trenner — in der Fußzeile steht dann nur das Datum, und auf dem
+Deckblatt fehlt das Feld ganz.
+
+Der Kapiteltitel kommt aus `string(current-section)`, das die Kapitel-`<article>`
+per `string-set` setzen; `counter(page)` funktioniert innerhalb des Running
+Elements ebenso wie in einer Margin-Box. Die Schalter `document.header` und
+`document.footer` blenden den jeweiligen Block ab; auf Deck- und Trennseiten ist
+er ohnehin abgeschaltet.
 

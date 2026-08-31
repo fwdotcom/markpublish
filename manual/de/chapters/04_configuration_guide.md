@@ -14,15 +14,15 @@ document:
   author: "Frank Winter"
   organisation: "WASDCAT Games"
   date: "auto"                    # "auto" (Tagesdatum) oder festes Datum "2026-08-31"
-  version: "1.0.0"
+  version: "1.0.0"               # optional - ohne Angabe entfällt das Feld
   language: "de"                 # Sprachcode für Silbentrennung & Formatierung
 
   # Globale Schalter
   cover: true                    # Deckblatt an/aus
   toc: true                      # Globales Inhaltsverzeichnis
   autonum_type: "decimal"        # "decimal", "roman", "legal", "none"
-  header: true                   # 2-zeilige Kopfzeile
-  footer: true                   # 2-zeilige Fußzeile
+  header: true                   # Laufende Kopfzeile
+  footer: true                   # Laufende Fußzeile
 ```
 
 ### Automatische Datumsauflösung

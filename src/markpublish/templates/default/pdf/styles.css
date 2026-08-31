@@ -2,85 +2,128 @@
    markpublish - Default PDF Theme Stylesheet (WeasyPrint Paged Media)
    ========================================================================== */
 
-/* --- Page Setup & 2-Line Header / Footer --- */
+/* --- Page Setup & Header / Footer ---------------------------------------
+   Kopf- und Fusszeile sind Running Elements (position: running(), eingesetzt
+   ueber content: element()). Damit steht in der Margin-Box echtes Markup statt
+   einer content-Zeichenkette: beliebig viele Zeilen, pro Zeile eigene
+   Auszeichnung, und die Spalten sitzen in einem Flex-Container - die rechte
+   Spalte bleibt oben, auch wenn die linke mehr Zeilen hat.
+
+   Geometrie, von der Papierkante nach innen:
+
+       Kante -> margin -> Zeilen (top-aligned) -> Linie -> margin -> Inhalt
+
+   Die Linie liegt unmittelbar am Text, der Abstand zum Inhalt kommt deshalb
+   aus margin-bottom, nicht aus padding-bottom: der Rahmen sitzt in CSS
+   ausserhalb des padding, ein padding wuerde die Linie vom Text wegschieben.
+
+   Eine Margin-Box schiebt den Inhalt nicht - ihre Hoehe ist durch den
+   Seitenrand gedeckelt, mehr Zeilen laufen einfach heraus. Der Seitenrand wird
+   hier deshalb aus der Zeilenzahl gerechnet statt geraten. Wer in
+   layout.html Zeilen hinzufuegt, zieht hf_header_lines bzw.
+   hf_footer_lines mit nach.
+   -------------------------------------------------------------------------- */
+
+{% set hf_font_pt = 8 %}
+{% set hf_line_height = 1.3 %}
+{% set hf_rule_pt = 0.5 %}
+
+{# mm pro Zeile: Schriftgrad in pt * Zeilenhoehe, umgerechnet (1pt = 25.4/72 mm) #}
+{% set hf_line_mm = hf_font_pt * hf_line_height * 25.4 / 72 %}
+{% set hf_rule_mm = hf_rule_pt * 25.4 / 72 %}
+
+{# Abstand Papierkante -> erste Zeile, und Linie -> Inhalt #}
+{% set hf_edge_mm = 12 %}
+{% set hf_gap_mm = 5 %}
+
+{# Zeilen der laengeren Spalte. Kopf: Titel + optionaler Untertitel.
+   Fuss: rechts Datum + Seitenzahl. #}
+{% set hf_header_lines = 2 if document.subtitle else 1 %}
+{% set hf_footer_lines = 2 %}
+
+{% set hf_page_top = hf_edge_mm + hf_header_lines * hf_line_mm + hf_rule_mm + hf_gap_mm if document.header else 25 %}
+{% set hf_page_bottom = hf_edge_mm + hf_footer_lines * hf_line_mm + hf_rule_mm + hf_gap_mm if document.footer else 25 %}
+
 @page {
   size: A4;
-  margin: 25mm 20mm 25mm 20mm;
+  margin: {{ "%.2f"|format(hf_page_top) }}mm 20mm {{ "%.2f"|format(hf_page_bottom) }}mm 20mm;
 
   {% if document.header %}
   @top-left {
-    content: "{{ document.title }}\A " string(current-section);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    font-size: 8pt;
-    font-weight: 500;
-    color: #64748b;
-    white-space: pre-wrap;
-    line-height: 1.3;
-    vertical-align: bottom;
-    padding-bottom: 3.5mm;
-    border-bottom: 0.5pt solid #cbd5e1;
-  }
-
-  @top-right {
-    content: "v{{ document.version }}\A {{ document.date }}";
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    font-size: 8pt;
-    font-weight: 500;
-    color: #64748b;
-    text-align: right;
-    white-space: pre-wrap;
-    line-height: 1.3;
-    vertical-align: bottom;
-    padding-bottom: 3.5mm;
-    border-bottom: 0.5pt solid #cbd5e1;
+    /* width: 100% - die Box spannt den ganzen Satzspiegel auf, der Flex-
+       Container darin verteilt linke und rechte Spalte. */
+    content: element(pageheader);
+    width: 100%;
+    vertical-align: top;
+    margin-top: {{ hf_edge_mm }}mm;
+    padding-bottom: 0;
+    border-bottom: {{ hf_rule_pt }}pt solid #cbd5e1;
+    margin-bottom: {{ hf_gap_mm }}mm;
   }
   {% endif %}
 
   {% if document.footer %}
   @bottom-left {
-    content: "{{ document.author or '' }}\A {{ document.copyright or document.status or document.footer_note or '' }}";
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    font-size: 8pt;
-    color: #64748b;
-    white-space: pre-wrap;
-    line-height: 1.3;
+    content: element(pagefooter);
+    width: 100%;
     vertical-align: top;
-    padding-top: 3.5mm;
-    border-top: 0.5pt solid #cbd5e1;
-  }
-
-  @bottom-right {
-    content: "{{ labels.page }} " counter(page) " {{ labels.page_of }} " counter(pages);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    font-size: 8pt;
-    color: #64748b;
-    text-align: right;
-    white-space: pre-wrap;
-    line-height: 1.3;
-    vertical-align: top;
-    padding-top: 3.5mm;
-    border-top: 0.5pt solid #cbd5e1;
+    margin-top: {{ hf_gap_mm }}mm;
+    padding-top: 0;
+    border-top: {{ hf_rule_pt }}pt solid #cbd5e1;
+    margin-bottom: {{ hf_edge_mm }}mm;
   }
   {% endif %}
+}
+
+/* --- Inhalt der Kopf-/Fusszeile ------------------------------------------
+   Die Elemente stehen in layout.html im Body und werden durch
+   position: running() aus dem Fluss genommen. Sie erscheinen ausschliesslich
+   in der Margin-Box, nie im Textfluss.
+   -------------------------------------------------------------------------- */
+
+.page-header-runner,
+.page-footer-runner {
+  display: flex;
+  justify-content: space-between;
+  /* Die rechte Spalte beginnt auf derselben Hoehe wie die linke, unabhaengig
+     davon, wie viele Zeilen jede Seite hat. */
+  align-items: flex-start;
+  gap: 10mm;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: {{ hf_font_pt }}pt;
+  line-height: {{ hf_line_height }};
+  color: #64748b;
+}
+
+.page-header-runner { position: running(pageheader); }
+.page-footer-runner { position: running(pagefooter); }
+
+.hf-right { text-align: right; }
+
+.hf-doc-title {
+  font-weight: 700;
+  color: #334155;
+}
+
+.hf-section::before { content: string(current-section); }
+
+.hf-page::before {
+  content: "{{ labels.page }} " counter(page) " {{ labels.page_of }} " counter(pages);
 }
 
 /* --- Special Page Styles (Cover & Dividers) --- */
 @page cover-page {
   size: A4;
   margin: 0;
-  @top-left { content: none; border-bottom: none; }
-  @top-right { content: none; border-bottom: none; }
-  @bottom-left { content: none; border-top: none; }
-  @bottom-right { content: none; border-top: none; }
+  @top-left { content: none; border-bottom: none; margin: 0; }
+  @bottom-left { content: none; border-top: none; margin: 0; }
 }
 
 @page divider-page {
   size: A4;
   margin: 30mm 25mm 25mm 25mm;
-  @top-left { content: none; border-bottom: none; }
-  @top-right { content: none; border-bottom: none; }
-  @bottom-left { content: none; border-top: none; }
-  @bottom-right { content: none; border-top: none; }
+  @top-left { content: none; border-bottom: none; margin: 0; }
+  @bottom-left { content: none; border-top: none; margin: 0; }
 }
 
 .cover-page {

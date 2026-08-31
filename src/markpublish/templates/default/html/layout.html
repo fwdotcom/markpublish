@@ -44,7 +44,7 @@
           {% if document.subtitle %}<span class="doc-subtitle">{{ document.subtitle }}</span>{% endif %}
         </div>
         <div class="header-right">
-          <span class="doc-version">v{{ document.version }}</span>
+          {% if document.version %}<span class="doc-version">v{{ document.version }}</span>{% endif %}
           <span class="doc-date">{{ document.date }}</span>
         </div>
       </header>

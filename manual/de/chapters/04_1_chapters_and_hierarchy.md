@@ -53,5 +53,5 @@ chapters:
         title: "Anhang B: Glossar"
 ```
 
-Der Part-Titel (z. B. *"Anhänge"*) wird automatisch in die laufenden 2-zeiligen Kopfzeilen der Einzelseiten übernommen.
+Der Part-Titel (z. B. *"Anhänge"*) wird automatisch in die laufende Kopfzeile der Einzelseiten übernommen.
 

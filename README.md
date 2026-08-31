@@ -16,7 +16,7 @@
 - 🎨 **Target-Based Template Hierarchy**:
   - `templates/<theme>/pdf` and `templates/<theme>/html`
   - 3-tier resolution: **User directory** > **Common/Project folder** > **Package built-ins**.
-- 📑 **2-Line Headers & Footers**: Cleanly designed inside templates and automatically populated from document metadata.
+- 📑 **Running Headers & Footers**: Real markup in the page margins via CSS running elements -- any number of lines, per-line styling, columns top-aligned.
 - 🔢 **Autonumbering & TOC**:
   - Global TOC reflecting chapter depth and heading levels.
   - Per-chapter local TOCs with configurable `max_depth`.
@@ -74,15 +74,15 @@ document:
   summary: "Comprehensive guide for modern enterprise cloud environments."
   author: "Frank Mustermann"
   date: "auto"                    # "auto" for current date, or "2026-08-31"
-  version: "1.0.0"
+  version: "1.0.0"              # optional; omitted -> no version on the cover
   language: "de"                 # Localization and hyphenation
 
   # Layout Toggles
   cover: true                    # Enable cover page
   toc: true                      # Global table of contents
   autonum_type: "decimal"        # "decimal" (1, 1.1), "roman", "legal", "none"
-  header: true                   # Enable 2-line header (defined in template)
-  footer: true                   # Enable 2-line footer (defined in template)
+  header: true                   # Enable running header (laid out in the theme)
+  footer: true                   # Enable running footer (laid out in the theme)
 
 # Template selection
 theme: "default"
