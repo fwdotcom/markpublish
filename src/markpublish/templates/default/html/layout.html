@@ -54,9 +54,13 @@
           <span class="doc-title">{{ document.title }}</span>
           {% if document.subtitle %}<span class="doc-subtitle">{{ document.subtitle }}</span>{% endif %}
         </div>
+        {# Gleiche Schreibweise wie die PDF-Fusszeile: "Version 1.0.0 | 01.09.2026".
+           Der Trenner gehoert zur Version - fehlt sie, bleibt kein einsames
+           "| 01.09.2026" stehen. #}
+        {% set hf_version = labels.version ~ " " ~ document.version if document.version else "" %}
+        {% set hf_date = document.date or "" %}
         <div class="header-right">
-          {% if document.version %}<span class="doc-version">v{{ document.version }}</span>{% endif %}
-          <span class="doc-date">{{ document.date }}</span>
+          <span class="doc-meta">{{ hf_version }}{% if hf_version and hf_date %} | {% endif %}{{ hf_date }}</span>
         </div>
       </header>
     {% endif %}

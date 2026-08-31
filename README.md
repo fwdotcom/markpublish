@@ -16,6 +16,7 @@
 - 🎨 **Target-Based Template Hierarchy**:
   - `templates/<theme>/pdf` and `templates/<theme>/html`
   - 3-tier resolution: **User directory** > **Common/Project folder** > **Package built-ins**.
+- 🔤 **Bundled font**: Open Sans ships with the theme as a variable font and is embedded into the PDF, so output does not depend on what is installed on the build machine.
 - 📑 **Running Headers & Footers**: Real markup in the page margins via CSS running elements -- any number of lines, per-line styling, columns top-aligned.
 - 🔢 **Autonumbering & TOC**:
   - Global TOC reflecting chapter depth and heading levels.

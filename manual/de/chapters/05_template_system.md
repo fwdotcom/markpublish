@@ -14,6 +14,7 @@ templates/
     ├── pdf/
     │   ├── layout.html            # HTML-Grundgerüst
     │   ├── styles.css             # CSS Paged Media & Kopf-/Fußzeilen
+    │   ├── fonts/                 # Mitgelieferte Schrift (Open Sans, variabel) + OFL.txt
     │   ├── cover.html             # Deckblatt-Template
     │   ├── part_divider.html      # Trennseite für übergeordnete Parts
     │   ├── chapter_divider.html   # Trennseite für Kapitel mit Mini-TOC

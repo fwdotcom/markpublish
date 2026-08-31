@@ -2,6 +2,42 @@
    markpublish - Default PDF Theme Stylesheet (WeasyPrint Paged Media)
    ========================================================================== */
 
+/* --- Mitgelieferte Schrift ------------------------------------------------
+   Open Sans als variable Schrift, einmal aufrecht und einmal kursiv. Die
+   Dateien liegen unter fonts/ neben diesem Stylesheet - bewusst je Zielformat,
+   damit ein Theme-Ordner nur Zielformate enthaelt. Die Kopie im jeweils
+   anderen Zielformat ist identisch; wer die Schrift tauscht, tauscht beide.
+
+   Warum ueberhaupt mitliefern: ohne die Dateien haengt das Satzbild davon ab,
+   was auf dem Rechner installiert ist. Fehlt Open Sans, greift stumm die
+   Fallback-Kette - andere Metriken, andere Umbrueche, andere Seitenzahl.
+
+   Kein font-weight-Deskriptor: die Datei bringt ihre Achse (wght 300-800)
+   selbst mit, fontconfig bildet daraus die benannten Instanzen (Light,
+   Regular, SemiBold, Bold, ExtraBold). Eine Angabe hier wuerde sie auf einen
+   Wert festnageln. Zwischenwerte erreicht man ueber
+   font-variation-settings: 'wght' 550 - font-weight selbst nimmt nur
+   Hunderterschritte.
+
+   ACHTUNG beim Austausch: der Name unter font-family MUSS dem Familiennamen
+   IN der Schriftdatei entsprechen. WeasyPrint kann Familien zwar ueber eine
+   fontconfig-Regel umbenennen, die greift aber nicht in jeder
+   GTK-Laufzeitumgebung - ein abweichender Name faellt dann still auf die
+   naechste Schrift der Kette zurueck, ohne Fehlermeldung.
+   ---------------------------------------------------------------------- */
+
+@font-face {
+  font-family: "Open Sans";
+  font-style: normal;
+  src: url("{{ asset_url('fonts/OpenSans-VariableFont_wdth,wght.ttf') }}");
+}
+
+@font-face {
+  font-family: "Open Sans";
+  font-style: italic;
+  src: url("{{ asset_url('fonts/OpenSans-Italic-VariableFont_wdth,wght.ttf') }}");
+}
+
 /* --- Schrift & Raster --------------------------------------------------
    Eine Stelle fuer die Schriften des Themes. Hinter jeder Angabe steht eine
    echte Fallback-Kette: Open Sans liegt auf vielen Systemen nur als Regular

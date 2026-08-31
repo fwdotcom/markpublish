@@ -2,6 +2,53 @@
    markpublish - Default HTML Theme Stylesheet (Responsive Web Preview)
    ========================================================================== */
 
+/* --- Mitgelieferte Schrift ------------------------------------------------
+   Open Sans als variable Schrift, einmal aufrecht und einmal kursiv. Die
+   Dateien liegen unter fonts/ neben diesem Stylesheet - bewusst je Zielformat,
+   damit ein Theme-Ordner nur Zielformate enthaelt. Die Kopie im jeweils
+   anderen Zielformat ist identisch; wer die Schrift tauscht, tauscht beide.
+
+   Warum ueberhaupt mitliefern: ohne die Dateien haengt das Satzbild davon ab,
+   was auf dem Rechner installiert ist. Fehlt Open Sans, greift stumm die
+   Fallback-Kette - andere Metriken, andere Umbrueche, andere Seitenzahl.
+
+   Kein font-weight-Deskriptor: die Datei bringt ihre Achse (wght 300-800)
+   selbst mit, fontconfig bildet daraus die benannten Instanzen (Light,
+   Regular, SemiBold, Bold, ExtraBold). Eine Angabe hier wuerde sie auf einen
+   Wert festnageln. Zwischenwerte erreicht man ueber
+   font-variation-settings: 'wght' 550 - font-weight selbst nimmt nur
+   Hunderterschritte.
+
+   ACHTUNG beim Austausch: der Name unter font-family MUSS dem Familiennamen
+   IN der Schriftdatei entsprechen. WeasyPrint kann Familien zwar ueber eine
+   fontconfig-Regel umbenennen, die greift aber nicht in jeder
+   GTK-Laufzeitumgebung - ein abweichender Name faellt dann still auf die
+   naechste Schrift der Kette zurueck, ohne Fehlermeldung.
+   ---------------------------------------------------------------------- */
+
+@font-face {
+  font-family: "Open Sans";
+  font-style: normal;
+  src: url("{{ asset_url('fonts/OpenSans-VariableFont_wdth,wght.ttf') }}");
+}
+
+@font-face {
+  font-family: "Open Sans";
+  font-style: italic;
+  src: url("{{ asset_url('fonts/OpenSans-Italic-VariableFont_wdth,wght.ttf') }}");
+}
+
+/* --- Schrift ------------------------------------------------------------
+   Eine Stelle fuer die Schriften des Themes, wie im PDF-Theme. Hinter Open
+   Sans steht eine echte Fallback-Kette: Rahmen- und Pfeilzeichen fehlen der
+   Schrift, die holt sich Pango aus der naechsten Familie.
+   ---------------------------------------------------------------------- */
+:root {
+  --font-sans: "Open Sans", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "JetBrains Mono", Consolas, "Liberation Mono", Menlo, monospace;
+}
+
+
 :root {
   --primary: #2563eb;
   --primary-hover: #1d4ed8;
@@ -17,7 +64,7 @@
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family: var(--font-sans);
   font-size: 16px;
   line-height: 1.65;
   color: var(--text-main);
@@ -151,11 +198,25 @@ a:hover { text-decoration: underline; }
   margin-bottom: 2rem;
 }
 
+/* Deckblatt-Metadaten: Label ueber dem Wert, ohne Doppelpunkt. Die
+   Unterstreichung traegt hier die Trennung, die sonst der Doppelpunkt
+   uebernehmen wuerde. */
 .cover-meta {
   display: flex;
-  gap: 2rem;
+  flex-wrap: wrap;
+  gap: 1.5rem 2.5rem;
   font-size: 0.9rem;
+}
+
+.meta-item-label {
+  font-weight: 700;
+  text-decoration: underline;
   color: var(--text-muted);
+  margin-bottom: 0.15rem;
+}
+
+.meta-item-value {
+  color: var(--text-main);
 }
 
 /* Divider Sections */
@@ -235,12 +296,12 @@ pre {
   padding: 1rem 1.25rem;
   border-radius: 6px;
   overflow-x: auto;
-  font-family: "JetBrains Mono", Consolas, Menlo, monospace;
+  font-family: var(--font-mono);
   font-size: 0.875rem;
 }
 
 code {
-  font-family: "JetBrains Mono", Consolas, Menlo, monospace;
+  font-family: var(--font-mono);
   font-size: 0.875em;
   background: #f1f5f9;
   padding: 0.15em 0.35em;

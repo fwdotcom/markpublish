@@ -20,6 +20,7 @@ Geometrie, von der Papierkante nach innen:
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 from typing import List
 
@@ -333,3 +334,54 @@ def test_chapter_title_follows_the_chapter(tmp_path: Path):
 
     assert "Erstes Kapitel" in titles
     assert "Zweites Kapitel" in titles
+
+
+# --------------------------------------------------------------------------
+# Gleiche Schreibweise in beiden Zielformaten
+# --------------------------------------------------------------------------
+
+def _html_meta_line(tmp_path: Path) -> str:
+    """Der Kopfzeilentext des HTML-Themes - Version und Datum."""
+    from markpublish.renderers.html import HTMLRenderer
+
+    config = load_config(tmp_path / "markpublish.yaml")
+    context = DocumentContext(
+        config=config,
+        content_items=[],
+        toc_tree=[],
+        template_path=resolve_template_path("html", "default"),
+        base_dir=tmp_path,
+        target="html",
+    )
+    context.content_items, context.toc_tree = MarkdownPipeline(
+        config, base_dir=tmp_path, labels=context.labels
+    ).process_document()
+
+    out = tmp_path / "out.html"
+    HTMLRenderer().render(context, out)
+    html = out.read_text(encoding="utf-8")
+
+    match = re.search(r'<span class="doc-meta">([^<]*)</span>', html)
+    assert match, "Kein doc-meta im HTML-Kopf gefunden"
+    return match.group(1).strip()
+
+
+def test_html_and_pdf_write_version_and_date_the_same_way(tmp_path: Path):
+    """
+    Nicht die Zeichenkette wird festgehalten, sondern die Gleichheit: aendert
+    jemand die eine Seite, faellt die andere auf.
+    """
+    pages = build_pages(tmp_path, version="1.0.0")
+    assert _footer_meta_line(pages) == _html_meta_line(tmp_path)
+
+
+def test_html_meta_line_carries_the_version_label(tmp_path: Path):
+    build_pages(tmp_path, version="1.0.0")
+    assert _html_meta_line(tmp_path) == "Version 1.0.0 | 31.08.2026"
+
+
+def test_html_meta_line_drops_the_separator_without_a_version(tmp_path: Path):
+    build_pages(tmp_path)
+    line = _html_meta_line(tmp_path)
+    assert line == "31.08.2026"
+    assert "|" not in line

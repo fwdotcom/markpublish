@@ -8,12 +8,26 @@
       {{ document.summary }}
     </div>
   {% endif %}
+
+  {# Label ueber dem Wert, ohne Doppelpunkt - gleicher Aufbau und gleiche
+     Klassennamen wie im PDF-Theme, damit ein Theme-Autor nicht zwei
+     Vokabulare lernen muss.
+
+     Die Felder stehen als Liste statt als fuenf fast gleiche if-Bloecke: die
+     Reihenfolge ist damit an einer Stelle ablesbar, und ein neues Feld ist
+     eine Zeile. `if value` filtert leere Angaben weg. #}
   <div class="cover-meta">
-    {% if document.author %}<div><strong>{{ labels.author }}:</strong> {{ document.author }}</div>{% endif %}
-    {% if document.status %}<div><strong>{{ labels.status }}:</strong> {{ document.status }}</div>{% endif %}
-    {% if document.version %}<div><strong>{{ labels.version }}:</strong> {{ document.version }}</div>{% endif %}
-    {% if document.date %}<div><strong>{{ labels.date }}:</strong> {{ document.date }}</div>{% endif %}
-    {% if document.copyright %}<div><strong>{{ labels.copyright }}:</strong> {{ document.copyright }}</div>{% endif %}
+    {% for label, value in [
+         (labels.author, document.author),
+         (labels.status, document.status),
+         (labels.version, document.version),
+         (labels.date, document.date),
+         (labels.copyright, document.copyright),
+       ] if value %}
+      <div class="meta-item">
+        <div class="meta-item-label">{{ label }}</div>
+        <div class="meta-item-value">{{ value }}</div>
+      </div>
+    {% endfor %}
   </div>
 </div>
-

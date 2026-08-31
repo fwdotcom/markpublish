@@ -2,6 +2,7 @@
 Tests fuer die Uebersetzungstabelle der statischen Template-Texte.
 """
 
+import re
 from pathlib import Path
 
 import pytest
@@ -142,18 +143,29 @@ def _body_only(html: str) -> str:
 # Trennseiten noch Kapitel-TOC, die Marken "Kapitel" und chapter_toc_title
 # kommen dort also nicht mehr vor. Im PDF tun sie es weiterhin - dafuer
 # steht test_page_label_reaches_the_pdf_stylesheet.
+def _cover_label(html: str, value: str) -> str:
+    """Das Label, das im Deckblatt ueber einem bestimmten Wert steht."""
+    match = re.search(
+        r'<div class="meta-item-label">([^<]*)</div>\s*'
+        r'<div class="meta-item-value">\s*' + re.escape(value),
+        html,
+    )
+    assert match, f"Kein Deckblatt-Feld mit dem Wert {value!r}"
+    return match.group(1).strip()
+
+
 def test_german_labels_reach_the_html_output(tmp_path: Path):
     html = _render_html(tmp_path, "de")
     assert "Inhalt" in html
-    assert "<strong>Autor:</strong>" in html
-    assert "<strong>Datum:</strong>" in html
+    assert _cover_label(html, "Test") == "Autor"
+    assert _cover_label(html, "2026-08-31") == "Datum"
 
 
 def test_english_labels_reach_the_html_output(tmp_path: Path):
     html = _render_html(tmp_path, "en")
     assert "Contents" in html
-    assert "<strong>Author:</strong>" in html
-    assert "<strong>Date:</strong>" in html
+    assert _cover_label(html, "Test") == "Author"
+    assert _cover_label(html, "2026-08-31") == "Date"
 
     body = _body_only(html)
     assert "Autor" not in body

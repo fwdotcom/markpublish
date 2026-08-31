@@ -13,6 +13,7 @@ sobald sie kippen:
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 from typing import List
 
@@ -194,10 +195,130 @@ def test_theme_declares_its_fonts_in_one_place():
     assert "--font-mono:" in css
     assert '"Open Sans"' in css
 
-    # Keine Deklaration darf die Variable umgehen.
-    for line in css.splitlines():
+    # In @font-face ist font-family ein Deskriptor - er benennt die Schrift, die
+    # gerade definiert wird, und darf keine Variable sein. Nur die uebrigen
+    # Deklarationen muessen ueber :root gehen.
+    without_faces = re.sub(r"@font-face\s*\{[^}]*\}", "", css)
+
+    for line in without_faces.splitlines():
         stripped = line.strip()
         if stripped.startswith("font-family:"):
             assert "var(--font-" in stripped, (
                 f"font-family umgeht die Theme-Variable: {stripped}"
             )
+
+
+# --------------------------------------------------------------------------
+# Mitgelieferte Schrift
+# --------------------------------------------------------------------------
+
+#: Die beiden variablen Schnitte plus Lizenz, je Zielformat.
+FONT_FILES = (
+    "OpenSans-VariableFont_wdth,wght.ttf",
+    "OpenSans-Italic-VariableFont_wdth,wght.ttf",
+    "OFL.txt",
+)
+
+
+@pytest.mark.parametrize("target", ["pdf", "html"])
+def test_theme_ships_the_font_files(target: str):
+    """
+    Bewusst je Zielformat abgelegt, nicht auf Theme-Ebene - dafuer muessen sie
+    auch in beiden liegen, sonst faellt eines der Formate still auf die
+    Systemschrift zurueck.
+    """
+    fonts = resolve_template_path(target, "default") / "fonts"
+    for name in FONT_FILES:
+        assert (fonts / name).is_file(), f"{target}: {name} fehlt"
+
+
+@pytest.mark.parametrize("target", ["pdf", "html"])
+def test_font_face_name_matches_the_file(target: str):
+    """
+    Der Name unter font-family muss dem Familiennamen IN der Datei entsprechen.
+    Weicht er ab, faellt WeasyPrint still auf die naechste Schrift der Kette
+    zurueck - ohne Fehlermeldung, nur mit anderem Satzbild.
+    """
+    fonttools = pytest.importorskip("fontTools.ttLib")
+
+    directory = resolve_template_path(target, "default")
+    css = (directory / "styles.css").read_text(encoding="utf-8")
+
+    declared = set(re.findall(r'@font-face\s*\{[^}]*?font-family:\s*"([^"]+)"', css))
+    assert declared, f"{target}: keine @font-face-Regel gefunden"
+
+    for name in FONT_FILES:
+        if not name.endswith(".ttf"):
+            continue
+        family = fonttools.TTFont(directory / "fonts" / name)["name"].getDebugName(1)
+        assert family in declared, (
+            f"{target}: Datei {name} heisst {family!r}, deklariert ist {declared}"
+        )
+
+
+@pytest.mark.parametrize("target", ["pdf", "html"])
+def test_font_is_inlined_not_linked(target: str):
+    """
+    Die Schrift wird ueber asset_url() als data-URI eingebettet. Ein relativer
+    Pfad wuerde gegen das Dokumentverzeichnis aufgeloest, nicht gegen das
+    Template - und dort liegt keine Schrift.
+    """
+    css = (resolve_template_path(target, "default") / "styles.css").read_text(
+        encoding="utf-8"
+    )
+    for match in re.finditer(r"@font-face\s*\{([^}]*)\}", css):
+        block = match.group(1)
+        assert "asset_url(" in block, f"{target}: @font-face ohne asset_url:\n{block}"
+
+
+def test_bundled_font_supplies_faces_the_system_lacks(tmp_path: Path):
+    """
+    Der Beweis, dass die Datei benutzt wird und nicht die Installation: Bold und
+    Kursiv liefert die variable Schrift ueber ihre Achse. Ein System, auf dem
+    Open Sans nur als Regular und SemiBold installiert ist, kann sie nicht
+    beisteuern - dort wuerde WeasyPrint sie sonst rechnen statt zeichnen.
+    """
+    pages = build_pages(tmp_path)
+    pdf = tmp_path / "fonts.pdf"
+
+    from markpublish.renderers.pdf import PDFRenderer, _load_weasyprint
+
+    html_cls, error = _load_weasyprint()
+    if html_cls is None:
+        pytest.skip(f"WeasyPrint/GTK nicht verfuegbar: {error}")
+
+    config = load_config(tmp_path / "markpublish.yaml")
+    context = DocumentContext(
+        config=config,
+        content_items=[],
+        toc_tree=[],
+        template_path=resolve_template_path("pdf", "default"),
+        base_dir=tmp_path,
+        target="pdf",
+    )
+    context.content_items, context.toc_tree = MarkdownPipeline(
+        config, base_dir=tmp_path, labels=context.labels
+    ).process_document()
+    PDFRenderer().render(context, pdf)
+
+    names = " ".join(embedded_fonts(pdf))
+    assert "Open-Sans" in names, f"Open Sans nicht eingebettet: {names}"
+    assert "Bold" in names, f"Kein Fettschnitt aus der Achse: {names}"
+    assert len(pages) >= 1
+
+
+def embedded_fonts(pdf_path: Path):
+    """Namen der im PDF eingebetteten Schriften, auch aus komprimierten Objekten."""
+    import zlib
+
+    data = pdf_path.read_bytes()
+    found = set(re.findall(rb"/BaseFont\s*/([#\w+.-]+)", data))
+    for match in re.finditer(rb"stream\r?\n", data):
+        start = match.end()
+        end = data.find(b"endstream", start)
+        try:
+            found |= set(re.findall(rb"/BaseFont\s*/([#\w+.-]+)",
+                                    zlib.decompress(data[start:end])))
+        except Exception:
+            continue
+    return sorted(name.decode() for name in found)
