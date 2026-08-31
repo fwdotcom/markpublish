@@ -281,18 +281,22 @@ def test_label_source_dirs_are_theme_then_target(tmp_path: Path):
 
 
 def test_theme_labels_reach_the_rendered_html(tmp_path: Path):
+    """
+    Sondiert ueber toc_sidebar: das HTML-Theme zeigt weder Trennseiten noch
+    Kapitel-TOC, chapter_toc_title kommt dort also gar nicht mehr vor.
+    """
     theme_dir = _project_with_theme(tmp_path)
-    write_i18n(theme_dir, 'de:\n  chapter_toc_title: "Auf dieser Seite"\n')
+    write_i18n(theme_dir, 'de:\n  toc_sidebar: "Wegweiser"\n')
 
     html = _render(tmp_path, "html")
-    assert "Auf dieser Seite" in html
-    assert "Inhalt dieses Kapitels" not in html
+    assert "Wegweiser" in html
+    assert ">Inhalt<" not in html
 
 
 def test_target_labels_only_affect_their_own_target(tmp_path: Path):
     theme_dir = _project_with_theme(tmp_path)
-    write_i18n(theme_dir, 'de:\n  chapter: "THEME"\n')
-    write_i18n(theme_dir / "pdf", 'de:\n  chapter: "NUR-PDF"\n')
+    write_i18n(theme_dir, 'de:\n  toc_sidebar: "THEME"\n')
+    write_i18n(theme_dir / "pdf", 'de:\n  toc_sidebar: "NUR-PDF"\n')
 
     html = _render(tmp_path, "html")
     assert "THEME" in html

@@ -2,7 +2,10 @@
 Tests for PDF and HTML rendering.
 """
 
+import re
 from pathlib import Path
+
+import pytest
 
 from markpublish.config.loader import load_config
 from markpublish.markdown.engine import MarkdownPipeline
@@ -148,3 +151,115 @@ def test_cover_omits_the_version_field_when_unset(tmp_path: Path):
     # Der Titel enthaelt das Wort nicht, also ist jeder Treffer das Label.
     assert "Version" not in html
     assert "1.0.0" not in html
+
+
+# --------------------------------------------------------------------------
+# Trennseiten und Kapitel-TOC: nur im PDF
+# --------------------------------------------------------------------------
+
+DIVIDER_YAML = """
+document:
+  title: "Trennseiten Test"
+  author: "Test"
+  date: "01.09.2026"
+  language: "de"
+  cover: false
+  toc: true
+
+theme: "default"
+
+chapters:
+  - file: "chapters/01.md"
+    title: "Erstes Kapitel"
+    summary: "Zusammenfassung des Kapitels."
+    divider_page: true
+    toc: 2
+  - part: "Anhaenge"
+    summary: "Zusammenfassung des Blocks."
+    divider_page: true
+    chapters:
+      - file: "chapters/02.md"
+        title: "Anhang A"
+"""
+
+
+def _divider_project(tmp_path: Path) -> Path:
+    chapters = tmp_path / "chapters"
+    chapters.mkdir(parents=True, exist_ok=True)
+    (chapters / "01.md").write_text(
+        "# Erstes Kapitel\n\n## Abschnitt A\n\nText.\n\n## Abschnitt B\n\nText.\n",
+        encoding="utf-8",
+    )
+    (chapters / "02.md").write_text("# Anhang A\n\nText.\n", encoding="utf-8")
+    (tmp_path / "markpublish.yaml").write_text(DIVIDER_YAML, encoding="utf-8")
+    return tmp_path
+
+
+def _render_target(tmp_path: Path, target: str) -> str:
+    config = load_config(tmp_path / "markpublish.yaml")
+    context = DocumentContext(
+        config=config,
+        content_items=[],
+        toc_tree=[],
+        template_path=resolve_template_path(target, "default"),
+        base_dir=tmp_path,
+        target=target,
+    )
+    context.content_items, context.toc_tree = MarkdownPipeline(
+        config, base_dir=tmp_path, labels=context.labels
+    ).process_document()
+
+    renderer = HTMLRenderer() if target == "html" else PDFRenderer()
+    out = tmp_path / f"out.{target}"
+    renderer.render(context, out)
+    return out.read_text(encoding="utf-8") if target == "html" else ""
+
+
+def _markup_only(html: str) -> str:
+    """Ohne das eingebettete Stylesheet - dort stehen die Klassennamen als CSS."""
+    return html[html.rindex("</style>"):]
+
+
+def test_html_theme_renders_no_divider_pages(tmp_path: Path):
+    """
+    Am Bildschirm gibt es keine Seiten: die Trennseite markiert einen
+    Kapitelanfang, den die Seitenleiste ohnehin zeigt, und das Kapitel-TOC
+    wiederholt deren Eintraege ein zweites Mal.
+    """
+    markup = _markup_only(_render_target(_divider_project(tmp_path), "html"))
+
+    assert "chapter-divider" not in markup
+    assert "part-divider" not in markup
+    assert "local-toc" not in markup
+
+
+def test_html_keeps_the_part_anchor_the_sidebar_links_to(tmp_path: Path):
+    """
+    Die <section id="part-..."> bleibt, auch ohne Trennseite - sonst liefe der
+    Eintrag der Seitenleiste ins Leere.
+    """
+    markup = _markup_only(_render_target(_divider_project(tmp_path), "html"))
+
+    targets = set(re.findall(r'id="(part-[^"]+)"', markup))
+    links = set(re.findall(r'href="#(part-[^"]+)"', markup))
+    assert links, "Kein Part-Eintrag in der Seitenleiste"
+    assert links <= targets, f"Sidebar verlinkt ins Leere: {links - targets}"
+
+
+def test_pdf_theme_still_renders_divider_pages(tmp_path: Path):
+    """Gegenprobe: im PDF bleibt beides unveraendert."""
+    pytest.importorskip("pypdfium2")
+    project = _divider_project(tmp_path)
+    _render_target(project, "pdf")
+
+    import pypdfium2 as pdfium
+
+    doc = pdfium.PdfDocument(str(project / "out.pdf"))
+    text = "\n".join(
+        doc[i].get_textpage().get_text_range() for i in range(len(doc))
+    )
+
+    # Die Marken stehen im Theme auf text-transform: uppercase.
+    assert "KAPITEL 1" in text.upper()
+    assert "Zusammenfassung des Kapitels." in text
+    assert "Abschnitt A" in text

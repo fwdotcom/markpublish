@@ -138,27 +138,26 @@ def _body_only(html: str) -> str:
     return html[start:]
 
 
-# Diese Tests rendern mit dem Paket-Theme "default", das chapter_toc_title
-# selbst setzt ("Auf einen Blick" / "At a glance"). Erwartet wird deshalb
-# der Theme-Text, nicht der Programmstandard - genau das belegt, dass die
-# Kaskade bis in die Ausgabe durchschlaegt.
+# Sondiert werden Seitenleiste und Deckblatt: das HTML-Theme zeigt weder
+# Trennseiten noch Kapitel-TOC, die Marken "Kapitel" und chapter_toc_title
+# kommen dort also nicht mehr vor. Im PDF tun sie es weiterhin - dafuer
+# steht test_page_label_reaches_the_pdf_stylesheet.
 def test_german_labels_reach_the_html_output(tmp_path: Path):
     html = _render_html(tmp_path, "de")
-    assert "Auf einen Blick" in html
-    assert ">Kapitel 1<" in html or "Kapitel 1" in html
+    assert "Inhalt" in html
     assert "<strong>Autor:</strong>" in html
+    assert "<strong>Datum:</strong>" in html
 
 
 def test_english_labels_reach_the_html_output(tmp_path: Path):
     html = _render_html(tmp_path, "en")
-    assert "At a glance" in html
-    assert "Chapter 1" in html
+    assert "Contents" in html
     assert "<strong>Author:</strong>" in html
+    assert "<strong>Date:</strong>" in html
 
     body = _body_only(html)
-    assert "Kapitel" not in body
     assert "Autor" not in body
-    assert "Auf einen Blick" not in body
+    assert "Datum" not in body
 
 
 def test_document_level_labels_are_rejected_by_the_loader(tmp_path: Path):

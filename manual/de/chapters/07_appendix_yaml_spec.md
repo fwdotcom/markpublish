@@ -29,8 +29,8 @@ Vollständige Übersicht aller Konfigurationsoptionen in `markpublish.yaml`.
 | `title` | String | `null` | Überschreibt den Titel der Datei |
 | `summary` | String | `null` | Zusammenfassung für Trennseite |
 | `part` | String | `null` | Deklariert einen übergeordneten Part |
-| `divider_page`| Bool | `false` | Fügt eine separate Trennseite ein |
-| `toc` | Bool/Int | `false` | Lokales Kapitel-TOC (z. B. `2` für max. Tiefe) |
+| `divider_page`| Bool | `false` | Fügt eine separate Trennseite ein. Nur PDF — das mitgelieferte HTML-Theme zeigt keine Trennseiten |
+| `toc` | Bool/Int | `false` | Lokales Kapitel-TOC (z. B. `2` für max. Tiefe). Steht auf der Trennseite, also ebenfalls nur PDF |
 | `autonum` | String | `null` | Lokaler Override des Nummerierungsstils |
 | `chapters` | Liste | `[]` | Verschachtelte Unterkapitel |
 

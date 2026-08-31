@@ -19,12 +19,23 @@
      ein Duplikat. #}
   {% macro render_chapter(item) %}
     <article class="chapter-article">
-      {% if item.divider_page %}
-        {% with chapter = item %}
-          {% include "chapter_divider.html" %}
-        {% endwith %}
-      {% endif %}
+      {# Keine Trennseite und kein Kapitel-TOC in der HTML-Ausgabe.
 
+         Beides loest ein Problem, das es hier nicht gibt: eine Trennseite
+         markiert im Druck den Kapitelanfang, den am Bildschirm schon die
+         Seitenleiste zeigt, und das Kapitel-TOC dupliziert deren Eintraege ein
+         zweites Mal. Der Kapiteltitel steht ohnehin als Ueberschrift im
+         Kapiteltext.
+
+         `divider_page:` und `toc:` bleiben in der Konfiguration gueltig und
+         wirken im PDF-Theme unveraendert - sie sind hier nur ohne Wirkung.
+         Wer sie am Bildschirm doch moechte, holt chapter_divider.html zurueck:
+
+             {% raw %}{% if item.divider_page %}
+               {% with chapter = item %}{% include "chapter_divider.html" %}{% endwith %}
+             {% endif %}{% endraw %}
+
+         Das Partial und sein CSS liegen unveraendert im Theme. #}
       <div class="chapter-body">
         {{ item.html_content | safe }}
       </div>
@@ -70,13 +81,10 @@
 
         {% for item in content_items %}
           {% if item.is_part %}
+            {# Das id bleibt: die Seitenleiste verlinkt mit #part-<slug> hierher.
+               Die Trennseite selbst entfaellt wie beim Kapitel - part_divider.html
+               liegt weiterhin im Theme. #}
             <section class="part-section" id="part-{{ item.slug }}">
-              {% if item.divider_page %}
-                {% with part = item %}
-                  {% include "part_divider.html" %}
-                {% endwith %}
-              {% endif %}
-
               {% for child in item.children %}
                 {{ render_chapter(child) }}
               {% endfor %}

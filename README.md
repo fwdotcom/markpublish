@@ -19,7 +19,7 @@
 - 📑 **Running Headers & Footers**: Real markup in the page margins via CSS running elements -- any number of lines, per-line styling, columns top-aligned.
 - 🔢 **Autonumbering & TOC**:
   - Global TOC reflecting chapter depth and heading levels.
-  - Per-chapter local TOCs with configurable `max_depth`.
+  - Per-chapter local TOCs with configurable `max_depth` (rendered on the PDF divider page).
   - Configurable autonumbering schemes (`decimal`, `roman`, `legal`, `none`).
 - 💻 **Cross-Platform**: Works seamlessly on Linux, macOS, and Windows.
 
@@ -138,7 +138,7 @@ templates/
 │       ├── styles.css           # CSS Paged Media (@page, @top-left, @bottom-right)
 │       ├── cover.html           # Cover page
 │       ├── part_divider.html    # Part separator page
-│       ├── chapter_divider.html # Chapter separator page & local TOC
+│       ├── chapter_divider.html # Chapter separator page & local TOC (PDF only)
 │       └── toc.html             # Global TOC
 └── html/
     └── default/
