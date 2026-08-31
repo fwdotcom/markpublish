@@ -5,7 +5,7 @@ Pydantic data models for markpublish configuration.
 from __future__ import annotations
 
 from enum import Enum
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, List, Optional, Union
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
@@ -28,11 +28,6 @@ class DocumentConfig(BaseModel):
     date: Optional[str] = Field(default="auto", description="Date string or 'auto'/'today'")
     version: Optional[str] = Field(default="1.0.0", description="Version string")
     language: str = Field(default="de", description="ISO language code, e.g. 'de' or 'en'")
-    i18n: Dict[str, Any] = Field(
-        default_factory=dict,
-        description="Level 4 of the label cascade - same shape as the i18n.yaml files: "
-                    "language code, then key/text. See markpublish/i18n.yaml for the keys.",
-    )
 
     # Global Layout Switches
     cover: bool = Field(default=True, description="Enable cover page")
@@ -60,17 +55,29 @@ class DocumentConfig(BaseModel):
 
     @model_validator(mode="before")
     @classmethod
-    def accept_labels_alias(cls, data: Any) -> Any:
+    def reject_document_level_labels(cls, data: Any) -> Any:
         """
-        `labels:` wird als Alias fuer `i18n:` akzeptiert.
+        `document.i18n` (und der alte Alias `document.labels`) gibt es nicht mehr.
 
-        Der Schluessel hiess in einer fruehen Fassung so; ihn still zu ignorieren
-        waere die schlechteste Variante - der Text bliebe unveraendert und
-        niemand wuesste warum.
+        Statische Texte werden ausschliesslich im Theme definiert. Ein stiller
+        Fehlschlag waere hier besonders teuer: `extra: allow` wuerde den Block
+        anstandslos schlucken, der Build liefe durch, und im PDF staende
+        weiterhin der alte Text - ohne jeden Hinweis worauf es ankam.
         """
-        if isinstance(data, dict) and "labels" in data and "i18n" not in data:
-            data = dict(data)
-            data["i18n"] = data.pop("labels")
+        if not isinstance(data, dict):
+            return data
+
+        for key in ("i18n", "labels"):
+            if key in data:
+                raise ValueError(
+                    f"document.{key} wird nicht mehr unterstuetzt. Statische Texte "
+                    "gehoeren in die i18n.yaml des Themes:\n"
+                    "  <templates>/<theme>/i18n.yaml          fuer alle Zielformate\n"
+                    "  <templates>/<theme>/<pdf|html>/i18n.yaml  nur fuer ein Zielformat\n"
+                    "Der Aufbau ist derselbe wie bisher (Sprachcode, darunter die Texte). "
+                    "Ein eigenes Theme legen Sie mit 'markpublish export-template' an; "
+                    "'markpublish labels' zeigt, was am Ende gilt."
+                )
         return data
 
 

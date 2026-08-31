@@ -30,6 +30,7 @@ from markpublish.i18n import (
     BUILTIN_I18N_PATH,
     I18N_FILENAME,
     LabelFileError,
+    UndefinedLabelError,
     describe_labels,
 )
 from markpublish.markdown.engine import MarkdownPipeline
@@ -118,11 +119,6 @@ def build_cmd(
         )
     )
 
-    # Markdown processing pipeline
-    with console.status("[bold green]Processing Markdown chapters and TOC...[/bold green]"):
-        pipeline = MarkdownPipeline(config, base_dir=base_dir)
-        content_items, toc_tree = pipeline.process_document()
-
     # Determine targets to build
     targets_to_build: List[str] = []
     target_clean = target.lower().strip()
@@ -137,7 +133,7 @@ def build_cmd(
     effective_templates_dir = templates_dir or (Path(config.templates_dir) if config.templates_dir else None)
 
     for tgt in targets_to_build:
-        with console.status(f"[bold green]Rendering {tgt.upper()}...[/bold green]"):
+        with console.status(f"[bold green]Processing Markdown and rendering {tgt.upper()}...[/bold green]"):
             try:
                 tmpl_path = resolve_template_path(
                     target=tgt,
@@ -151,12 +147,25 @@ def build_cmd(
 
             context = DocumentContext(
                 config=config,
-                content_items=content_items,
-                toc_tree=toc_tree,
+                content_items=[],
+                toc_tree=[],
                 template_path=tmpl_path,
                 base_dir=base_dir,
                 target=tgt,
             )
+
+            # Die Kaskade endet beim Zielformat (Ebene 3), und die Alert-Titel
+            # entstehen schon beim Markdown-Parsen. Die Pipeline laeuft deshalb
+            # pro Zielformat mit dessen Labels -- sonst haette ein
+            # <theme>/pdf/i18n.yaml auf "Hinweis" keine Wirkung.
+            try:
+                labels = context.labels
+            except LabelFileError as e:
+                console.print(f"[bold red]Label file error ({tgt}):[/bold red] {e}")
+                raise typer.Exit(code=1) from e
+
+            pipeline = MarkdownPipeline(config, base_dir=base_dir, labels=labels)
+            context.content_items, context.toc_tree = pipeline.process_document()
 
             # Determine output file path
             doc_slug = slugify(config.document.title, separator="_")
@@ -178,6 +187,13 @@ def build_cmd(
 
                 out_result = renderer.render(context, out_file)
                 console.print(f"[bold green][OK][/bold green] {tgt.upper()} successfully generated: [cyan]{out_result}[/cyan]")
+            except UndefinedLabelError as e:
+                # Eigener Zweig, weil die Meldung mehrzeilig ist und Fundstelle
+                # samt durchsuchten Dateien nennt - die gehoert nicht hinter ein
+                # "Rendering error:" auf dieselbe Zeile gequetscht.
+                console.print(f"[bold red]Undefined label ({tgt}):[/bold red]")
+                console.print(str(e))
+                raise typer.Exit(code=1) from e
             except Exception as e:
                 console.print(f"[bold red]Rendering error ({tgt}):[/bold red] {e}")
                 raise typer.Exit(code=1) from e
@@ -365,6 +381,7 @@ def export_template_cmd(
     pkg_base = get_package_templates_dir()
     targets = ["pdf", "html"] if target.lower() in ("all", "both") else [target.lower()]
 
+    exported_any = False
     for tgt in targets:
         src = pkg_base / theme / tgt
         if not src.exists():
@@ -374,7 +391,20 @@ def export_template_cmd(
         dest = destination / theme / tgt
         dest.parent.mkdir(parents=True, exist_ok=True)
         shutil.copytree(src, dest, dirs_exist_ok=True)
+        exported_any = True
         console.print(f"[bold green][OK][/bold green] Exported template [cyan]{tgt}/{theme}[/cyan] to [yellow]{dest}[/yellow]")
+
+    # Die i18n.yaml auf Theme-Ebene liegt neben den Zielformat-Ordnern, nicht
+    # darin - ohne diesen Schritt exportiert man das Theme und ausgerechnet die
+    # Datei, in der die statischen Texte definiert werden, bliebe zurueck.
+    theme_i18n = pkg_base / theme / I18N_FILENAME
+    if exported_any and theme_i18n.is_file():
+        dest_i18n = destination / theme / I18N_FILENAME
+        if dest_i18n.exists():
+            console.print(f"[dim]Kept existing[/dim] [yellow]{dest_i18n}[/yellow]")
+        else:
+            shutil.copy2(theme_i18n, dest_i18n)
+            console.print(f"[bold green][OK][/bold green] Exported [cyan]{theme}/{I18N_FILENAME}[/cyan] to [yellow]{dest_i18n}[/yellow]")
 
 
 @app.command(name="labels")
@@ -404,7 +434,8 @@ def labels_cmd(
     Shows the resolved static texts and which layer supplied each one.
 
     Cascade, later wins: markpublish/i18n.yaml -> <theme>/i18n.yaml ->
-    <theme>/<target>/i18n.yaml -> document.i18n.
+    <theme>/<target>/i18n.yaml. The theme is the one the template
+    resolution picked; a document cannot override texts.
     """
     if not config_file.exists():
         console.print(f"[bold red]Error:[/bold red] Configuration file '{config_file}' not found.")
@@ -451,7 +482,6 @@ def labels_cmd(
         resolved = describe_labels(
             config.document.language,
             template_dirs=context.label_source_dirs,
-            overrides=config.document.i18n,
         )
     except LabelFileError as e:
         console.print(f"[bold red]Label file error:[/bold red] {e}")
@@ -473,7 +503,6 @@ def labels_cmd(
 
     for key in sorted(resolved):
         entry = resolved[key]
-        # Ebene 4 hat keinen Pfad - sie ist trotzdem ein Override.
         from_program = entry["path"] == str(BUILTIN_I18N_PATH)
         if only_overridden and from_program:
             continue

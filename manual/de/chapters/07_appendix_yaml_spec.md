@@ -15,7 +15,6 @@ Vollständige Übersicht aller Konfigurationsoptionen in `markpublish.yaml`.
 | `date` | String | `"auto"` | Datum oder `"auto"` für Tagesdatum |
 | `version` | String | `"1.0.0"` | Versionskennung |
 | `language` | String | `"de"` | ISO-Sprachcode (`de`, `en`, ...). Steuert Template-Beschriftungen, Callout-Titel und Datumsformat |
-| `i18n` | Map | `{}` | Ebene 4 der i18n-Kaskade. Gleicher Aufbau wie die `i18n.yaml`: Sprachcode, darunter die Texte. Siehe Kapitel 5 |
 | `cover` | Bool | `true` | Deckblatt aktivieren/deaktivieren |
 | `toc` | Bool | `true` | Globales Inhaltsverzeichnis aktivieren |
 | `autonum_type` | String | `"decimal"` | `"decimal"`, `"roman"`, `"legal"`, `"none"` |

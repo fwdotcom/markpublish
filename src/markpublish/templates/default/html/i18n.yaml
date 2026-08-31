@@ -8,7 +8,6 @@
 #   1. Programm      markpublish/i18n.yaml
 #   2. Theme         default/i18n.yaml
 #   3. Zielformat    diese Datei                            <-- Sie sind hier
-#   4. Dokument      document.i18n in der markpublish.yaml
 #
 # Die Schluessel page und page_of bleiben hier ohne Wirkung: sie stehen in der
 # CSS-Fusszeile der Paged-Media-Ausgabe, die es im HTML nicht gibt.

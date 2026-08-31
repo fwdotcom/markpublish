@@ -6,13 +6,14 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from functools import cached_property
 from pathlib import Path
 from typing import Any, Dict, List
 
 import jinja2
 
 from markpublish.config.models import MarkpublishConfig
-from markpublish.i18n import build_labels
+from markpublish.i18n import LabelMap, build_labels, validate_label_references
 from markpublish.markdown.assets import file_to_data_uri
 from markpublish.markdown.engine import ContentItem
 from markpublish.markdown.toc import TOCNode
@@ -58,6 +59,20 @@ class DocumentContext:
         dirs.append(self.template_path)
         return dirs
 
+    @cached_property
+    def labels(self) -> LabelMap:
+        """
+        The resolved static texts for this document and target.
+
+        Cached because the Markdown pipeline, the stylesheet and the templates
+        all read the same set -- and because reading the i18n.yaml files three
+        times would report a malformed file three times.
+        """
+        return build_labels(
+            self.config.document.language,
+            template_dirs=self.label_source_dirs,
+        )
+
     def to_template_context(self) -> Dict[str, Any]:
         """Builds dictionary passed into Jinja2 templates."""
         return {
@@ -67,13 +82,9 @@ class DocumentContext:
             "toc_tree": [t.to_dict() if hasattr(t, "to_dict") else t for t in self.toc_tree],
             "target": self.target,
             # Statische Template-Texte. Kaskade: i18n.yaml (Programm) ->
-            # <theme>/i18n.yaml -> <theme>/<target>/i18n.yaml ->
-            # document.i18n. Siehe markpublish.i18n.
-            "labels": build_labels(
-                self.config.document.language,
-                template_dirs=self.label_source_dirs,
-                overrides=self.config.document.i18n,
-            ),
+            # <theme>/i18n.yaml -> <theme>/<target>/i18n.yaml. Siehe
+            # markpublish.i18n.
+            "labels": self.labels,
         }
 
 
@@ -106,6 +117,12 @@ class BaseRenderer(ABC):
 
     def render_template(self, context: DocumentContext, template_name: str = "layout.html") -> str:
         """Renders the main Jinja2 template and stylesheet."""
+        # Vor dem ersten Zeichen Ausgabe: ein Label, das das Template notiert,
+        # aber keine Ebene definiert, bricht den Build ab. Geprueft werden die
+        # Quelldateien, nicht der Renderlauf -- sonst bliebe ein Label in einem
+        # Zweig unentdeckt, den genau dieses Dokument nicht durchlaeuft.
+        validate_label_references(context.labels, context.template_path)
+
         env = self.setup_jinja_env(context.template_path)
         env.filters["css_string"] = css_string
         tmpl_ctx = context.to_template_context()

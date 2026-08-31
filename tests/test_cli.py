@@ -51,3 +51,29 @@ def test_cli_export_template(tmp_path: Path):
     assert (dest / "default" / "pdf" / "layout.html").is_file()
     assert (dest / "default" / "html" / "layout.html").is_file()
 
+
+def test_cli_export_template_brings_the_theme_level_i18n(tmp_path: Path):
+    """
+    Die i18n.yaml der Theme-Ebene liegt neben den Zielformat-Ordnern, nicht
+    darin. Ohne sie exportiert man ein Theme und ausgerechnet die Datei, in der
+    die statischen Texte definiert werden, bliebe im Paket zurueck.
+    """
+    dest = tmp_path / "exported_templates"
+    res = runner.invoke(app, ["export-template", "default", str(dest)])
+    assert res.exit_code == 0
+    assert (dest / "default" / "i18n.yaml").is_file()
+    assert (dest / "default" / "pdf" / "i18n.yaml").is_file()
+    assert (dest / "default" / "html" / "i18n.yaml").is_file()
+
+
+def test_cli_export_template_keeps_an_edited_i18n(tmp_path: Path):
+    """Ein zweiter Export darf die eigenen Texte nicht ueberschreiben."""
+    dest = tmp_path / "exported_templates"
+    assert runner.invoke(app, ["export-template", "default", str(dest)]).exit_code == 0
+
+    edited = dest / "default" / "i18n.yaml"
+    edited.write_text('de:\n  part: "Abschnitt"\n', encoding="utf-8")
+
+    assert runner.invoke(app, ["export-template", "default", str(dest)]).exit_code == 0
+    assert edited.read_text(encoding="utf-8") == 'de:\n  part: "Abschnitt"\n'
+

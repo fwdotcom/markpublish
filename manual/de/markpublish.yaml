@@ -11,22 +11,16 @@ document:
   version: "1.0.0"
   language: "de"
 
-  # Ebene 4 der i18n-Kaskade: statische Texte für dieses eine Dokument.
-  # Gleicher Aufbau wie die i18n.yaml der Ebenen 1-3 - Sprachcode, darunter
-  # die Texte. Überschreibt Programm, Theme und Zielformat.
+  # Statische Texte (Inhaltsverzeichnis-Überschrift, "Kapitel", "Teil",
+  # Deckblatt-Beschriftungen, Callout-Titel) werden im Theme definiert, nicht
+  # hier. Die Kaskade hat drei Ebenen, jede tiefere überschreibt die vorherige:
   #
   #   1. Programm      markpublish/i18n.yaml
-  #   2. Theme         <templates>/default/i18n.yaml
-  #   3. Zielformat    <templates>/default/<pdf|html>/i18n.yaml
-  #   4. Dokument      hier                                <-- Sie sind hier
+  #   2. Theme         <templates>/<theme>/i18n.yaml
+  #   3. Zielformat    <templates>/<theme>/<pdf|html>/i18n.yaml
   #
+  # Ein eigenes Theme legen Sie mit  markpublish export-template  an.
   # Prüfen, was am Ende gilt:  markpublish labels --overridden
-  i18n:
-    de:
-      # "Teil" liest sich für den Anhang-Block sperrig
-      part: "Abschnitt"
-      # Kürzere Überschrift über dem Mini-TOC auf den Kapitel-Trennseiten
-      chapter_toc_title: "Auf einen Blick"
 
   # Globale Layout-Schalter
   cover: true

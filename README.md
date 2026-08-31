@@ -162,7 +162,7 @@ onto them (`de-AT` -> `de`), and an unknown language falls back to English.
 *i18n* is the source data across all languages; *labels* is what it resolves to for one
 document in one language, i.e. what a template sees as `{{ labels.chapter }}`.
 
-Four levels, all built the same way -- language code, then key/text. Each level
+Three levels, all built the same way -- language code, then key/text. Each level
 overrides the one above it, and only for the keys it actually sets:
 
 | Level | Location |
@@ -170,10 +170,14 @@ overrides the one above it, and only for the keys it actually sets:
 | 1 | `markpublish/i18n.yaml` (complete, `de` + `en`) |
 | 2 | `<templates>/<theme>/i18n.yaml` |
 | 3 | `<templates>/<theme>/<target>/i18n.yaml` |
-| 4 | `document.i18n` in `markpublish.yaml` |
+
+Levels 2 and 3 always come from the **one** theme the template resolution picked
+(user > project > package); a project theme does not inherit the texts of the
+package theme of the same name. A document cannot override texts -- give it its
+own theme (`markpublish export-template`) instead.
 
 ```yaml
-# any of the four levels
+# any of the three levels
 "*":                       # applies to every language
   version: "Rev."
 de:
@@ -182,13 +186,24 @@ en:
   part: "Section"
 ```
 
-A flat mapping without the language level is shorthand for `"*"`. Levels 2-4 apply
+A flat mapping without the language level is shorthand for `"*"`. Levels 2 and 3 apply
 **only to the selected language**, so a theme's English block never leaks into German
 output. Level 1 additionally layers English underneath the document language, so every
-key always resolves. A missing `i18n.yaml` is fine; a malformed one aborts the build
-naming the file.
+program text always resolves. A missing `i18n.yaml` is fine; a malformed one aborts the
+build naming the file.
 
-The bundled `default` theme ships all three template-side files as commented patterns.
+#### Free labels
+
+A theme may define keys the program knows nothing about -- for the static texts of the
+template itself -- and read them back with `{{ labels.imprint_title }}`. There is no
+program default to fall back on for those, so the rule is strict: a label written in a
+template must resolve in the cascade, otherwise the build **aborts** and names the key,
+the file and line that used it, the document language, and the `i18n.yaml` files that
+were searched. Keep every language of a free label filled in, or put it under `"*"`.
+An empty string in a finished PDF goes unnoticed; an abort does not.
+
+The bundled `default` theme ships all three template-side files as commented patterns,
+and `markpublish export-template` copies them along with the templates.
 
 Run `markpublish labels [--target html] [--overridden]` to see the resolved table and
 which level supplied each value.

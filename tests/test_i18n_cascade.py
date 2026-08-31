@@ -1,13 +1,13 @@
 """
-Tests fuer die vierstufige Label-Kaskade.
+Tests fuer die dreistufige Label-Kaskade.
 
     1. Programm      markpublish.i18n.LABELS
     2. Theme         <templates>/<theme>/i18n.yaml
     3. Zielformat    <templates>/<theme>/<target>/i18n.yaml
-    4. Dokument      document.i18n
 
 Jede tiefere Ebene ueberschreibt die vorherige, aber nur die Schluessel, die
-sie tatsaechlich setzt.
+sie tatsaechlich setzt. Eine Dokumentebene gibt es nicht: Ebene 2 und 3
+stammen immer aus dem einen Theme, das die Template-Aufloesung gewaehlt hat.
 """
 
 from __future__ import annotations
@@ -15,6 +15,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
+from pydantic import ValidationError
 
 from markpublish.config.loader import load_config
 from markpublish.i18n import (
@@ -22,9 +23,13 @@ from markpublish.i18n import (
     BUILTIN_I18N_PATH,
     LABELS,
     LabelFileError,
+    LabelMap,
+    UndefinedLabelError,
     build_labels,
     describe_labels,
+    find_label_references,
     read_i18n_file,
+    validate_label_references,
 )
 from markpublish.markdown.engine import MarkdownPipeline
 from markpublish.renderers.base import DocumentContext
@@ -127,14 +132,14 @@ def test_target_level_overrides_theme_level(tmp_path: Path):
     assert labels["part"] == "Theme"            # Ebene 2 bleibt
 
 
-def test_document_overrides_win_over_everything(tmp_path: Path):
+def test_target_level_is_the_last_word(tmp_path: Path):
+    """Ueber Ebene 3 kommt nichts mehr - eine Dokumentebene gibt es nicht."""
     theme = tmp_path / "mytheme"
     target = theme / "pdf"
     write_i18n(theme, 'de:\n  chapter: "Theme"\n')
     write_i18n(target, 'de:\n  chapter: "PDF"\n')
 
-    labels = build_labels("de", template_dirs=[theme, target], overrides={"chapter": "Dokument"})
-    assert labels["chapter"] == "Dokument"
+    assert build_labels("de", template_dirs=[theme, target])["chapter"] == "PDF"
 
 
 def test_other_language_blocks_do_not_leak(tmp_path: Path):
@@ -182,16 +187,15 @@ def test_describe_labels_names_each_layer(tmp_path: Path):
     write_i18n(theme, 'de:\n  part: "Theme"\n')
     write_i18n(target, 'de:\n  chapter: "PDF"\n')
 
-    described = describe_labels(
-        "de", template_dirs=[theme, target], overrides={"author": "Verfasser"}
-    )
+    described = describe_labels("de", template_dirs=[theme, target])
     assert described["toc_title"]["source"] == "i18n.yaml (de)"
     assert described["toc_title"]["path"] == str(BUILTIN_I18N_PATH)
     assert "i18n.yaml" in described["part"]["source"]
     assert described["part"]["path"] == str(theme / "i18n.yaml")
     assert described["chapter"]["path"] == str(target / "i18n.yaml")
-    assert described["author"]["source"] == "document.i18n"
-    assert described["author"]["path"] == ""
+    # Nicht ueberschriebene Texte bleiben beim Programm - jede Zeile der
+    # Tabelle muss eine Datei nennen koennen, seit die Dokumentebene weg ist.
+    assert described["author"]["path"] == str(BUILTIN_I18N_PATH)
 
 
 # --------------------------------------------------------------------------
@@ -237,17 +241,21 @@ def _render(tmp_path: Path, target: str, extra: str = "") -> str:
         YAML.format(theme="mytheme", extra=extra), encoding="utf-8"
     )
     config = load_config(tmp_path / "markpublish.yaml")
-    items, tree = MarkdownPipeline(config, base_dir=tmp_path).process_document()
     ctx = DocumentContext(
         config=config,
-        content_items=items,
-        toc_tree=tree,
+        content_items=[],
+        toc_tree=[],
         template_path=resolve_template_path(
             target, "mytheme", custom_templates_dir=tmp_path / "templates"
         ),
         base_dir=tmp_path,
         target=target,
     )
+    # Wie im Build: erst die Kaskade, dann damit durch die Pipeline -
+    # sonst saehe der Markdown-Schritt die Theme-Texte nie.
+    ctx.content_items, ctx.toc_tree = MarkdownPipeline(
+        config, base_dir=tmp_path, labels=ctx.labels
+    ).process_document()
     out = tmp_path / f"out.{target}"
     HTMLRenderer().render(ctx, out)
     return out.read_text(encoding="utf-8")
@@ -291,6 +299,34 @@ def test_target_labels_only_affect_their_own_target(tmp_path: Path):
     assert "NUR-PDF" not in html
 
 
+def test_theme_alert_titles_reach_the_markdown_output(tmp_path: Path):
+    """
+    Die Callout-Titel entstehen im Markdown-Schritt, lange bevor ein Template
+    laeuft. Sie sind damit die einzige Stelle, an der die Kaskade die Pipeline
+    erreichen muss statt nur den Renderer.
+    """
+    theme_dir = _project_with_theme(tmp_path)
+    write_i18n(theme_dir, 'de:\n  alert_note: "Merke"\n')
+    (tmp_path / "chapters" / "01.md").write_text(
+        "# Head\n\n> [!NOTE]\n> Hinweistext.\n", encoding="utf-8"
+    )
+
+    html = _render(tmp_path, "html")
+    assert "Merke" in html
+    assert "Hinweis</p>" not in html
+
+
+def test_target_alert_titles_reach_the_markdown_output(tmp_path: Path):
+    """Auch Ebene 3 - dafuer laeuft die Pipeline pro Zielformat."""
+    theme_dir = _project_with_theme(tmp_path)
+    write_i18n(theme_dir / "html", 'de:\n  alert_note: "Nur im HTML"\n')
+    (tmp_path / "chapters" / "01.md").write_text(
+        "# Head\n\n> [!NOTE]\n> Hinweistext.\n", encoding="utf-8"
+    )
+
+    assert "Nur im HTML" in _render(tmp_path, "html")
+
+
 def test_legacy_layout_skips_the_theme_level(tmp_path: Path):
     """
     Im alten <target>/<theme> ist das Elternverzeichnis das Zielformat und
@@ -323,36 +359,154 @@ def test_legacy_layout_skips_the_theme_level(tmp_path: Path):
 
 
 # --------------------------------------------------------------------------
-# Ebene 4 - gleicher Aufbau wie die Dateien
+# Die Dokumentebene ist entfallen - und schweigt darueber nicht
 # --------------------------------------------------------------------------
 
-def test_document_level_accepts_the_language_keyed_form():
-    labels = build_labels("de", overrides={"de": {"part": "Abschnitt"}, "en": {"part": "Section"}})
-    assert labels["part"] == "Abschnitt"
-
-
-def test_document_level_language_block_does_not_leak():
-    labels = build_labels("en", overrides={"de": {"part": "Abschnitt"}})
-    assert labels["part"] == LABELS["en"]["part"]
-
-
-def test_document_level_flat_form_still_works():
-    """Kurzform ohne Sprachebene - gilt fuer jede Sprache."""
-    assert build_labels("de", overrides={"part": "Abschnitt"})["part"] == "Abschnitt"
-
-
-def test_labels_key_is_accepted_as_alias_for_i18n():
+@pytest.mark.parametrize("key", ["i18n", "labels"])
+def test_document_level_keys_are_rejected(key: str):
+    """
+    Entscheidend ist die Meldung, nicht das Scheitern: DocumentConfig laesst
+    unbekannte Felder zu (extra: allow), stilles Schlucken waere hier also der
+    Normalfall gewesen - Build gruen, Text unveraendert, kein Hinweis.
+    """
     from markpublish.config.models import DocumentConfig
 
-    doc = DocumentConfig(title="T", labels={"de": {"part": "Abschnitt"}})
-    assert doc.i18n == {"de": {"part": "Abschnitt"}}
+    with pytest.raises(ValidationError) as excinfo:
+        DocumentConfig(**{"title": "T", key: {"de": {"part": "Abschnitt"}}})
+
+    message = str(excinfo.value)
+    assert "i18n.yaml" in message, "Die Meldung muss den neuen Ort nennen"
+    assert "export-template" in message
 
 
-def test_i18n_wins_when_both_keys_are_present():
-    from markpublish.config.models import DocumentConfig
+def test_document_level_keys_are_rejected_through_the_config_file(tmp_path: Path):
+    config = tmp_path / "markpublish.yaml"
+    config.write_text(
+        'document:\n  title: "T"\n  i18n:\n    de:\n      part: "Abschnitt"\n',
+        encoding="utf-8",
+    )
 
-    doc = DocumentConfig(title="T", i18n={"de": {"part": "Neu"}}, labels={"de": {"part": "Alt"}})
-    assert doc.i18n == {"de": {"part": "Neu"}}
+    with pytest.raises(Exception) as excinfo:
+        load_config(config)
+    assert "i18n.yaml" in str(excinfo.value)
+
+
+# --------------------------------------------------------------------------
+# Freie Labels: eigene Schluessel des Themes
+# --------------------------------------------------------------------------
+
+def _use_label_in_layout(theme_dir: Path, target: str, snippet: str) -> Path:
+    """Haengt eine Label-Verwendung an das layout.html des Themes."""
+    layout = theme_dir / target / "layout.html"
+    layout.write_text(layout.read_text(encoding="utf-8") + snippet, encoding="utf-8")
+    return layout
+
+
+def test_free_label_from_the_theme_reaches_the_output(tmp_path: Path):
+    """Ein Schluessel, den das Programm nicht kennt, ist trotzdem benutzbar."""
+    theme_dir = _project_with_theme(tmp_path)
+    write_i18n(theme_dir, 'de:\n  imprint_title: "Impressum"\n')
+    _use_label_in_layout(theme_dir, "html", "\n<footer>{{ labels.imprint_title }}</footer>\n")
+
+    assert "Impressum" in _render(tmp_path, "html")
+
+
+def test_free_label_may_be_written_with_brackets(tmp_path: Path):
+    theme_dir = _project_with_theme(tmp_path)
+    write_i18n(theme_dir, 'de:\n  imprint_title: "Impressum"\n')
+    _use_label_in_layout(
+        theme_dir, "html", "\n<footer>{{ labels['imprint_title'] }}</footer>\n"
+    )
+
+    assert "Impressum" in _render(tmp_path, "html")
+
+
+def test_free_label_may_be_defined_for_one_target_only(tmp_path: Path):
+    theme_dir = _project_with_theme(tmp_path)
+    write_i18n(theme_dir / "html", 'de:\n  imprint_title: "Nur im HTML"\n')
+    _use_label_in_layout(theme_dir, "html", "\n<footer>{{ labels.imprint_title }}</footer>\n")
+
+    assert "Nur im HTML" in _render(tmp_path, "html")
+
+
+def test_free_label_missing_for_the_document_language_aborts(tmp_path: Path):
+    """
+    Der Theme-Autor hat nur en gepflegt, das Dokument ist deutsch. Ein leeres
+    <footer> im fertigen PDF faellt niemandem auf - der Abbruch schon.
+    """
+    theme_dir = _project_with_theme(tmp_path)
+    write_i18n(theme_dir, 'en:\n  imprint_title: "Imprint"\n')
+    _use_label_in_layout(theme_dir, "html", "\n<footer>{{ labels.imprint_title }}</footer>\n")
+
+    with pytest.raises(UndefinedLabelError) as excinfo:
+        _render(tmp_path, "html")
+
+    message = str(excinfo.value)
+    assert "imprint_title" in message
+    assert "layout.html" in message, "Die Fundstelle muss in der Meldung stehen"
+    assert "de" in message
+
+
+def test_star_key_covers_every_language_for_free_labels(tmp_path: Path):
+    theme_dir = _project_with_theme(tmp_path)
+    write_i18n(theme_dir, '"*":\n  imprint_title: "Impressum"\n')
+    _use_label_in_layout(theme_dir, "html", "\n<footer>{{ labels.imprint_title }}</footer>\n")
+
+    assert "Impressum" in _render(tmp_path, "html")
+
+
+def test_undefined_label_produces_no_output_file(tmp_path: Path):
+    """Abbruch heisst Abbruch - keine halb gefuellte Datei stehen lassen."""
+    theme_dir = _project_with_theme(tmp_path)
+    _use_label_in_layout(theme_dir, "html", "\n<footer>{{ labels.nirgends_definiert }}</footer>\n")
+
+    with pytest.raises(UndefinedLabelError):
+        _render(tmp_path, "html")
+    assert not (tmp_path / "out.html").exists()
+
+
+def test_label_in_the_stylesheet_is_checked_too(tmp_path: Path):
+    """styles.css laeuft durch dieselbe Jinja-Umgebung wie die Templates."""
+    theme_dir = _project_with_theme(tmp_path)
+    css = theme_dir / "html" / "styles.css"
+    css.write_text(
+        css.read_text(encoding="utf-8")
+        + '\n.mark::after { content: "{{ labels.nur_im_css }}"; }\n',
+        encoding="utf-8",
+    )
+
+    with pytest.raises(UndefinedLabelError) as excinfo:
+        _render(tmp_path, "html")
+    assert "styles.css" in str(excinfo.value)
+
+
+def test_labelmap_raises_instead_of_yielding_an_empty_string():
+    labels = build_labels("de")
+    assert isinstance(labels, LabelMap)
+    with pytest.raises(UndefinedLabelError):
+        labels["gibt_es_nicht"]
+
+
+def test_find_label_references_reports_file_and_line(tmp_path: Path):
+    (tmp_path / "layout.html").write_text(
+        "<p>{{ labels.toc_title }}</p>\n<p>{{ labels['part'] }}</p>\n",
+        encoding="utf-8",
+    )
+
+    refs = find_label_references(tmp_path)
+    assert refs["toc_title"] == [(tmp_path / "layout.html", 1)]
+    assert refs["part"] == [(tmp_path / "layout.html", 2)]
+
+
+def test_mapping_methods_are_not_mistaken_for_labels(tmp_path: Path):
+    """labels.items ist ein Methodenaufruf, kein fehlendes Label."""
+    (tmp_path / "layout.html").write_text(
+        "{% for k, v in labels.items() %}{{ k }}{% endfor %}"
+        "{{ labels.get('toc_title') }}",
+        encoding="utf-8",
+    )
+
+    validate_label_references(build_labels("de"), tmp_path)
 
 
 # --------------------------------------------------------------------------

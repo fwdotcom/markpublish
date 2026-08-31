@@ -71,9 +71,9 @@ eine unbekannte Sprache fällt auf Englisch zurück.
 > Sprachen. **labels** ist das daraus aufgelöste Ergebnis für *ein* Dokument in *einer*
 > Sprache: das, was im Template unter `{{ labels.chapter }}` ankommt.
 
-### Die 4-stufige i18n-Kaskade
+### Die 3-stufige i18n-Kaskade
 
-Alle vier Ebenen sind **identisch aufgebaut**: Sprachcode auf oberster Ebene, darunter
+Alle drei Ebenen sind **identisch aufgebaut**: Sprachcode auf oberster Ebene, darunter
 die Texte. Jede tiefere Ebene überschreibt die höher liegende — und zwar **nur die
 Schlüssel, die sie tatsächlich setzt**. Alles andere bleibt, wie es weiter oben steht:
 
@@ -85,18 +85,26 @@ Schlüssel, die sie tatsächlich setzt**. Alles andere bleibt, wie es weiter obe
    │             gilt für alle Zielformate des Themes
    ▼
 3. Zielformat    <templates>/<theme>/<target>/i18n.yaml
-   │             nur für PDF bzw. nur für HTML
-   ▼
-4. Dokument      document.i18n in der markpublish.yaml
-                 höchste Priorität
+                 nur für PDF bzw. nur für HTML
 ```
 
 Ebene 1 ist die einzige, die vollständig sein muss. Sie legt zusätzlich Englisch unter
-die Dokumentsprache, damit jeder Schlüssel garantiert auflöst. Die Ebenen 2–4 sind
-reine Overrides.
+die Dokumentsprache, damit jeder Programmtext garantiert auflöst. Die Ebenen 2 und 3
+sind reine Overrides.
+
+Statische Texte werden **ausschließlich im Theme** definiert. Eine Dokumentebene gibt es
+nicht: `document.i18n` in der `markpublish.yaml` wird abgelehnt, mit Hinweis auf die
+Theme-Datei. Wer die Texte eines Dokuments ändern will, gibt ihm sein eigenes Theme —
+`markpublish export-template` legt es an.
 
 > [!IMPORTANT]
-> Die Ebenen 2–4 greifen **nur für die gewählte Sprache**. Ein Theme, das einen
+> Die Ebenen 2 und 3 stammen immer aus **genau einem** Theme: welches gilt, entscheidet
+> vorher die Template-Auflösung (User > Projekt > Paket). Ein Projekt-Theme erbt **nicht**
+> die Texte des gleichnamigen Paket-Themes — gemischt wird nur das eine gefundene Theme
+> mit dem Programmstandard.
+
+> [!IMPORTANT]
+> Die Ebenen 2 und 3 greifen **nur für die gewählte Sprache**. Ein Theme, das einen
 > `en:`-Block definiert, verändert eine deutsche Ausgabe nicht — sonst würden englische
 > Theme-Texte in fremdsprachige Dokumente durchschlagen.
 
@@ -149,35 +157,62 @@ Das mitgelieferte Theme `default` bringt alle drei Dateien als **auskommentierte
 Muster** mit: `templates/default/i18n.yaml`, `default/pdf/i18n.yaml` und
 `default/html/i18n.yaml`. Sie sind bewusst wirkungslos — das Standard-Theme soll exakt
 wie der Programmstandard aussprechen. Kommentieren Sie aus, was Sie ändern möchten.
+`markpublish export-template` kopiert diese Dateien mit — auch die `i18n.yaml` der
+Theme-Ebene, die neben den Zielformat-Ordnern liegt.
 
-### Ebene 4: Texte für ein einzelnes Dokument
+### Freie Labels: eigene Texte des Templates
 
-In der `markpublish.yaml` unter `document.i18n`, mit demselben Aufbau:
+Ein Theme darf **eigene Schlüssel** definieren, die das Programm nicht kennt — für die
+statischen Texte des Templates selbst. Der Aufbau ist derselbe, der Zugriff ebenso:
 
 ```yaml
-document:
-  language: "de"
-  i18n:
-    de:
-      part: "Abschnitt"
-      chapter_toc_title: "Auf einen Blick"
+# templates/mytheme/i18n.yaml
+de:
+  imprint_title: "Impressum"
+  disclaimer: "Alle Angaben ohne Gewähr."
+en:
+  imprint_title: "Imprint"
+  disclaimer: "All information without guarantee."
 ```
 
-Genau so ist dieses Handbuch konfiguriert — die Trennseiten zeigen deshalb *Auf einen
-Blick* statt *Inhalt dieses Kapitels* und der Anhang-Block *Abschnitt* statt *Teil*.
+```html
+<!-- templates/mytheme/html/layout.html -->
+<footer>{{ labels.imprint_title }}</footer>
+```
 
-Dieselbe Stelle dient dazu, eine noch nicht mitgelieferte Sprache vollständig selbst zu
-setzen.
+> [!WARNING]
+> Für freie Labels gibt es **keinen Programmstandard**, der einspringen könnte. Deshalb
+> gilt hier eine strikte Regel: Ein Label, das ein Template notiert, **muss** in der
+> Kaskade auflösen. Tut es das nicht, bricht der Build ab und nennt Schlüssel,
+> Fundstelle mit Zeilennummer, Dokumentsprache und die durchsuchten Dateien:
+>
+> ```
+> Label 'imprint_title' ist im Template notiert, aber in keiner i18n-Ebene definiert.
+>   Dokumentsprache: de
+>   Fundstelle:
+>     templates/mytheme/html/layout.html:108
+>   Gesucht in:
+>     templates/mytheme/html/i18n.yaml  (vorhanden)
+>     templates/mytheme/i18n.yaml       (vorhanden)
+>     markpublish/i18n.yaml             (vorhanden)
+> ```
+>
+> Pflegen Sie also jede Sprache, die Sie ausliefern, oder legen Sie den Schlüssel unter
+> `"*"` ab. Ein leerer Text im fertigen PDF fällt niemandem auf — ein Abbruch schon.
+
+Geprüft werden die Template-Quellen, nicht der Renderlauf: auch ein Label in einem
+Zweig, den genau dieses Dokument nicht durchläuft, wird gemeldet. `styles.css` zählt
+mit, da es durch dieselbe Jinja-Umgebung läuft.
 
 ### Die aufgelöste Tabelle ansehen
 
-Bei vier Ebenen ist nicht immer offensichtlich, woher ein Text kommt. `markpublish
+Bei drei Ebenen ist nicht immer offensichtlich, woher ein Text kommt. `markpublish
 labels` zeigt das Ergebnis samt Herkunft:
 
 ```bash
 markpublish labels                       # alle Schlüssel, Ziel PDF
 markpublish labels --target html         # Kaskade für die HTML-Ausgabe
-markpublish labels --overridden          # nur das, was von Ebene 2-4 kommt
+markpublish labels --overridden          # nur das, was vom Theme kommt
 ```
 
 ### Verfügbare Schlüssel
@@ -202,8 +237,12 @@ markpublish labels --overridden          # nur das, was von Ebene 2-4 kommt
 | `alert_warning` | Warnung | Warning |
 | `alert_caution` | Achtung | Caution |
 
+Die `alert_*`-Titel entstehen bereits beim Markdown-Parsen, nicht erst im Template —
+die Kaskade wird dorthin durchgereicht, ein `alert_note` im Theme wirkt also auch im
+Callout.
+
 Eine neue Sprache legen Sie an, indem Sie in `markpublish/i18n.yaml` einen
-vollständigen Block ergänzen — oder, ohne das Paket anzufassen, auf Ebene 2–4 alle
+vollständigen Block ergänzen — oder, ohne das Paket anzufassen, auf Ebene 2 oder 3 alle
 Schlüssel unter dem gewünschten Sprachcode setzen.
 
 > [!TIP]

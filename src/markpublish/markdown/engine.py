@@ -5,7 +5,7 @@ Markdown parsing and compilation engine for markpublish.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Mapping, Optional, Tuple
 
 import frontmatter
 import markdown
@@ -64,21 +64,29 @@ class MarkdownEngine:
         self,
         language: str = "de",
         extensions: Optional[List[Any]] = None,
-        extension_configs: Optional[Dict[str, Any]] = None
+        extension_configs: Optional[Dict[str, Any]] = None,
+        labels: Optional[Mapping[str, str]] = None,
     ):
         self.language = language
+        self.labels = labels
         # `is None` statt `or`: ein bewusst leeres extensions=[] soll leer
         # bleiben und nicht stillschweigend auf die Defaults zurueckfallen.
         self.extensions = (
-            self._build_default_extensions(language) if extensions is None else extensions
+            self._build_default_extensions(language, labels) if extensions is None else extensions
         )
         self.extension_configs = (
             DEFAULT_EXTENSION_CONFIGS if extension_configs is None else extension_configs
         )
 
     @staticmethod
-    def _build_default_extensions(language: str = "de") -> List[Any]:
-        return [GitHubAlertsExtension(language=language), *DEFAULT_EXTENSION_NAMES]
+    def _build_default_extensions(
+        language: str = "de",
+        labels: Optional[Mapping[str, str]] = None,
+    ) -> List[Any]:
+        return [
+            GitHubAlertsExtension(language=language, labels=labels or {}),
+            *DEFAULT_EXTENSION_NAMES,
+        ]
 
     def create_markdown_instance(self) -> markdown.Markdown:
         return markdown.Markdown(
@@ -143,10 +151,18 @@ def build_toc_tree(flat_nodes: List[TOCNode]) -> List[TOCNode]:
 class MarkdownPipeline:
     """Orchestrates parsing of the full document configuration into render-ready objects."""
 
-    def __init__(self, config: MarkpublishConfig, base_dir: Path):
+    def __init__(
+        self,
+        config: MarkpublishConfig,
+        base_dir: Path,
+        labels: Optional[Mapping[str, str]] = None,
+    ):
         self.config = config
         self.base_dir = base_dir
-        self.engine = MarkdownEngine(language=config.document.language)
+        # Die Labels haengen am Zielformat (Ebene 3), deshalb kommen sie von
+        # aussen herein statt hier gebaut zu werden - die Pipeline laeuft pro
+        # Zielformat.
+        self.engine = MarkdownEngine(language=config.document.language, labels=labels)
         self.numbering_ctx = NumberingContext(default_autonum_type=config.document.autonum_type)
 
     def process_document(self) -> Tuple[List[ContentItem], List[TOCNode]]:

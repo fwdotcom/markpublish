@@ -83,11 +83,11 @@ markpublish labels pfad/zu/markpublish.yaml
 | `config_file` | Pfad | `markpublish.yaml` | Pfad zur Konfigurationsdatei |
 | `--target`, `-t` | String | `pdf` | Zielformat, dessen Kaskade gezeigt wird (`pdf` oder `html`) |
 | `--templates-dir` | Pfad | – | Alternativer Template-Ordner |
-| `--overridden` | Flag | aus | Nur Texte anzeigen, die Theme oder Dokument ändern |
+| `--overridden` | Flag | aus | Nur Texte anzeigen, die das Theme ändert |
 
-Die Spalte *Source* nennt die Ebene: `i18n.yaml (de)` für den Programmstandard, den
-Pfad einer Theme- oder Zielformat-`i18n.yaml` oder `document.i18n (de)`. Unter der
-Tabelle steht, in welchen Dateien nach Overrides gesucht wurde und welche existieren.
+Die Spalte *Source* nennt die Ebene: `i18n.yaml (de)` für den Programmstandard oder den
+Pfad einer Theme- bzw. Zielformat-`i18n.yaml`. Unter der Tabelle steht, in welchen
+Dateien nach Overrides gesucht wurde und welche existieren.
 
 > [!TIP]
 > `--overridden` beantwortet die häufigste Frage direkt: *Was weicht in diesem Projekt

@@ -13,7 +13,7 @@ Die sprachabhaengigen Standardtitel stehen in markpublish.i18n.LABELS
 from __future__ import annotations
 
 import re
-from typing import List
+from typing import List, Mapping, Optional
 
 from markdown import Extension
 from markdown.preprocessors import Preprocessor
@@ -29,14 +29,18 @@ GITHUB_ALERT_HEADER_RE = re.compile(
 class GitHubAlertsPreprocessor(Preprocessor):
     """Converts GitHub-style blockquote alerts to standard admonition blocks."""
 
-    def __init__(self, md, language: str = "de"):
+    def __init__(self, md, language: str = "de", labels: Optional[Mapping[str, str]] = None):
         super().__init__(md)
         self.language = language or "de"
+        # Die aufgeloeste Kaskade, sofern der Aufrufer sie kennt. Ohne sie
+        # bleiben nur die Programmtexte - dann koennte ein Theme zwar
+        # alert_note setzen, im Callout stuende aber weiter "Hinweis".
+        self.labels = labels
 
     def run(self, lines: List[str]) -> List[str]:
         # Die Alert-Titel stehen in derselben Tabelle wie alle uebrigen
         # statischen Texte - eine Stelle pro Sprache statt zwei.
-        labels = get_labels(self.language)
+        labels = self.labels if self.labels else get_labels(self.language)
 
         new_lines: List[str] = []
         i = 0
@@ -83,13 +87,20 @@ class GitHubAlertsExtension(Extension):
     def __init__(self, **kwargs):
         self.config = {
             "language": ["de", "Language for default alert titles ('de' or 'en')"],
+            # Default bewusst {} und nicht None: Extension.setConfig() jagt
+            # einen None-Default durch parseBoolValue() und macht aus der
+            # Label-Tabelle einen Wahrheitswert.
+            "labels": [{}, "Resolved label cascade; falls back to the program defaults"],
         }
         super().__init__(**kwargs)
 
     def extendMarkdown(self, md):
         lang = self.getConfig("language", "de")
+        labels = self.getConfig("labels", {})
         # Prioritaet unter 25: fenced_code / superfences laufen bei 25 und
         # ersetzen Code-Bloecke vorher durch Platzhalter. Bei einer hoeheren
         # Prioritaet wuerde ein dokumentiertes "> [!NOTE]" INNERHALB eines
         # Code-Blocks mit umgeschrieben.
-        md.preprocessors.register(GitHubAlertsPreprocessor(md, language=lang), "github_alerts", 24)
+        md.preprocessors.register(
+            GitHubAlertsPreprocessor(md, language=lang, labels=labels), "github_alerts", 24
+        )

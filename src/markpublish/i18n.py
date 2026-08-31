@@ -1,16 +1,20 @@
 """
 Aufloesung der statischen Texte (Labels) fuer Templates und Stylesheets.
 
-Ein Schluessel pro Text, aufgeloest ueber eine Kaskade aus vier Ebenen. Jede
+Ein Schluessel pro Text, aufgeloest ueber eine Kaskade aus drei Ebenen. Jede
 tiefere Ebene ueberschreibt die daruber liegende -- und zwar nur die
 Schluessel, die sie tatsaechlich setzt:
 
     1. Programm      markpublish/i18n.yaml
     2. Theme         <templates>/<theme>/i18n.yaml
     3. Zielformat    <templates>/<theme>/<target>/i18n.yaml
-    4. Dokument      document.i18n in der markpublish.yaml
 
-Alle vier Ebenen sind identisch aufgebaut: Sprachcode auf oberster Ebene,
+Die Ebenen 2 und 3 stammen immer aus genau einem Theme: welches Template gilt,
+entscheidet vorher die Aufloesung (User > Projekt > Paket). Gemischt wird nur
+dieses eine Theme mit dem Programmstandard -- ein Projekt-Theme erbt nicht die
+Texte des gleichnamigen Paket-Themes.
+
+Alle drei Ebenen sind identisch aufgebaut: Sprachcode auf oberster Ebene,
 darunter die Texte.
 
     de:
@@ -24,9 +28,16 @@ sprachspezifischen Block angewendet -- praktisch fuer Begriffe, die unabhaengig
 von der Sprache gleich heissen sollen.
 
 Ebene 1 muss vollstaendig sein; sie legt zusaetzlich die Fallback-Sprache unter
-die Dokumentsprache, damit jeder Schluessel garantiert aufloest. Die Ebenen 2-4
-greifen nur fuer die gewaehlte Sprache, damit die englischen Texte eines Themes
-nicht in eine deutsche Ausgabe durchschlagen.
+die Dokumentsprache, damit jeder Programmtext garantiert aufloest. Die Ebenen 2
+und 3 greifen nur fuer die gewaehlte Sprache, damit die englischen Texte eines
+Themes nicht in eine deutsche Ausgabe durchschlagen.
+
+Ein Theme darf eigene Schluessel definieren, die das Programm nicht kennt --
+"freie" Labels fuer die statischen Texte des Templates selbst. Fuer sie gibt es
+keinen Programmstandard, der einspringen koennte: notiert das Template
+{{ labels.foo }} und loest 'foo' in keiner Ebene auf, bricht der Build ab
+(UndefinedLabelError). Das ist Absicht -- ein leerer Text im fertigen PDF faellt
+niemandem auf, ein Abbruch mit Fundstelle schon.
 
 Templates greifen auf das Ergebnis ueber `labels` zu (`{{ labels.toc_title }}`),
 das Stylesheet ebenso -- `styles.css` laeuft durch dieselbe Jinja-Umgebung.
@@ -34,8 +45,9 @@ das Stylesheet ebenso -- `styles.css` laeuft durch dieselbe Jinja-Umgebung.
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Mapping, Optional
+from typing import Any, Dict, Iterable, List, Mapping, Optional, Tuple
 
 import yaml
 
@@ -57,6 +69,15 @@ BUILTIN_I18N_PATH = Path(__file__).resolve().parent / I18N_FILENAME
 
 class LabelFileError(ValueError):
     """Raised when an i18n.yaml exists but cannot be used."""
+
+
+class UndefinedLabelError(ValueError):
+    """
+    Raised when a template uses a label that no level of the cascade defines.
+
+    Aborting is the point: the alternative is an empty string in the finished
+    PDF, which nobody notices until a reader does.
+    """
 
 
 def _normalize_language_key(value: Any) -> str:
@@ -200,20 +221,19 @@ def _apply_level(
 def build_labels(
     language: Optional[str] = None,
     template_dirs: Iterable[Path] = (),
-    overrides: Optional[Mapping[str, Any]] = None,
-) -> Dict[str, str]:
+) -> "LabelMap":
     """
     Resolves the label cascade for one document.
 
     Args:
         language: document.language, e.g. "de" or "en-GB"
         template_dirs: directories holding an i18n.yaml, outermost first --
-            typically [<theme>, <theme>/<target>]
-        overrides: document.i18n from the markpublish.yaml, same shape as the
-            files
+            typically [<theme>, <theme>/<target>] of the ONE resolved theme
 
     Returns:
-        A complete label set; every key of level 1 is present.
+        A LabelMap holding every key of level 1 plus whatever free labels the
+        theme adds. Reading a key it does not know raises UndefinedLabelError
+        instead of yielding an empty string.
     """
     candidates = _language_candidates(language)
 
@@ -226,24 +246,19 @@ def build_labels(
     for directory in template_dirs:
         _apply_level(merged, read_i18n_file(directory), candidates)
 
-    # Ebene 4
-    if overrides:
-        _apply_level(merged, normalize_table(overrides, "document.i18n"), candidates)
-
-    return merged
+    return LabelMap(merged, language=language, template_dirs=template_dirs)
 
 
 def describe_labels(
     language: Optional[str] = None,
     template_dirs: Iterable[Path] = (),
-    overrides: Optional[Mapping[str, Any]] = None,
 ) -> Dict[str, Dict[str, str]]:
     """
     Like build_labels(), but records which level supplied each value.
 
     Returns {key: {"value", "source", "path"}} where "source" is a short level
-    name for display and "path" the file it came from (empty for level 4).
-    Backs `markpublish labels`, so the cascade stays debuggable.
+    name for display and "path" the file it came from. Backs
+    `markpublish labels`, so the cascade stays debuggable.
     """
     resolved: Dict[str, Dict[str, str]] = {}
 
@@ -274,20 +289,150 @@ def describe_labels(
         short = "/".join(file_path.parts[-3:])
         apply(read_i18n_file(directory), short, str(file_path))
 
-    if overrides:
-        apply(normalize_table(overrides, "document.i18n"), "document.i18n", "")
-
     return resolved
 
 
-def get_labels(
-    language: Optional[str] = None,
-    overrides: Optional[Mapping[str, Any]] = None,
-) -> Dict[str, str]:
+def get_labels(language: Optional[str] = None) -> "LabelMap":
     """
-    Builds the label set without template-level files.
+    Builds the label set from level 1 alone, without any theme files.
 
-    Convenience wrapper around build_labels() for callers that have no template
-    directory in play, e.g. the Markdown extension that localises callout titles.
+    Convenience wrapper around build_labels() for callers that have no resolved
+    theme in play - the Markdown pipeline gets the full cascade handed to it and
+    does not use this.
     """
-    return build_labels(language, template_dirs=(), overrides=overrides)
+    return build_labels(language, template_dirs=())
+
+
+# --------------------------------------------------------------------------
+# Freie Labels: Verwendung im Template gegen die Kaskade pruefen
+# --------------------------------------------------------------------------
+
+#: Dateien, in denen nach Label-Verwendungen gesucht wird. styles.css laeuft
+#: durch dieselbe Jinja-Umgebung wie die Templates und darf Labels benutzen.
+TEMPLATE_FILE_GLOBS = ("*.html", "*.css")
+
+#: Attributnamen, die zu jedem dict gehoeren. `labels.items` ist der Aufruf
+#: einer Mapping-Methode, kein Label - ohne diese Liste meldete die Pruefung
+#: sie als fehlend.
+_MAPPING_ATTRIBUTES = frozenset(
+    {"get", "items", "keys", "values", "copy", "pop", "setdefault", "update", "clear"}
+)
+
+#: {{ labels.foo }} und {{ labels["foo"] }} - beide Schreibweisen zaehlen.
+_LABEL_REFERENCE_RE = re.compile(
+    r"""\blabels\s*(?:
+            \.\s*(?P<attr>[A-Za-z_][A-Za-z0-9_]*)
+          | \[\s*(?P<quote>['"])(?P<item>[^'"]+)(?P=quote)\s*\]
+        )""",
+    re.VERBOSE,
+)
+
+
+class LabelMap(Dict[str, str]):
+    """
+    The resolved label set, strict about keys it does not know.
+
+    A plain dict would hand Jinja an Undefined for `labels.foo`, and Jinja
+    renders that as an empty string - the missing text would ship. Here the
+    lookup raises instead, naming the key, the language and where it was
+    searched.
+    """
+
+    def __init__(
+        self,
+        values: Optional[Mapping[str, str]] = None,
+        language: Optional[str] = None,
+        template_dirs: Iterable[Path] = (),
+    ):
+        super().__init__(values or {})
+        self.language = language
+        self.template_dirs: List[Path] = [Path(d) for d in template_dirs]
+
+    def searched_files(self) -> List[Path]:
+        """The i18n.yaml files that fed this map, most specific first."""
+        files = [Path(d) / I18N_FILENAME for d in reversed(self.template_dirs)]
+        files.append(BUILTIN_I18N_PATH)
+        return files
+
+    def __missing__(self, key: str) -> str:
+        raise UndefinedLabelError(undefined_label_message(key, self))
+
+    def copy(self) -> "LabelMap":
+        return LabelMap(dict(self), language=self.language, template_dirs=self.template_dirs)
+
+
+def undefined_label_message(
+    key: str,
+    labels: "LabelMap",
+    occurrences: Iterable[Tuple[Path, int]] = (),
+) -> str:
+    """Builds the abort message for one undefined label."""
+    lines = [
+        f"Label '{key}' ist im Template notiert, aber in keiner i18n-Ebene definiert.",
+        f"  Dokumentsprache: {labels.language or FALLBACK_LANGUAGE}",
+    ]
+
+    found = list(occurrences)
+    if found:
+        lines.append("  Fundstelle:")
+        lines.extend(f"    {path}:{line}" for path, line in found)
+
+    lines.append("  Gesucht in:")
+    for path in labels.searched_files():
+        state = "vorhanden" if path.is_file() else "nicht vorhanden"
+        lines.append(f"    {path}  ({state})")
+
+    lines.append(
+        f"  Abhilfe: den Schluessel unter '{labels.language or FALLBACK_LANGUAGE}:' "
+        f"(oder unter '{ANY_LANGUAGE}:' fuer jede Sprache) in einer der oben "
+        "genannten Theme-Dateien ergaenzen."
+    )
+    return "\n".join(lines)
+
+
+def find_label_references(directory: Path) -> Dict[str, List[Tuple[Path, int]]]:
+    """
+    Collects every label a template directory refers to, with file and line.
+
+    Scans the sources rather than waiting for the render, so a label inside a
+    branch that happens not to run this time is reported too.
+    """
+    references: Dict[str, List[Tuple[Path, int]]] = {}
+    directory = Path(directory)
+    if not directory.is_dir():
+        return references
+
+    for pattern in TEMPLATE_FILE_GLOBS:
+        for path in sorted(directory.glob(pattern)):
+            try:
+                text = path.read_text(encoding="utf-8")
+            except OSError:
+                continue
+            for number, line in enumerate(text.splitlines(), start=1):
+                for match in _LABEL_REFERENCE_RE.finditer(line):
+                    key = match.group("attr") or match.group("item")
+                    if match.group("attr") and key in _MAPPING_ATTRIBUTES:
+                        continue
+                    references.setdefault(key, []).append((path, number))
+    return references
+
+
+def validate_label_references(labels: "LabelMap", directory: Path) -> None:
+    """
+    Checks a template directory against the resolved labels.
+
+    Raises UndefinedLabelError listing every unresolved label with its
+    occurrences. Called before rendering starts: a build that cannot produce
+    correct text should not produce a file at all.
+    """
+    references = find_label_references(directory)
+    missing = {key: places for key, places in references.items() if key not in labels}
+    if not missing:
+        return
+
+    blocks = [
+        undefined_label_message(key, labels, places)
+        for key, places in sorted(missing.items())
+    ]
+    raise UndefinedLabelError("\n\n".join(blocks))
+

@@ -21,6 +21,9 @@ GTK_CANDIDATE_PATHS = [
     r"C:\Program Files\GIMP 2\bin",
 ]
 
+# Minimal fontconfig config used when the detected runtime ships none.
+BUNDLED_FONTS_CONF = Path(__file__).resolve().parent.parent / "data" / "fonts.conf"
+
 _gtk_initialized = False
 
 
@@ -65,7 +68,35 @@ def _init_windows_gtk() -> None:
         # den Kandidaten nur als Praefix enthaelt, darf ihn nicht verdecken.
         if os.path.normcase(os.path.normpath(resolved)) not in _path_entries():
             os.environ["PATH"] = resolved + os.pathsep + os.environ.get("PATH", "")
+        _init_fontconfig(Path(resolved))
         break
+
+
+def _init_fontconfig(gtk_dir: Path) -> None:
+    """
+    Points fontconfig at a usable configuration file.
+
+    Runtimes such as darktable or GIMP ship libfontconfig-1.dll but not the
+    etc/fonts/fonts.conf it looks for one level above its own bin directory.
+    Without it fontconfig prints "Cannot load default config file: File not
+    found" on every run and falls back to a built-in config that defines no
+    aliases, so a bare `font-family: monospace` resolves to an arbitrary face.
+
+    Must run before WeasyPrint is imported: fontconfig reads FONTCONFIG_FILE
+    when Pango first initializes it.
+    """
+    if os.environ.get("FONTCONFIG_FILE") or os.environ.get("FONTCONFIG_PATH"):
+        return  # explicit user setup wins
+
+    # Eine vollstaendige Runtime (GTK3-Runtime, MSYS2) bringt ihre eigene
+    # Konfiguration mit - die hat Vorrang, sie kennt die Fonts der Installation.
+    runtime_conf = gtk_dir.parent / "etc" / "fonts" / "fonts.conf"
+    conf = runtime_conf if runtime_conf.is_file() else BUNDLED_FONTS_CONF
+    if not conf.is_file():
+        return
+
+    os.environ["FONTCONFIG_FILE"] = str(conf)
+    os.environ["FONTCONFIG_PATH"] = str(conf.parent)
 
 
 def _load_weasyprint() -> Tuple[Optional[Any], Optional[str]]:

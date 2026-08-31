@@ -56,21 +56,6 @@ def test_unknown_language_falls_back_without_gaps():
     assert all(v for v in labels.values()), "Kein Text darf leer sein"
 
 
-def test_overrides_win():
-    labels = get_labels("de", {"toc_title": "Übersicht", "chapter": "Abschnitt"})
-    assert labels["toc_title"] == "Übersicht"
-    assert labels["chapter"] == "Abschnitt"
-    # Nicht ueberschriebene Texte bleiben in der Dokumentsprache
-    assert labels["page"] == "Seite"
-
-
-def test_overrides_can_supply_an_unlisted_language():
-    """Eine dritte Sprache laesst sich ohne Template-Aenderung setzen."""
-    labels = get_labels("fr", {"toc_title": "Table des matières", "chapter": "Chapitre"})
-    assert labels["toc_title"] == "Table des matières"
-    assert labels["chapter"] == "Chapitre"
-
-
 def test_available_languages():
     assert set(available_languages()) >= {"de", "en"}
 
@@ -81,6 +66,25 @@ def test_alert_titles_come_from_the_same_table():
     en = MarkdownEngine(language="en").convert("> [!WARNING]\n> Text.")
     assert LABELS["de"]["alert_warning"] in de
     assert LABELS["en"]["alert_warning"] in en
+
+
+def test_alert_titles_follow_the_resolved_cascade():
+    """
+    Die Callout-Titel entstehen beim Markdown-Parsen, nicht im Template. Ohne
+    durchgereichte Labels sah dieser Schritt nur Ebene 1 - ein Theme konnte
+    alert_note setzen, im Callout stand trotzdem "Hinweis".
+    """
+    labels = dict(LABELS["de"], alert_note="Merke")
+    html = MarkdownEngine(language="de", labels=labels).convert("> [!NOTE]\n> Text.")
+
+    assert "Merke" in html
+    assert "Hinweis" not in html
+
+
+def test_alert_titles_fall_back_to_the_program_texts():
+    """Ohne uebergebene Labels bleibt es beim Programmstandard."""
+    html = MarkdownEngine(language="de", labels=None).convert("> [!NOTE]\n> Text.")
+    assert LABELS["de"]["alert_note"] in html
 
 
 # --------------------------------------------------------------------------
@@ -153,12 +157,15 @@ def test_english_labels_reach_the_html_output(tmp_path: Path):
     assert "Inhalt dieses Kapitels" not in body
 
 
-def test_document_labels_override_reaches_the_output(tmp_path: Path):
-    extra = '  labels:\n    chapter_toc_title: "Auf dieser Seite"\n    author: "Verfasst von"\n'
-    html = _render_html(tmp_path, "de", extra)
-    assert "Auf dieser Seite" in html
-    assert "<strong>Verfasst von:</strong>" in html
-    assert "Inhalt dieses Kapitels" not in _body_only(html)
+def test_document_level_labels_are_rejected_by_the_loader(tmp_path: Path):
+    """
+    Frueher Ebene 4. Der Test steht hier, weil er den kompletten Weg nimmt -
+    YAML-Datei, Loader, Modell - und nicht nur das Modell direkt.
+    """
+    extra = '  labels:\n    chapter_toc_title: "Auf dieser Seite"\n'
+    with pytest.raises(Exception) as excinfo:
+        _render_html(tmp_path, "de", extra)
+    assert "i18n.yaml" in str(excinfo.value)
 
 
 def test_page_label_reaches_the_pdf_stylesheet(tmp_path: Path):
