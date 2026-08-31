@@ -12,7 +12,7 @@ from typing import Any, Dict, List
 import jinja2
 
 from markpublish.config.models import MarkpublishConfig
-from markpublish.i18n import get_labels
+from markpublish.i18n import build_labels
 from markpublish.markdown.assets import file_to_data_uri
 from markpublish.markdown.engine import ContentItem
 from markpublish.markdown.toc import TOCNode
@@ -39,6 +39,25 @@ class DocumentContext:
     base_dir: Path
     target: str
 
+    @property
+    def label_source_dirs(self) -> List[Path]:
+        """
+        Directories whose labels.yaml feeds the label cascade, outermost first:
+        the theme directory, then the target directory inside it.
+
+        template_path points at <theme>/<target>. Its parent only counts as the
+        theme level when it actually carries the theme name -- in the
+        deprecated <target>/<theme> layout the parent is the target directory
+        and shared across themes, which would leak one theme's texts into
+        another.
+        """
+        dirs: List[Path] = []
+        theme_dir = self.template_path.parent
+        if theme_dir.name.strip().lower() == str(self.config.theme).strip().lower():
+            dirs.append(theme_dir)
+        dirs.append(self.template_path)
+        return dirs
+
     def to_template_context(self) -> Dict[str, Any]:
         """Builds dictionary passed into Jinja2 templates."""
         return {
@@ -47,9 +66,14 @@ class DocumentContext:
             "content_items": self.content_items,
             "toc_tree": [t.to_dict() if hasattr(t, "to_dict") else t for t in self.toc_tree],
             "target": self.target,
-            # Statische Template-Texte, gewaehlt ueber document.language und
-            # optional ueberschrieben durch document.labels.
-            "labels": get_labels(self.config.document.language, self.config.document.labels),
+            # Statische Template-Texte. Kaskade: i18n.yaml (Programm) ->
+            # <theme>/i18n.yaml -> <theme>/<target>/i18n.yaml ->
+            # document.i18n. Siehe markpublish.i18n.
+            "labels": build_labels(
+                self.config.document.language,
+                template_dirs=self.label_source_dirs,
+                overrides=self.config.document.i18n,
+            ),
         }
 
 

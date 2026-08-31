@@ -64,6 +64,7 @@ where = ["src"]
 [tool.setuptools.package-data]
 "markpublish" = [
     "templates/**/*",
+    "i18n.yaml",
 ]
 
 [tool.pytest.ini_options]

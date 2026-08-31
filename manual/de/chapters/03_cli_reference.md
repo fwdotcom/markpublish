@@ -10,6 +10,7 @@
 | `markpublish init` | Erzeugt ein neues Projekt mit Beispieldateien |
 | `markpublish templates` | Listet alle gefundenen Templates und deren Quellen auf |
 | `markpublish export-template` | Exportiert ein Template zur individuellen Anpassung |
+| `markpublish labels` | Zeigt die aufgelösten statischen Texte und ihre Herkunft |
 
 ## `markpublish build`
 
@@ -62,3 +63,32 @@ Kopiert das eingebaute Standard-Template in Ihr lokales Arbeitsverzeichnis:
 markpublish export-template default templates
 ```
 
+## `markpublish labels`
+
+Zeigt, welcher statische Text am Ende gilt und aus welcher Ebene der Label-Kaskade er
+stammt. Nützlich, sobald ein Theme oder ein Dokument eigene Texte mitbringt und nicht
+mehr offensichtlich ist, welche Ebene gewinnt.
+
+```bash
+markpublish labels                          # alle Schlüssel, Zielformat PDF
+markpublish labels --target html            # Kaskade für die HTML-Ausgabe
+markpublish labels --overridden             # nur überschriebene Texte
+markpublish labels pfad/zu/markpublish.yaml
+```
+
+### Argumente & Optionen
+
+| Parameter | Typ | Standard | Beschreibung |
+| :--- | :--- | :--- | :--- |
+| `config_file` | Pfad | `markpublish.yaml` | Pfad zur Konfigurationsdatei |
+| `--target`, `-t` | String | `pdf` | Zielformat, dessen Kaskade gezeigt wird (`pdf` oder `html`) |
+| `--templates-dir` | Pfad | – | Alternativer Template-Ordner |
+| `--overridden` | Flag | aus | Nur Texte anzeigen, die Theme oder Dokument ändern |
+
+Die Spalte *Source* nennt die Ebene: `i18n.yaml (de)` für den Programmstandard, den
+Pfad einer Theme- oder Zielformat-`i18n.yaml` oder `document.i18n (de)`. Unter der
+Tabelle steht, in welchen Dateien nach Overrides gesucht wurde und welche existieren.
+
+> [!TIP]
+> `--overridden` beantwortet die häufigste Frage direkt: *Was weicht in diesem Projekt
+> überhaupt vom Standard ab?*

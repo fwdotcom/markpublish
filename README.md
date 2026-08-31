@@ -154,23 +154,44 @@ When rendering `pdf` with theme `default`:
 
 ### Static texts and language
 
-Fixed labels in the templates (table of contents heading, chapter tags, cover labels,
-page footer, callout titles) come from a translation table selected by
-`document.language`. `de` and `en` ship with the package; regional forms map onto them
-(`de-AT` -> `de`) and an unknown language falls back to English.
+Fixed labels (table of contents heading, chapter tags, cover labels, page footer,
+callout titles) live in `i18n.yaml` files rather than in the templates. The language
+comes from `document.language`; `de` and `en` ship with the package, regional forms map
+onto them (`de-AT` -> `de`), and an unknown language falls back to English.
+
+*i18n* is the source data across all languages; *labels* is what it resolves to for one
+document in one language, i.e. what a template sees as `{{ labels.chapter }}`.
+
+Four levels, all built the same way -- language code, then key/text. Each level
+overrides the one above it, and only for the keys it actually sets:
+
+| Level | Location |
+| :--- | :--- |
+| 1 | `markpublish/i18n.yaml` (complete, `de` + `en`) |
+| 2 | `<templates>/<theme>/i18n.yaml` |
+| 3 | `<templates>/<theme>/<target>/i18n.yaml` |
+| 4 | `document.i18n` in `markpublish.yaml` |
 
 ```yaml
-document:
-  language: "en"
-  labels:                      # optional, overrides single keys
-    chapter_toc_title: "On this page"
+# any of the four levels
+"*":                       # applies to every language
+  version: "Rev."
+de:
+  part: "Abschnitt"
+en:
+  part: "Section"
 ```
 
-The layering is English -> document language -> `labels`, so a missing entry never
-renders as an empty string. `document.labels` is also the way to supply a language the
-table does not cover yet, without touching a template. In custom templates the table is
-reachable as `{{ labels.chapter }}` -- including inside `styles.css`, which is rendered
-through the same Jinja environment.
+A flat mapping without the language level is shorthand for `"*"`. Levels 2-4 apply
+**only to the selected language**, so a theme's English block never leaks into German
+output. Level 1 additionally layers English underneath the document language, so every
+key always resolves. A missing `i18n.yaml` is fine; a malformed one aborts the build
+naming the file.
+
+The bundled `default` theme ships all three template-side files as commented patterns.
+
+Run `markpublish labels [--target html] [--overridden]` to see the resolved table and
+which level supplied each value.
 
 ### Exporting Templates for Customization:
 ```bash

@@ -579,6 +579,19 @@ input[type="checkbox"]:checked + .task-list-indicator {
 3.5 markpublish export-template
           </a>
         </li>
+        <li class="toc-item toc-item-h2">
+          <a href="#markpublish-labels" class="toc-link">
+3.6 markpublish labels
+          </a>
+              <ul class="toc-list">
+        <li class="toc-item toc-item-h3">
+          <a href="#argumente-optionen-1" class="toc-link">
+3.6.1 Argumente &amp; Optionen
+          </a>
+        </li>
+  </ul>
+
+        </li>
   </ul>
 
         </li>
@@ -660,13 +673,33 @@ input[type="checkbox"]:checked + .task-list-indicator {
           </a>
               <ul class="toc-list">
         <li class="toc-item toc-item-h3">
-          <a href="#verfuegbare-schluessel" class="toc-link">
-5.3.1 Verfügbare Schlüssel
+          <a href="#die-4-stufige-i18n-kaskade" class="toc-link">
+5.3.1 Die 4-stufige i18n-Kaskade
           </a>
         </li>
         <li class="toc-item toc-item-h3">
-          <a href="#einzelne-texte-ueberschreiben" class="toc-link">
-5.3.2 Einzelne Texte überschreiben
+          <a href="#das-gemeinsame-format" class="toc-link">
+5.3.2 Das gemeinsame Format
+          </a>
+        </li>
+        <li class="toc-item toc-item-h3">
+          <a href="#beispiel-pdf-und-html-unterschiedlich-beschriften" class="toc-link">
+5.3.3 Beispiel: PDF und HTML unterschiedlich beschriften
+          </a>
+        </li>
+        <li class="toc-item toc-item-h3">
+          <a href="#ebene-4-texte-fuer-ein-einzelnes-dokument" class="toc-link">
+5.3.4 Ebene 4: Texte für ein einzelnes Dokument
+          </a>
+        </li>
+        <li class="toc-item toc-item-h3">
+          <a href="#die-aufgeloeste-tabelle-ansehen" class="toc-link">
+5.3.5 Die aufgelöste Tabelle ansehen
+          </a>
+        </li>
+        <li class="toc-item toc-item-h3">
+          <a href="#verfuegbare-schluessel" class="toc-link">
+5.3.6 Verfügbare Schlüssel
           </a>
         </li>
   </ul>
@@ -813,7 +846,7 @@ input[type="checkbox"]:checked + .task-list-indicator {
     <div class="chapter-divider-summary"><em>Schritt-für-Schritt-Anleitung zur Installation und Erstellung des ersten Dokuments.</em></div>
 
     <nav class="local-toc">
-      <div class="local-toc-title">Inhalt dieses Kapitels</div>
+      <div class="local-toc-title">Auf einen Blick</div>
       <ul class="toc-list">
           <li class="toc-item toc-item-h2">
             <a href="#voraussetzungen" class="toc-link">
@@ -892,7 +925,7 @@ markpublish<span class="w"> </span>build<span class="w"> </span>--target<span cl
     <div class="chapter-divider-summary"><em>Detaillierte Erläuterung aller Befehle: build, init, templates und export-template.</em></div>
 
     <nav class="local-toc">
-      <div class="local-toc-title">Inhalt dieses Kapitels</div>
+      <div class="local-toc-title">Auf einen Blick</div>
       <ul class="toc-list">
           <li class="toc-item toc-item-h2">
             <a href="#befehlsuebersicht" class="toc-link">
@@ -917,6 +950,11 @@ markpublish<span class="w"> </span>build<span class="w"> </span>--target<span cl
           <li class="toc-item toc-item-h2">
             <a href="#markpublish-export-template" class="toc-link">
 3.5 markpublish export-template
+            </a>
+          </li>
+          <li class="toc-item toc-item-h2">
+            <a href="#markpublish-labels" class="toc-link">
+3.6 markpublish labels
             </a>
           </li>
       </ul>
@@ -949,6 +987,10 @@ markpublish<span class="w"> </span>build<span class="w"> </span>--target<span cl
 <tr>
 <td style="text-align: left;"><code>markpublish export-template</code></td>
 <td style="text-align: left;">Exportiert ein Template zur individuellen Anpassung</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>markpublish labels</code></td>
+<td style="text-align: left;">Zeigt die aufgelösten statischen Texte und ihre Herkunft</td>
 </tr>
 </tbody>
 </table>
@@ -986,6 +1028,60 @@ markpublish<span class="w"> </span>templates<span class="w"> </span>--target<spa
 <p>Kopiert das eingebaute Standard-Template in Ihr lokales Arbeitsverzeichnis:</p>
 <div class="highlight"><pre><span></span><code>markpublish<span class="w"> </span>export-template<span class="w"> </span>default<span class="w"> </span>templates
 </code></pre></div>
+<h2 id="markpublish-labels"><span class="heading-number">3.6</span> <code>markpublish labels</code></h2>
+<p>Zeigt, welcher statische Text am Ende gilt und aus welcher Ebene der Label-Kaskade er
+stammt. Nützlich, sobald ein Theme oder ein Dokument eigene Texte mitbringt und nicht
+mehr offensichtlich ist, welche Ebene gewinnt.</p>
+<div class="highlight"><pre><span></span><code>markpublish<span class="w"> </span>labels<span class="w">                          </span><span class="c1"># alle Schlüssel, Zielformat PDF</span>
+markpublish<span class="w"> </span>labels<span class="w"> </span>--target<span class="w"> </span>html<span class="w">            </span><span class="c1"># Kaskade für die HTML-Ausgabe</span>
+markpublish<span class="w"> </span>labels<span class="w"> </span>--overridden<span class="w">             </span><span class="c1"># nur überschriebene Texte</span>
+markpublish<span class="w"> </span>labels<span class="w"> </span>pfad/zu/markpublish.yaml
+</code></pre></div>
+<h3 id="argumente-optionen-1"><span class="heading-number">3.6.1</span> Argumente &amp; Optionen</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Parameter</th>
+<th style="text-align: left;">Typ</th>
+<th style="text-align: left;">Standard</th>
+<th style="text-align: left;">Beschreibung</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>config_file</code></td>
+<td style="text-align: left;">Pfad</td>
+<td style="text-align: left;"><code>markpublish.yaml</code></td>
+<td style="text-align: left;">Pfad zur Konfigurationsdatei</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>--target</code>, <code>-t</code></td>
+<td style="text-align: left;">String</td>
+<td style="text-align: left;"><code>pdf</code></td>
+<td style="text-align: left;">Zielformat, dessen Kaskade gezeigt wird (<code>pdf</code> oder <code>html</code>)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>--templates-dir</code></td>
+<td style="text-align: left;">Pfad</td>
+<td style="text-align: left;">–</td>
+<td style="text-align: left;">Alternativer Template-Ordner</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>--overridden</code></td>
+<td style="text-align: left;">Flag</td>
+<td style="text-align: left;">aus</td>
+<td style="text-align: left;">Nur Texte anzeigen, die Theme oder Dokument ändern</td>
+</tr>
+</tbody>
+</table>
+<p>Die Spalte <em>Source</em> nennt die Ebene: <code>i18n.yaml (de)</code> für den Programmstandard, den
+Pfad einer Theme- oder Zielformat-<code>i18n.yaml</code> oder <code>document.i18n (de)</code>. Unter der
+Tabelle steht, in welchen Dateien nach Overrides gesucht wurde und welche existieren.</p>
+<div class="admonition tip">
+<p class="admonition-title">Tipp</p>
+<p><code>--overridden</code> beantwortet die häufigste Frage direkt: <em>Was weicht in diesem Projekt
+überhaupt vom Standard ab?</em></p>
+</div>
       </div>
     </article>
 
@@ -997,7 +1093,7 @@ markpublish<span class="w"> </span>templates<span class="w"> </span>--target<spa
     <div class="chapter-divider-summary"><em>Deklarative Definition von Dokumentenmetadaten, Kapiteln und Hierarchien.</em></div>
 
     <nav class="local-toc">
-      <div class="local-toc-title">Inhalt dieses Kapitels</div>
+      <div class="local-toc-title">Auf einen Blick</div>
       <ul class="toc-list">
           <li class="toc-item toc-item-h2">
             <a href="#das-document-objekt" class="toc-link">
@@ -1094,7 +1190,7 @@ markpublish<span class="w"> </span>templates<span class="w"> </span>--target<spa
     <div class="chapter-divider-summary"><em>3-stufige Auflösungshierarchie, CSS Paged Media und 2-zeilige Kopf-/Fußzeilen.</em></div>
 
     <nav class="local-toc">
-      <div class="local-toc-title">Inhalt dieses Kapitels</div>
+      <div class="local-toc-title">Auf einen Blick</div>
       <ul class="toc-list">
           <li class="toc-item toc-item-h2">
             <a href="#theme-basierte-verzeichnisstruktur" class="toc-link">
@@ -1164,16 +1260,103 @@ Gelegenheit — die alte Auflösung entfällt in einer künftigen Version.</p>
 3. <strong>Umgebungsvariable</strong>: <code>MARKPUBLISH_TEMPLATES_DIR=/pfad/zu/templates</code>
 4. <strong>Automatischer Fallback</strong>: <code>./templates</code> im Projektordner.</p>
 <h2 id="statische-texte-und-sprache"><span class="heading-number">5.3</span> Statische Texte und Sprache</h2>
-<p>Die festen Beschriftungen in den Templates — Überschrift des Inhaltsverzeichnisses,
-Kapitel-Marken, Cover-Labels, Seitenzahl-Fußzeile — stehen nicht im Template selbst,
-sondern in einer Übersetzungstabelle. Ausgewählt wird sie über <code>document.language</code>:</p>
+<p>Die festen Beschriftungen — Überschrift des Inhaltsverzeichnisses, Kapitel-Marken,
+Cover-Labels, Seitenzahl-Fußzeile, Callout-Titel — stehen nicht im Template, sondern in
+<code>i18n.yaml</code>-Dateien. Welche Sprache gilt, bestimmt <code>document.language</code>:</p>
 <div class="highlight"><pre><span></span><code><span class="nt">document</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">title</span><span class="p">:</span><span class="w"> </span><span class="s">"User</span><span class="nv"> </span><span class="s">Guide"</span>
 <span class="w">  </span><span class="nt">language</span><span class="p">:</span><span class="w"> </span><span class="s">"en"</span><span class="w">      </span><span class="c1"># steuert Beschriftungen, Callout-Titel und Datumsformat</span>
 </code></pre></div>
 <p>Mitgeliefert sind <code>de</code> und <code>en</code>. Regionale Formen werden zugeordnet (<code>de-AT</code> → <code>de</code>),
 eine unbekannte Sprache fällt auf Englisch zurück.</p>
-<h3 id="verfuegbare-schluessel"><span class="heading-number">5.3.1</span> Verfügbare Schlüssel</h3>
+<div class="admonition note">
+<p class="admonition-title">Hinweis</p>
+<p><strong>i18n</strong> bezeichnet die Quellen — die Dateien und den YAML-Eintrag, jeweils über alle
+Sprachen. <strong>labels</strong> ist das daraus aufgelöste Ergebnis für <em>ein</em> Dokument in <em>einer</em>
+Sprache: das, was im Template unter <code>{{ labels.chapter }}</code> ankommt.</p>
+</div>
+<h3 id="die-4-stufige-i18n-kaskade"><span class="heading-number">5.3.1</span> Die 4-stufige i18n-Kaskade</h3>
+<p>Alle vier Ebenen sind <strong>identisch aufgebaut</strong>: Sprachcode auf oberster Ebene, darunter
+die Texte. Jede tiefere Ebene überschreibt die höher liegende — und zwar <strong>nur die
+Schlüssel, die sie tatsächlich setzt</strong>. Alles andere bleibt, wie es weiter oben steht:</p>
+<div class="highlight"><pre><span></span><code>1. Programm      markpublish/i18n.yaml
+   │             vollständig, de + en
+   ▼
+2. Theme         &lt;templates&gt;/&lt;theme&gt;/i18n.yaml
+   │             gilt für alle Zielformate des Themes
+   ▼
+3. Zielformat    &lt;templates&gt;/&lt;theme&gt;/&lt;target&gt;/i18n.yaml
+   │             nur für PDF bzw. nur für HTML
+   ▼
+4. Dokument      document.i18n in der markpublish.yaml
+                 höchste Priorität
+</code></pre></div>
+<p>Ebene 1 ist die einzige, die vollständig sein muss. Sie legt zusätzlich Englisch unter
+die Dokumentsprache, damit jeder Schlüssel garantiert auflöst. Die Ebenen 2–4 sind
+reine Overrides.</p>
+<div class="admonition important">
+<p class="admonition-title">Wichtig</p>
+<p>Die Ebenen 2–4 greifen <strong>nur für die gewählte Sprache</strong>. Ein Theme, das einen
+<code>en:</code>-Block definiert, verändert eine deutsche Ausgabe nicht — sonst würden englische
+Theme-Texte in fremdsprachige Dokumente durchschlagen.</p>
+</div>
+<h3 id="das-gemeinsame-format"><span class="heading-number">5.3.2</span> Das gemeinsame Format</h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># templates/mytheme/i18n.yaml</span>
+<span class="nt">de</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">part</span><span class="p">:</span><span class="w"> </span><span class="s">"Abschnitt"</span>
+<span class="w">  </span><span class="nt">chapter_toc_title</span><span class="p">:</span><span class="w"> </span><span class="s">"Auf</span><span class="nv"> </span><span class="s">dieser</span><span class="nv"> </span><span class="s">Seite"</span>
+<span class="nt">en</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">part</span><span class="p">:</span><span class="w"> </span><span class="s">"Section"</span>
+<span class="w">  </span><span class="nt">chapter_toc_title</span><span class="p">:</span><span class="w"> </span><span class="s">"On</span><span class="nv"> </span><span class="s">this</span><span class="nv"> </span><span class="s">page"</span>
+</code></pre></div>
+<p>Der Sonderschlüssel <code>"*"</code> gilt für <strong>jede</strong> Sprache und wird vor dem sprachspezifischen
+Block angewendet — für Begriffe, die unabhängig von der Dokumentsprache gleich heißen:</p>
+<div class="highlight"><pre><span></span><code><span class="s">"*"</span><span class="p p-Indicator">:</span>
+<span class="w">  </span><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="s">"Rev."</span><span class="w">       </span><span class="c1"># in jeder Sprache "Rev."</span>
+<span class="nt">de</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">part</span><span class="p">:</span><span class="w"> </span><span class="s">"Abschnitt"</span>
+</code></pre></div>
+<p>Wer nur eine Sprache pflegt, darf die Sprachebene auch weglassen; die flache Form ist
+gleichbedeutend mit <code>"*"</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">part</span><span class="p">:</span><span class="w"> </span><span class="s">"Abschnitt"</span><span class="w">       </span><span class="c1"># entspricht:  "*":\n  part: "Abschnitt"</span>
+</code></pre></div>
+<p>Regionale Blöcke schlagen den Basis-Block: bei <code>language: "de-AT"</code> gewinnt <code>de-at:</code>
+über <code>de:</code>. Fehlt eine <code>i18n.yaml</code>, ist das kein Fehler — ein Theme ohne eigene Texte
+ist der Normalfall. Ist sie vorhanden, aber fehlerhaft, bricht der Build mit Angabe der
+Datei ab, statt still die Standardtexte zu verwenden.</p>
+<h3 id="beispiel-pdf-und-html-unterschiedlich-beschriften"><span class="heading-number">5.3.3</span> Beispiel: PDF und HTML unterschiedlich beschriften</h3>
+<div class="highlight"><pre><span></span><code>templates/mytheme/
+├── i18n.yaml            de: chapter: "Kapitel"
+├── pdf/
+│   └── i18n.yaml        de: chapter: "Kap."      ← nur im PDF
+└── html/
+    └── i18n.yaml        (leer → erbt "Kapitel")
+</code></pre></div>
+<p>Das mitgelieferte Theme <code>default</code> bringt alle drei Dateien als <strong>auskommentiertes
+Muster</strong> mit: <code>templates/default/i18n.yaml</code>, <code>default/pdf/i18n.yaml</code> und
+<code>default/html/i18n.yaml</code>. Sie sind bewusst wirkungslos — das Standard-Theme soll exakt
+wie der Programmstandard aussprechen. Kommentieren Sie aus, was Sie ändern möchten.</p>
+<h3 id="ebene-4-texte-fuer-ein-einzelnes-dokument"><span class="heading-number">5.3.4</span> Ebene 4: Texte für ein einzelnes Dokument</h3>
+<p>In der <code>markpublish.yaml</code> unter <code>document.i18n</code>, mit demselben Aufbau:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">document</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">language</span><span class="p">:</span><span class="w"> </span><span class="s">"de"</span>
+<span class="w">  </span><span class="nt">i18n</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">de</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">part</span><span class="p">:</span><span class="w"> </span><span class="s">"Abschnitt"</span>
+<span class="w">      </span><span class="nt">chapter_toc_title</span><span class="p">:</span><span class="w"> </span><span class="s">"Auf</span><span class="nv"> </span><span class="s">einen</span><span class="nv"> </span><span class="s">Blick"</span>
+</code></pre></div>
+<p>Genau so ist dieses Handbuch konfiguriert — die Trennseiten zeigen deshalb <em>Auf einen
+Blick</em> statt <em>Inhalt dieses Kapitels</em> und der Anhang-Block <em>Abschnitt</em> statt <em>Teil</em>.</p>
+<p>Dieselbe Stelle dient dazu, eine noch nicht mitgelieferte Sprache vollständig selbst zu
+setzen.</p>
+<h3 id="die-aufgeloeste-tabelle-ansehen"><span class="heading-number">5.3.5</span> Die aufgelöste Tabelle ansehen</h3>
+<p>Bei vier Ebenen ist nicht immer offensichtlich, woher ein Text kommt. <code>markpublish
+labels</code> zeigt das Ergebnis samt Herkunft:</p>
+<div class="highlight"><pre><span></span><code>markpublish<span class="w"> </span>labels<span class="w">                       </span><span class="c1"># alle Schlüssel, Ziel PDF</span>
+markpublish<span class="w"> </span>labels<span class="w"> </span>--target<span class="w"> </span>html<span class="w">         </span><span class="c1"># Kaskade für die HTML-Ausgabe</span>
+markpublish<span class="w"> </span>labels<span class="w"> </span>--overridden<span class="w">          </span><span class="c1"># nur das, was von Ebene 2-4 kommt</span>
+</code></pre></div>
+<h3 id="verfuegbare-schluessel"><span class="heading-number">5.3.6</span> Verfügbare Schlüssel</h3>
 <table>
 <thead>
 <tr>
@@ -1270,21 +1453,12 @@ eine unbekannte Sprache fällt auf Englisch zurück.</p>
 </tr>
 </tbody>
 </table>
-<h3 id="einzelne-texte-ueberschreiben"><span class="heading-number">5.3.2</span> Einzelne Texte überschreiben</h3>
-<p>Unter <code>document.labels</code> lässt sich jeder Schlüssel gezielt ersetzen, ohne ein Template
-anzufassen:</p>
-<div class="highlight"><pre><span></span><code><span class="nt">document</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">language</span><span class="p">:</span><span class="w"> </span><span class="s">"de"</span>
-<span class="w">  </span><span class="nt">labels</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">chapter_toc_title</span><span class="p">:</span><span class="w"> </span><span class="s">"Auf</span><span class="nv"> </span><span class="s">dieser</span><span class="nv"> </span><span class="s">Seite"</span>
-<span class="w">    </span><span class="nt">part</span><span class="p">:</span><span class="w"> </span><span class="s">"Abschnitt"</span>
-</code></pre></div>
-<p>Dieselbe Stelle dient dazu, eine noch nicht mitgelieferte Sprache vollständig selbst zu
-setzen — die Tabelle wird geschichtet: Englisch als Basis, darüber die Dokumentsprache,
-darüber <code>labels</code>. Ein fehlender Eintrag erzeugt deshalb nie einen leeren Text.</p>
+<p>Eine neue Sprache legen Sie an, indem Sie in <code>markpublish/i18n.yaml</code> einen
+vollständigen Block ergänzen — oder, ohne das Paket anzufassen, auf Ebene 2–4 alle
+Schlüssel unter dem gewünschten Sprachcode setzen.</p>
 <div class="admonition tip">
 <p class="admonition-title">Tipp</p>
-<p>In eigenen Templates greifen Sie mit <code>{{ labels.chapter }}</code> auf die Tabelle zu — auch
+<p>In eigenen Templates greifen Sie mit <code>{{ labels.chapter }}</code> auf das Ergebnis zu — auch
 in <code>styles.css</code>, das durch dieselbe Jinja-Umgebung läuft. So ist die Fußzeile
 <code>"{{ labels.page }} " counter(page) " {{ labels.page_of }} " counter(pages)</code> gebaut.</p>
 </div>
@@ -1430,7 +1604,7 @@ in <code>styles.css</code>, das durch dieselbe Jinja-Umgebung läuft. So ist die
 
             <section class="part-section" id="part-anhaenge">
 <div class="part-divider-container">
-  <div class="part-tag">Teil</div>
+  <div class="part-tag">Abschnitt</div>
   <h1 class="part-title">Anhänge</h1>
     <div class="part-summary">Vollständige Spezifikations-Tabellen, Troubleshooting und Best Practices.</div>
 </div>
@@ -1506,10 +1680,10 @@ in <code>styles.css</code>, das durch dieselbe Jinja-Umgebung läuft. So ist die
 <td style="text-align: left;">ISO-Sprachcode (<code>de</code>, <code>en</code>, &hellip;). Steuert Template-Beschriftungen, Callout-Titel und Datumsformat</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>labels</code></td>
+<td style="text-align: left;"><code>i18n</code></td>
 <td style="text-align: left;">Map</td>
 <td style="text-align: left;"><code>{}</code></td>
-<td style="text-align: left;">Überschreibt einzelne statische Template-Texte, z. B. <code>toc_title: "Übersicht"</code></td>
+<td style="text-align: left;">Ebene 4 der i18n-Kaskade. Gleicher Aufbau wie die <code>i18n.yaml</code>: Sprachcode, darunter die Texte. Siehe Kapitel 5</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>cover</code></td>

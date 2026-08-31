@@ -26,6 +26,12 @@ if sys.platform == "win32":
 
 from markpublish import __version__
 from markpublish.config.loader import load_config
+from markpublish.i18n import (
+    BUILTIN_I18N_PATH,
+    I18N_FILENAME,
+    LabelFileError,
+    describe_labels,
+)
 from markpublish.markdown.engine import MarkdownPipeline
 from markpublish.markdown.toc import slugify
 from markpublish.renderers.base import DocumentContext
@@ -370,3 +376,114 @@ def export_template_cmd(
         shutil.copytree(src, dest, dirs_exist_ok=True)
         console.print(f"[bold green][OK][/bold green] Exported template [cyan]{tgt}/{theme}[/cyan] to [yellow]{dest}[/yellow]")
 
+
+@app.command(name="labels")
+def labels_cmd(
+    config_file: Path = typer.Argument(
+        Path("markpublish.yaml"),
+        help="Path to markpublish.yaml configuration file.",
+    ),
+    target: str = typer.Option(
+        "pdf",
+        "--target",
+        "-t",
+        help="Target format whose label cascade to show ('pdf' or 'html').",
+    ),
+    templates_dir: Optional[Path] = typer.Option(
+        None,
+        "--templates-dir",
+        help="Custom templates directory path.",
+    ),
+    only_overridden: bool = typer.Option(
+        False,
+        "--overridden",
+        help="Show only labels that a template or the document changed.",
+    ),
+):
+    """
+    Shows the resolved static texts and which layer supplied each one.
+
+    Cascade, later wins: markpublish/i18n.yaml -> <theme>/i18n.yaml ->
+    <theme>/<target>/i18n.yaml -> document.i18n.
+    """
+    if not config_file.exists():
+        console.print(f"[bold red]Error:[/bold red] Configuration file '{config_file}' not found.")
+        raise typer.Exit(code=1)
+
+    base_dir = config_file.parent.resolve()
+
+    try:
+        config = load_config(config_file)
+    except Exception as e:
+        console.print(f"[bold red]Configuration error:[/bold red] {e}")
+        raise typer.Exit(code=1) from e
+
+    tgt = target.lower().strip()
+    if tgt not in ("pdf", "html"):
+        console.print(f"[bold red]Error:[/bold red] Unknown target '{target}'. Choose 'pdf' or 'html'.")
+        raise typer.Exit(code=1)
+
+    effective_templates_dir = templates_dir or (
+        Path(config.templates_dir) if config.templates_dir else None
+    )
+
+    try:
+        tmpl_path = resolve_template_path(
+            target=tgt,
+            theme=config.theme,
+            custom_templates_dir=effective_templates_dir,
+            config_base_dir=base_dir,
+        )
+    except Exception as e:
+        console.print(f"[bold red]Template error for {tgt}:[/bold red] {e}")
+        raise typer.Exit(code=1) from e
+
+    context = DocumentContext(
+        config=config,
+        content_items=[],
+        toc_tree=[],
+        template_path=tmpl_path,
+        base_dir=base_dir,
+        target=tgt,
+    )
+
+    try:
+        resolved = describe_labels(
+            config.document.language,
+            template_dirs=context.label_source_dirs,
+            overrides=config.document.i18n,
+        )
+    except LabelFileError as e:
+        console.print(f"[bold red]Label file error:[/bold red] {e}")
+        raise typer.Exit(code=1) from e
+
+    console.print(
+        Panel(
+            f"Language: [cyan]{config.document.language}[/cyan] | "
+            f"Theme: [cyan]{config.theme}[/cyan] | Target: [yellow]{tgt.upper()}[/yellow]",
+            title="[bold blue]markpublish labels[/bold blue]",
+            border_style="blue",
+        )
+    )
+
+    table = Table(show_header=True, header_style="bold blue")
+    table.add_column("Key", style="bold")
+    table.add_column("Value")
+    table.add_column("Source", style="dim")
+
+    for key in sorted(resolved):
+        entry = resolved[key]
+        # Ebene 4 hat keinen Pfad - sie ist trotzdem ein Override.
+        from_program = entry["path"] == str(BUILTIN_I18N_PATH)
+        if only_overridden and from_program:
+            continue
+        source_style = "dim" if from_program else "green"
+        table.add_row(key, entry["value"], f"[{source_style}]{entry['source']}[/{source_style}]")
+
+    console.print(table)
+
+    searched = [str(d / I18N_FILENAME) for d in context.label_source_dirs]
+    console.print("\n[dim]Gesucht nach Overrides in:[/dim]")
+    for path_str in searched:
+        marker = "[green]gefunden[/green]" if Path(path_str).is_file() else "[dim]nicht vorhanden[/dim]"
+        console.print(f"  {path_str}  {marker}")

@@ -1,0 +1,33 @@
+# =============================================================================
+# Ebene 2 der i18n-Kaskade: Texte dieses Themes.
+#
+# Gilt fuer alle Zielformate des Themes "default". Was hier steht, ueberschreibt
+# die mitgelieferten Standardtexte aus markpublish/i18n.yaml -- aber nur die
+# Schluessel, die tatsaechlich gesetzt sind. Alles andere bleibt beim Standard.
+#
+#   1. Programm      markpublish/i18n.yaml
+#   2. Theme         diese Datei                            <-- Sie sind hier
+#   3. Zielformat    default/pdf/i18n.yaml, default/html/i18n.yaml
+#   4. Dokument      document.i18n in der markpublish.yaml
+#
+# Das mitgelieferte Theme kommt bewusst ohne eigene Texte aus: es soll exakt so
+# aussprechen wie der Standard. Die Datei ist als Muster gedacht -- kommentieren
+# Sie aus, was Sie aendern moechten, oder legen Sie eine eigene Sprache an.
+#
+# Ansehen, was am Ende gilt:  markpublish labels --overridden
+# =============================================================================
+
+# de:
+#   part: "Abschnitt"                  # statt "Teil"
+#   chapter_toc_title: "Auf einen Blick"
+#   toc_title: "Übersicht"
+
+# en:
+#   part: "Section"
+#   chapter_toc_title: "At a glance"
+
+# Der Sonderschluessel "*" gilt fuer jede Sprache -- fuer Begriffe, die
+# unabhaengig von der Dokumentsprache gleich heissen sollen:
+#
+# "*":
+#   version: "Rev."

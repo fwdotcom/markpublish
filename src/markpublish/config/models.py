@@ -7,7 +7,7 @@ from __future__ import annotations
 from enum import Enum
 from typing import Any, Dict, List, Optional, Union
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 
 class AutonumType(str, Enum):
@@ -28,10 +28,10 @@ class DocumentConfig(BaseModel):
     date: Optional[str] = Field(default="auto", description="Date string or 'auto'/'today'")
     version: Optional[str] = Field(default="1.0.0", description="Version string")
     language: str = Field(default="de", description="ISO language code, e.g. 'de' or 'en'")
-    labels: Dict[str, str] = Field(
+    i18n: Dict[str, Any] = Field(
         default_factory=dict,
-        description="Overrides for static template texts, e.g. {toc_title: 'Contents'}. "
-                    "See markpublish.i18n.LABELS for the available keys.",
+        description="Level 4 of the label cascade - same shape as the i18n.yaml files: "
+                    "language code, then key/text. See markpublish/i18n.yaml for the keys.",
     )
 
     # Global Layout Switches
@@ -57,6 +57,21 @@ class DocumentConfig(BaseModel):
                 if item.value == v_lower:
                     return item
         return AutonumType.DECIMAL
+
+    @model_validator(mode="before")
+    @classmethod
+    def accept_labels_alias(cls, data: Any) -> Any:
+        """
+        `labels:` wird als Alias fuer `i18n:` akzeptiert.
+
+        Der Schluessel hiess in einer fruehen Fassung so; ihn still zu ignorieren
+        waere die schlechteste Variante - der Text bliebe unveraendert und
+        niemand wuesste warum.
+        """
+        if isinstance(data, dict) and "labels" in data and "i18n" not in data:
+            data = dict(data)
+            data["i18n"] = data.pop("labels")
+        return data
 
 
 class ChapterTOCConfig(BaseModel):
