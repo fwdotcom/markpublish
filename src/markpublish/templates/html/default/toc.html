@@ -1,0 +1,60 @@
+<ul class="toc-list">
+  {% for item in toc_tree %}
+    {% if item.is_part %}
+      <li class="toc-item toc-item-part">
+        <a href="#{{ item.slug }}" class="toc-link">{{ item.title }}</a>
+        {% if item.children %}
+          <ul class="toc-list">
+            {% for child in item.children %}
+              <li class="toc-item toc-item-h{{ child.level }}">
+                <a href="#{{ child.slug }}" class="toc-link">
+                  {% if child.number %}{{ child.number }} {% endif %}{{ child.title }}
+                </a>
+                {% if child.children %}
+                  <ul class="toc-list">
+                    {% for sub in child.children %}
+                      <li class="toc-item toc-item-h{{ sub.level }}">
+                        <a href="#{{ sub.slug }}" class="toc-link">
+                          {% if sub.number %}{{ sub.number }} {% endif %}{{ sub.title }}
+                        </a>
+                      </li>
+                    {% endfor %}
+                  </ul>
+                {% endif %}
+              </li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      </li>
+    {% else %}
+      <li class="toc-item toc-item-h{{ item.level }}">
+        <a href="#{{ item.slug }}" class="toc-link">
+          {% if item.number %}{{ item.number }} {% endif %}{{ item.title }}
+        </a>
+        {% if item.children %}
+          <ul class="toc-list">
+            {% for sub in item.children %}
+              <li class="toc-item toc-item-h{{ sub.level }}">
+                <a href="#{{ sub.slug }}" class="toc-link">
+                  {% if sub.number %}{{ sub.number }} {% endif %}{{ sub.title }}
+                </a>
+                {% if sub.children %}
+                  <ul class="toc-list">
+                    {% for subsub in sub.children %}
+                      <li class="toc-item toc-item-h{{ subsub.level }}">
+                        <a href="#{{ subsub.slug }}" class="toc-link">
+                          {% if subsub.number %}{{ subsub.number }} {% endif %}{{ subsub.title }}
+                        </a>
+                      </li>
+                    {% endfor %}
+                  </ul>
+                {% endif %}
+              </li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      </li>
+    {% endif %}
+  {% endfor %}
+</ul>
+

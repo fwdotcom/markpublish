@@ -1,0 +1,81 @@
+# markpublish.yaml für das offizielle Benutzerhandbuch
+
+document:
+  title: "markpublish Benutzerhandbuch"
+  subtitle: "Moderne PDF- und HTML-Dokumentenerstellung aus Markdown"
+  summary: "Dieses Handbuch bietet eine praxisorientierte Anleitung und vollständige Referenz zur Konfiguration, Template-Anpassung und Dokumentengenerierung mit markpublish."
+  author: "Frank Winter"
+  status: "Freigegeben"
+  copyright: "© 2026 Frank Winter"
+  date: "auto"
+  version: "1.0.0"
+  language: "de"
+
+  # Globale Layout-Schalter
+  cover: true
+  toc: true
+  autonum_type: "decimal"
+  header: true
+  footer: true
+
+theme: "default"
+
+chapters:
+  # Hauptteil 1: Grundlagen
+  - file: "chapters/01_introduction.md"
+    title: "Einführung & Architektur"
+    summary: "Überblick über Zielsetzung, Kernkonzepte und die modulare Verarbeitungs-Pipeline."
+    divider_page: true
+    toc: false
+
+  - file: "chapters/02_quickstart.md"
+    title: "Installation & Schnellstart"
+    summary: "Schritt-für-Schritt-Anleitung zur Installation und Erstellung des ersten Dokuments."
+    divider_page: true
+    toc: 2
+
+  # Hauptteil 2: Praxis & Konfiguration
+  - file: "chapters/03_cli_reference.md"
+    title: "Die CLI-Befehle"
+    summary: "Detaillierte Erläuterung aller Befehle: build, init, templates und export-template."
+    divider_page: true
+    toc: 2
+
+  - file: "chapters/04_configuration_guide.md"
+    title: "Konfigurations-Leitfaden"
+    summary: "Deklarative Definition von Dokumentenmetadaten, Kapiteln und Hierarchien."
+    divider_page: true
+    toc: 2
+    chapters:
+      - file: "chapters/04_1_chapters_and_hierarchy.md"
+        title: "Kapitel, Unterkapitel und Parts"
+        divider_page: false
+
+  - file: "chapters/05_template_system.md"
+    title: "Das Template- und Design-System"
+    summary: "3-stufige Auflösungshierarchie, CSS Paged Media und 2-zeilige Kopf-/Fußzeilen."
+    divider_page: true
+    toc: 2
+
+  - file: "chapters/06_markdown_features.md"
+    title: "Markdown-Features & Syntax"
+    summary: "Tabellen, Admonitions/Callouts, Pygments Syntax-Highlighting und Tasklisten."
+    divider_page: true
+    toc: false
+
+  # ============================================================
+  # OBERSTER BLOCK: ANHÄNGE
+  # ============================================================
+  - part: "Anhänge"
+    summary: "Vollständige Spezifikations-Tabellen, Troubleshooting und Best Practices."
+    divider_page: true
+    autonum: "none"
+    chapters:
+      - file: "chapters/07_appendix_yaml_spec.md"
+        title: "Anhang A: YAML-Schema-Referenz"
+        divider_page: false
+
+      - file: "chapters/08_appendix_troubleshooting.md"
+        title: "Anhang B: Fehlerbehebung & FAQ"
+        divider_page: false
+

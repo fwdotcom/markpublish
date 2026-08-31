@@ -1,0 +1,19 @@
+<div class="cover-hero">
+  <h1 class="cover-title">{{ document.title }}</h1>
+  {% if document.subtitle %}
+    <div class="cover-subtitle">{{ document.subtitle }}</div>
+  {% endif %}
+  {% if document.summary %}
+    <div class="cover-summary">
+      {{ document.summary }}
+    </div>
+  {% endif %}
+  <div class="cover-meta">
+    {% if document.author %}<div><strong>Autor:</strong> {{ document.author }}</div>{% endif %}
+    {% if document.status %}<div><strong>Status:</strong> {{ document.status }}</div>{% endif %}
+    {% if document.version %}<div><strong>Version:</strong> {{ document.version }}</div>{% endif %}
+    {% if document.date %}<div><strong>Datum:</strong> {{ document.date }}</div>{% endif %}
+    {% if document.copyright %}<div><strong>Copyright:</strong> {{ document.copyright }}</div>{% endif %}
+  </div>
+</div>
+

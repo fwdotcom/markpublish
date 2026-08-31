@@ -1,0 +1,567 @@
+/* ==========================================================================
+   markpublish - Default PDF Theme Stylesheet (WeasyPrint Paged Media)
+   ========================================================================== */
+
+/* --- Page Setup & 2-Line Header / Footer --- */
+@page {
+  size: A4;
+  margin: 25mm 20mm 25mm 20mm;
+
+  {% if document.header %}
+  @top-left {
+    content: "{{ document.title }}\A" string(current_section);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 8pt;
+    font-weight: 500;
+    color: #64748b;
+    white-space: pre-wrap;
+    line-height: 1.3;
+    vertical-align: bottom;
+    padding-bottom: 3.5mm;
+    border-bottom: 0.5pt solid #cbd5e1;
+  }
+
+  @top-right {
+    content: "v{{ document.version }}\A{{ document.date }}";
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 8pt;
+    font-weight: 500;
+    color: #64748b;
+    text-align: right;
+    white-space: pre-wrap;
+    line-height: 1.3;
+    vertical-align: bottom;
+    padding-bottom: 3.5mm;
+    border-bottom: 0.5pt solid #cbd5e1;
+  }
+  {% endif %}
+
+  {% if document.footer %}
+  @bottom-left {
+    content: "{{ document.author or '' }}\A{{ document.copyright or document.status or document.footer_note or '' }}";
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 8pt;
+    color: #64748b;
+    white-space: pre-wrap;
+    line-height: 1.3;
+    vertical-align: top;
+    padding-top: 3.5mm;
+    border-top: 0.5pt solid #cbd5e1;
+  }
+
+  @bottom-right {
+    content: "Seite " counter(page) " von " counter(pages);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 8pt;
+    color: #64748b;
+    text-align: right;
+    white-space: pre-wrap;
+    line-height: 1.3;
+    vertical-align: top;
+    padding-top: 3.5mm;
+    border-top: 0.5pt solid #cbd5e1;
+  }
+  {% endif %}
+}
+
+/* --- Special Page Styles (Cover & Dividers) --- */
+@page cover-page {
+  size: A4;
+  margin: 0;
+  @top-left { content: none; border-bottom: none; }
+  @top-right { content: none; border-bottom: none; }
+  @bottom-left { content: none; border-top: none; }
+  @bottom-right { content: none; border-top: none; }
+}
+
+@page divider-page {
+  size: A4;
+  margin: 30mm 25mm 25mm 25mm;
+  @top-left { content: none; border-bottom: none; }
+  @top-right { content: none; border-bottom: none; }
+  @bottom-left { content: none; border-top: none; }
+  @bottom-right { content: none; border-top: none; }
+}
+
+.cover-page {
+  page: cover-page;
+  page-break-after: always;
+  height: 100vh;
+  box-sizing: border-box;
+  padding: 40mm 25mm 30mm 25mm;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background: #f8fafc;
+  border-left: 12mm solid #2563eb;
+}
+
+.divider-page-container {
+  page: divider-page;
+  page-break-before: always;
+  page-break-after: always;
+  padding-top: 25mm;
+}
+
+/* --- Typography & Base Styles --- */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 10pt;
+  line-height: 1.6;
+  color: #1e293b;
+  margin: 0;
+  padding: 0;
+  text-rendering: optimizeLegibility;
+  word-wrap: break-word;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.25;
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+  page-break-after: avoid;
+  break-after: avoid;
+}
+
+h1 {
+  font-size: 20pt;
+  border-bottom: 1.5pt solid #e2e8f0;
+  padding-bottom: 0.25em;
+  margin-top: 0;
+}
+
+h2 {
+  font-size: 15pt;
+  border-bottom: 0.5pt solid #f1f5f9;
+  padding-bottom: 0.2em;
+}
+
+h3 { font-size: 12pt; }
+h4 { font-size: 10.5pt; }
+h5 { font-size: 9.5pt; text-transform: uppercase; letter-spacing: 0.05em; }
+h6 { font-size: 9pt; color: #64748b; }
+
+p {
+  margin-top: 0;
+  margin-bottom: 0.9em;
+  orphans: 2;
+  widows: 2;
+}
+
+a {
+  color: #2563eb;
+  text-decoration: none;
+}
+
+strong, b {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+/* --- Cover Page Elements --- */
+.cover-header {
+  margin-bottom: 20mm;
+}
+
+.cover-title {
+  font-size: 28pt;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.15;
+  margin: 0 0 10mm 0;
+  border: none;
+  padding: 0;
+}
+
+.cover-subtitle {
+  font-size: 14pt;
+  font-weight: 400;
+  color: #475569;
+  margin: 0 0 15mm 0;
+  line-height: 1.4;
+}
+
+.cover-summary {
+  background: #ffffff;
+  border-left: 3pt solid #2563eb;
+  padding: 5mm 6mm;
+  border-radius: 2pt;
+  font-size: 9.5pt;
+  color: #334155;
+  line-height: 1.5;
+  box-shadow: 0 1pt 3pt rgba(0, 0, 0, 0.05);
+}
+
+.cover-meta-grid {
+  margin-top: auto;
+  padding-top: 15mm;
+  border-top: 1pt solid #cbd5e1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  row-gap: 3mm;
+  font-size: 9pt;
+}
+
+.meta-item-label {
+  color: #64748b;
+  font-size: 8pt;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.meta-item-value {
+  color: #0f172a;
+  font-weight: 600;
+}
+
+/* --- Divider Pages --- */
+.part-divider {
+  border-bottom: 2pt solid #2563eb;
+  padding-bottom: 8mm;
+  margin-bottom: 10mm;
+}
+
+.part-tag {
+  font-size: 10pt;
+  font-weight: 700;
+  color: #2563eb;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 3mm;
+}
+
+.part-title {
+  font-size: 24pt;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 5mm 0;
+  border: none;
+}
+
+.part-summary {
+  font-size: 11pt;
+  color: #475569;
+  line-height: 1.5;
+}
+
+.chapter-divider {
+  border-bottom: 1.5pt solid #cbd5e1;
+  padding-bottom: 6mm;
+  margin-bottom: 8mm;
+}
+
+.chapter-tag {
+  font-size: 9pt;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 2mm;
+}
+
+.chapter-divider-title {
+  font-size: 20pt;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 4mm 0;
+  border: none;
+}
+
+.chapter-divider-summary {
+  font-size: 10pt;
+  color: #475569;
+  font-style: italic;
+  margin-bottom: 6mm;
+}
+
+.local-toc {
+  background: #f8fafc;
+  border: 0.5pt solid #e2e8f0;
+  border-radius: 3pt;
+  padding: 4mm 6mm;
+  margin-top: 6mm;
+}
+
+.local-toc-title {
+  font-size: 9pt;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+  margin-bottom: 3mm;
+}
+
+/* --- Table of Contents (TOC) --- */
+.toc-page {
+  page-break-before: always;
+  page-break-after: always;
+}
+
+.toc-title {
+  font-size: 18pt;
+  font-weight: 700;
+  color: #0f172a;
+  border-bottom: 1.5pt solid #2563eb;
+  padding-bottom: 3mm;
+  margin-bottom: 6mm;
+}
+
+.toc-list {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+
+.toc-list .toc-list {
+  padding-left: 5mm;
+}
+
+.toc-item {
+  margin-bottom: 2.5mm;
+  font-size: 9.5pt;
+  line-height: 1.3;
+}
+
+.toc-item-part {
+  font-weight: 700;
+  font-size: 10.5pt;
+  color: #0f172a;
+  margin-top: 5mm;
+  margin-bottom: 2mm;
+  border-bottom: 0.5pt solid #e2e8f0;
+  padding-bottom: 1mm;
+}
+
+.toc-item-h1 {
+  font-weight: 600;
+  color: #0f172a;
+  margin-top: 2.5mm;
+}
+
+.toc-item-h2 {
+  font-size: 9pt;
+  color: #334155;
+}
+
+.toc-item-h3 {
+  font-size: 8.5pt;
+  color: #64748b;
+}
+
+.toc-link {
+  display: flex;
+  align-items: baseline;
+  color: inherit;
+  text-decoration: none;
+}
+
+.toc-text {
+  flex-shrink: 0;
+}
+
+.toc-leader {
+  flex-grow: 1;
+  border-bottom: 1pt dotted #94a3b8;
+  margin: 0 2mm;
+  height: 1em;
+}
+
+.toc-page-number {
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+}
+
+.toc-page-number::after {
+  content: target-counter(attr(href), page);
+}
+
+/* --- Code & Syntax Highlighting --- */
+pre {
+  background: #f8fafc;
+  border: 0.5pt solid #e2e8f0;
+  border-radius: 3pt;
+  padding: 3mm 4mm;
+  font-family: "JetBrains Mono", Consolas, "Liberation Mono", Menlo, monospace;
+  font-size: 8pt;
+  line-height: 1.45;
+  overflow-x: hidden;
+  white-space: pre-wrap;
+  word-break: break-all;
+  margin: 1em 0;
+  page-break-inside: avoid;
+}
+
+code {
+  font-family: "JetBrains Mono", Consolas, "Liberation Mono", Menlo, monospace;
+  font-size: 8.5pt;
+  background: #f1f5f9;
+  padding: 0.1em 0.3em;
+  border-radius: 2pt;
+  color: #0f172a;
+}
+
+pre code {
+  background: transparent;
+  padding: 0;
+  font-size: inherit;
+}
+
+/* Pygments Token Colors */
+.highlight .k, .highlight .kd, .highlight .kn, .highlight .kr { color: #d73a49; font-weight: 600; } /* keyword */
+.highlight .s, .highlight .s1, .highlight .s2, .highlight .sb { color: #032f62; } /* string */
+.highlight .c, .highlight .c1, .highlight .cm { color: #6a737d; font-style: italic; } /* comment */
+.highlight .nf, .highlight .fm { color: #6f42c1; font-weight: 600; } /* function */
+.highlight .nc, .highlight .nn { color: #6f42c1; font-weight: 600; } /* class/namespace */
+.highlight .mi, .highlight .mf, .highlight .mh { color: #005cc5; } /* number */
+.highlight .na, .highlight .nt { color: #22863a; } /* attribute/tag */
+.highlight .nb { color: #005cc5; } /* builtin */
+
+/* --- Tables --- */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.2em 0;
+  font-size: 9pt;
+  page-break-inside: avoid;
+}
+
+th, td {
+  padding: 2.5mm 3.5mm;
+  text-align: left;
+  border-bottom: 0.5pt solid #e2e8f0;
+}
+
+th {
+  background: #f8fafc;
+  color: #0f172a;
+  font-weight: 600;
+  border-bottom: 1.5pt solid #cbd5e1;
+  text-transform: uppercase;
+  font-size: 7.5pt;
+  letter-spacing: 0.05em;
+}
+
+tr:nth-child(even) td {
+  background: #fcfdfe;
+}
+
+/* --- Callouts / Admonitions --- */
+.admonition {
+  margin: 1.2em 0;
+  padding: 3mm 4mm;
+  border-left: 3pt solid #2563eb;
+  background: #f8fafc;
+  border-radius: 0 3pt 3pt 0;
+  page-break-inside: avoid;
+  font-size: 9pt;
+}
+
+.admonition-title {
+  font-weight: 700;
+  font-size: 9pt;
+  margin-bottom: 1.5mm;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+}
+
+.admonition-title::before {
+  content: "";
+  display: inline-block;
+  width: 12pt;
+  height: 12pt;
+  margin-right: 4pt;
+  vertical-align: -1.5pt;
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: center;
+}
+
+.admonition.note { border-left-color: #2563eb; background: #eff6ff; }
+.admonition.note .admonition-title { color: #1d4ed8; }
+.admonition.note .admonition-title::before {
+  background-image: url('{{ asset_url("assets/icons/note.svg") }}');
+}
+
+.admonition.tip, .admonition.hint { border-left-color: #10b981; background: #f0fdf4; }
+.admonition.tip .admonition-title, .admonition.hint .admonition-title { color: #047857; }
+.admonition.tip .admonition-title::before, .admonition.hint .admonition-title::before {
+  background-image: url('{{ asset_url("assets/icons/tip.svg") }}');
+}
+
+.admonition.important { border-left-color: #8b5cf6; background: #f5f3ff; }
+.admonition.important .admonition-title { color: #6d28d9; }
+.admonition.important .admonition-title::before {
+  background-image: url('{{ asset_url("assets/icons/important.svg") }}');
+}
+
+.admonition.warning { border-left-color: #f59e0b; background: #fffbeb; }
+.admonition.warning .admonition-title { color: #b45309; }
+.admonition.warning .admonition-title::before {
+  background-image: url('{{ asset_url("assets/icons/warning.svg") }}');
+}
+
+.admonition.caution, .admonition.danger, .admonition.error { border-left-color: #ef4444; background: #fef2f2; }
+.admonition.caution .admonition-title, .admonition.danger .admonition-title, .admonition.error .admonition-title { color: #b91c1c; }
+.admonition.caution .admonition-title::before, .admonition.danger .admonition-title::before, .admonition.error .admonition-title::before {
+  background-image: url('{{ asset_url("assets/icons/caution.svg") }}');
+}
+
+.admonition.info { border-left-color: #06b6d4; background: #ecfeff; }
+.admonition.info .admonition-title { color: #0e7490; }
+.admonition.info .admonition-title::before {
+  background-image: url('{{ asset_url("assets/icons/note.svg") }}');
+}
+
+/* --- Blockquotes & Tasklists --- */
+blockquote {
+  margin: 1em 0;
+  padding: 2mm 4mm;
+  border-left: 2.5pt solid #cbd5e1;
+  color: #475569;
+  background: #f8fafc;
+  font-style: italic;
+  page-break-inside: avoid;
+}
+
+ul, ol {
+  margin: 0.5em 0 1em 0;
+  padding-left: 5mm;
+}
+
+li {
+  margin-bottom: 0.3em;
+}
+
+li.task-list-item {
+  list-style-type: none;
+  margin-left: -5mm;
+}
+
+input[type="checkbox"] {
+  margin-right: 2mm;
+}
+
+/* --- Media --- */
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 1.5em auto;
+  page-break-inside: avoid;
+}
+
+hr {
+  border: none;
+  border-top: 0.5pt solid #e2e8f0;
+  margin: 2em 0;
+}
+

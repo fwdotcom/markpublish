@@ -1,0 +1,10 @@
+<div class="chapter-divider-container">
+  {% if chapter.number_prefix %}
+    <div class="chapter-tag">Kapitel {{ chapter.number_prefix }}</div>
+  {% endif %}
+  <h1 class="chapter-divider-title">{{ chapter.display_title }}</h1>
+  {% if chapter.summary %}
+    <div class="chapter-divider-summary"><em>{{ chapter.summary }}</em></div>
+  {% endif %}
+</div>
+

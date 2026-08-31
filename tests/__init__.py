@@ -1,0 +1,4 @@
+"""
+Test suite for markpublish.
+"""
+

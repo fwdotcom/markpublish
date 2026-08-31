@@ -1,0 +1,41 @@
+# markpublish.yaml
+document:
+  title: "Markpublish Showcase"
+  subtitle: "Erstellt mit markpublish"
+  summary: "Kurze Zusammenfassung des Dokuments."
+  author: "Autor Name"
+  date: "auto"
+  version: "1.0.0"
+  language: "de"
+
+  cover: true
+  toc: true
+  autonum_type: "decimal"
+  header: true
+  footer: true
+
+theme: "default"
+
+chapters:
+  - file: "chapters/01_introduction.md"
+    title: "Einleitung"
+    summary: "Einführung in das Thema."
+    divider_page: true
+    toc: false
+
+  - file: "chapters/02_architecture.md"
+    title: "Hauptteil"
+    summary: "Detaillierte Erläuterungen und Architektur."
+    divider_page: true
+    toc: 2
+    chapters:
+      - file: "chapters/02_1_details.md"
+        title: "Detailaspekte"
+
+  - part: "Anhänge"
+    summary: "Glossar und Zusatzinformationen."
+    divider_page: true
+    autonum: "none"
+    chapters:
+      - file: "chapters/03_appendix.md"
+        title: "Anhang A: Glossar"
