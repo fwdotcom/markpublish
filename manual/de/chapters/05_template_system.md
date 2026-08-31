@@ -290,7 +290,7 @@ eigener Auszeichnung — eine Zeichenkette kennt nur eine Formatierung für alle
     margin-top: 12mm;          /* Abstand zur Papierkante */
     padding-bottom: 0;
     border-bottom: 0.5pt solid #cbd5e1;
-    margin-bottom: 5mm;        /* Abstand zum Inhalt */
+    margin-bottom: 12mm;       /* Abstand zum Inhalt */
   }
 }
 ```
@@ -301,7 +301,11 @@ Von der Papierkante nach innen:
 
 ```
 Kante ── margin ── Zeilen (top-aligned) ── Linie ── margin ── Inhalt
+         12 mm                                       12 mm
 ```
+
+Beide Abstände sind bewusst gleich groß: eine Kopfzeile, die dicht über dem Text
+sitzt, liest sich als Teil des Satzspiegels statt als Seitenfurnitur.
 
 Beide Spalten sitzen in einem Flex-Container mit `align-items: flex-start`. Die
 rechte Spalte beginnt deshalb auf der Höhe der **ersten** linken Zeile, auch wenn

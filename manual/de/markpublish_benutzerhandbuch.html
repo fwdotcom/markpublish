@@ -1543,14 +1543,17 @@ eigener Auszeichnung — eine Zeichenkette kennt nur eine Formatierung für alle
 <span class="w">    </span><span class="nt">margin-top</span><span class="o">:</span><span class="w"> </span><span class="nt">12mm</span><span class="o">;</span><span class="w">          </span><span class="c">/* Abstand zur Papierkante */</span>
 <span class="w">    </span><span class="nt">padding-bottom</span><span class="o">:</span><span class="w"> </span><span class="nt">0</span><span class="o">;</span>
 <span class="w">    </span><span class="nt">border-bottom</span><span class="o">:</span><span class="w"> </span><span class="nt">0</span><span class="p">.</span><span class="nc">5pt</span><span class="w"> </span><span class="nt">solid</span><span class="w"> </span><span class="p">#</span><span class="nn">cbd5e1</span><span class="o">;</span>
-<span class="w">    </span><span class="nt">margin-bottom</span><span class="o">:</span><span class="w"> </span><span class="nt">5mm</span><span class="o">;</span><span class="w">        </span><span class="c">/* Abstand zum Inhalt */</span>
+<span class="w">    </span><span class="nt">margin-bottom</span><span class="o">:</span><span class="w"> </span><span class="nt">12mm</span><span class="o">;</span><span class="w">       </span><span class="c">/* Abstand zum Inhalt */</span>
 <span class="w">  </span><span class="p">}</span>
 <span class="p">}</span>
 </code></pre></div>
 <h3 id="geometrie"><span class="heading-number">5.4.1</span> Geometrie</h3>
 <p>Von der Papierkante nach innen:</p>
 <div class="highlight"><pre><span></span><code>Kante ── margin ── Zeilen (top-aligned) ── Linie ── margin ── Inhalt
+         12 mm                                       12 mm
 </code></pre></div>
+<p>Beide Abstände sind bewusst gleich groß: eine Kopfzeile, die dicht über dem Text
+sitzt, liest sich als Teil des Satzspiegels statt als Seitenfurnitur.</p>
 <p>Beide Spalten sitzen in einem Flex-Container mit <code>align-items: flex-start</code>. Die
 rechte Spalte beginnt deshalb auf der Höhe der <strong>ersten</strong> linken Zeile, auch wenn
 links drei Zeilen stehen und rechts nur eine.</p>

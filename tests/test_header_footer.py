@@ -15,7 +15,7 @@ faellt in einem Textvergleich nicht auf, hier schon.
 
 Geometrie, von der Papierkante nach innen:
 
-    Kante -> 12mm -> Zeilen (top-aligned) -> Linie -> 5mm -> Inhalt
+    Kante -> 12mm -> Zeilen (top-aligned) -> Linie -> 12mm -> Inhalt
 """
 
 from __future__ import annotations
@@ -34,7 +34,7 @@ PX_PER_MM = 96 / 25.4
 
 #: Muss zu hf_edge_mm / hf_gap_mm in default/pdf/styles.css passen.
 EDGE_MM = 12.0
-GAP_MM = 5.0
+GAP_MM = 12.0
 
 YAML = """
 document:
