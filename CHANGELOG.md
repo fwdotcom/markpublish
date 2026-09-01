@@ -13,8 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Multi-Format Publishing Pipeline**: Modular compilation from Markdown to print-ready **PDF** (via WeasyPrint & W3C CSS Paged Media) and standalone **HTML**.
 - **Declarative YAML Configuration (`markpublish.yaml`)**:
   - Global metadata (`title`, `subtitle`, `author`, `date`, `version`, `language`, `status`, `copyright`).
-  - Layout controls: `cover`, `header`, `footer`, `document_toc`, `chapter_toc`, `autonum_style`.
-  - Hierarchical chapter structure supporting nested sub-chapters and overarching **Parts**.
+  - Layout controls: `cover`, `header`, `footer`, `document_toc`, `part_toc`, `chapter_toc`.
+  - Numbering controls: `autonum_style`, `autonum_from_level`, `autonum_prefix`, `autonum_reset`, and `pagenum_reset`.
+  - Two-tier document structure: **Parts** (`parts:`) divide the document, chapters (`chapters:`) beneath them carry the content; depth inside a chapter comes from its own headings.
   - Flexible page-break controls via `break_before` (`page`, `divider`, `none`).
 - **Target-Based Template Engine & 3-Tier Resolution**:
   - Hierarchical template resolution: User (`~/.markpublish/templates`) > Project/Workspace (`./templates`) > Package Built-in.
@@ -35,5 +36,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `markpublish export-template`: Exports built-in themes into the workspace for customization.
   - `markpublish labels`: Inspects resolved static texts and cascade origins.
 - **Build Utilities**:
-  - `build_manuals.py`: One-command script to build official German and English showcase PDFs into `manual/`.
+  - `build_manuals.py`: One command builds all four showcase documents — German and English, PDF and HTML — into `manual/`.
 
