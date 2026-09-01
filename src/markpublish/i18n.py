@@ -45,7 +45,10 @@ das Stylesheet ebenso -- `styles.css` laeuft durch dieselbe Jinja-Umgebung.
 
 from __future__ import annotations
 
+import locale
+import os
 import re
+import sys
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Mapping, Optional, Tuple
 
@@ -168,6 +171,83 @@ LABELS: Dict[str, Dict[str, str]] = _load_builtin()
 def available_languages() -> List[str]:
     """Returns the language codes level 1 covers."""
     return sorted(k for k in LABELS if k != ANY_LANGUAGE)
+
+
+#: Umgebungsvariablen, in denen POSIX die Sprachwahl fuehrt, spezifisch zuerst.
+#: LANGUAGE darf eine Prioritaetsliste sein ("de:en"); genommen wird der erste
+#: Eintrag.
+_LOCALE_ENV_VARS = ("LANGUAGE", "LC_ALL", "LC_MESSAGES", "LANG")
+
+#: Werte, die "keine Sprache gewaehlt" bedeuten und keine sind.
+_NEUTRAL_LOCALES = frozenset({"c", "posix", "c.utf-8", "und"})
+
+
+def _clean_locale(value: str) -> Optional[str]:
+    """
+    Schaelt aus 'de_DE.UTF-8@euro' den Sprachcode 'de-DE'.
+
+    Geschrieben wird die uebliche Form -- Sprache klein, Region gross. Fuer die
+    Aufloesung ist das gleichgueltig, jede Suche normalisiert selbst; hier geht
+    es darum, dass der Wert in einer markpublish.yaml landen kann, ohne dass
+    jemand ueber ein 'de-de' stolpert.
+    """
+    code = value.split(":", 1)[0].split(".", 1)[0].split("@", 1)[0].strip()
+    if not code or code.lower() in _NEUTRAL_LOCALES:
+        return None
+
+    language, _, region = _normalize_language_key(code).partition("-")
+    return f"{language}-{region.upper()}" if region else language
+
+
+def detect_system_language() -> Optional[str]:
+    """
+    Sprache der Benutzeroberflaeche des Systems, oder None.
+
+    Reihenfolge: erst die POSIX-Umgebungsvariablen -- sie sind die einzige
+    Stelle, an der ein Benutzer die Sprache pro Aufruf oder pro Shell
+    uebersteuern kann, und wer sie setzt, meint sie auch. Danach fragt Windows
+    seine UI-Sprache ueber die API ab; `locale.getlocale()` liefert dort
+    'German_Germany' statt eines ISO-Codes und waere unbrauchbar. Auf allen
+    anderen Systemen bleibt getlocale() als Rueckfallebene.
+
+    Zurueckgegeben wird ein roher Code wie "de", "de-AT" oder "pt-BR" -- ob es
+    ihn ueberhaupt gibt, entscheidet der Aufrufer: normalize_language() fuer die
+    Labels, das Vorhandensein eines Verzeichnisses fuer die mitgelieferten
+    Dokumente. Erkennung, die nichts findet, gibt None zurueck statt zu raten.
+    """
+    for var in _LOCALE_ENV_VARS:
+        value = os.environ.get(var)
+        if value and (code := _clean_locale(value)):
+            return code
+
+    if sys.platform == "win32":
+        try:
+            import ctypes
+
+            lcid = ctypes.windll.kernel32.GetUserDefaultUILanguage()
+            windows_code = locale.windows_locale.get(lcid)
+        except Exception:
+            windows_code = None
+        return _clean_locale(windows_code) if windows_code else None
+
+    try:
+        code = locale.getlocale()[0]
+    except (TypeError, ValueError):
+        return None
+    return _clean_locale(code) if code else None
+
+
+def default_document_language() -> str:
+    """
+    Sprache eines Dokuments, das selbst keine angibt.
+
+    Die Systemsprache ist hier die bessere Vermutung als ein festverdrahteter
+    Code: wer nichts angibt, schreibt mit ueberwaeltigender Wahrscheinlichkeit
+    in der Sprache, in der sein Rechner mit ihm spricht. Verbindlich ist sie
+    nicht -- `markpublish init` schreibt den erkannten Wert in die
+    markpublish.yaml, damit ein Dokument auf jedem Rechner gleich baut.
+    """
+    return detect_system_language() or FALLBACK_LANGUAGE
 
 
 def normalize_language(language: Optional[str]) -> str:

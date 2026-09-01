@@ -42,30 +42,29 @@ my-guide/
 └── next-steps.md             # One chapter, meant to be replaced
 ```
 
-There is no sample content beyond that, because everything `init` writes is material you delete as soon as you start writing. The reference lives in `markpublish cheatsheet` instead, which stays available after the last scaffold file is gone.
-
 ## Looking things up
 
 ```bash
-markpublish cheatsheet         # two-page reference card
-markpublish manual             # this guide
-markpublish manual --lang de   # manual in German
-markpublish manual --lang en   # manual in English
+# two-page reference card
+markpublish cheatsheet [--lang de|en]
+
+# this guide
+markpublish manual [--lang de|en]
 ```
 
 Both are rendered from sources shipped inside the package, so they always match the version you have installed. A successful run also confirms that the rendering toolchain works — on Windows, that WeasyPrint found its GTK runtime.
 
-The `--lang` parameter selects the manual source language, not just the interface labels.
+Without `--lang` your system language decides; where no translation exists, the English one appears. The parameter selects the **source**, not merely the interface labels.
 
 ## Building the document
 
 Render with the `build` command:
 
 ```bash
-# Build PDF (default)
+# Build a PDF from the current project directory
 markpublish build
 
-# Build a standalone HTML preview
+# Produce the HTML output
 markpublish build --target html
 
 # Build both in one pass

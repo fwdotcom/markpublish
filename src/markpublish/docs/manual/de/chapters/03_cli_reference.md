@@ -58,16 +58,21 @@ Projekt des Nutzers.
 
 | Option | Standard | Bedeutung |
 | :--- | :--- | :--- |
-| `--lang`, `-l` | `en` | Welche Übersetzung gerendert wird. `markpublish manual --lang de` |
+| `--lang`, `-l` | Systemsprache | Welche Übersetzung gerendert wird. `markpublish manual --lang de` |
 | `--target`, `-t` | `pdf` | `pdf`, `html` oder `all` |
 | `--output`, `-o` | aktuelles Verzeichnis | Datei oder Verzeichnis |
 | `--theme` | mitgeliefert | Rendert in einem eigenen Theme |
 
 `--lang` wählt die **Quelle**, nicht bloß die Beschriftungen — jede Übersetzung
 bringt ihre eigene `language:` mit und zieht damit die passenden statischen
-Texte von selbst nach. Wird eine Sprache verlangt, die nicht mitgeliefert wird,
-sagt markpublish das und weicht aus, statt still einen englischen Rahmen um
-deutschen Fließtext zu setzen.
+Texte von selbst nach.
+
+Ohne Angabe entscheidet die Sprache Ihres Systems. Diese beiden Dokumente
+richten sich an die Person vor dem Rechner und nicht an ein Publikum; deren
+Sprache ist damit die beste verfügbare Vermutung. Gibt es dafür keine
+Übersetzung, erscheint kommentarlos die englische — verlangt wurde ja nichts.
+Ein ausdrückliches `--lang fr` dagegen wird gemeldet, statt still einen
+englischen Rahmen um eine französische Erwartung zu setzen.
 
 Ohne `--theme` oder `--templates-dir` ignorieren beide Befehle bewusst User- und
 Projekt-Themes und rendern im mitgelieferten. Sonst zöge ein `templates/` im

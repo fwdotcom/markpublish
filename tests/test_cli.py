@@ -92,16 +92,20 @@ def test_cli_cheatsheet_renders_into_the_working_directory(tmp_path: Path, monke
     assert not list(tmp_path.glob("*.yaml"))
 
 
-def test_cli_cheatsheet_stays_two_pages(tmp_path: Path, monkeypatch):
+@pytest.mark.parametrize("lang", ["de", "en"])
+def test_cli_cheatsheet_stays_two_pages(tmp_path: Path, monkeypatch, lang):
     """
     Zwei Seiten sind die ganze Idee: Seite 1 die markpublish.yaml, Seite 2 die
     Theme-Grundlagen. Waechst der Inhalt darueber hinaus, ist es keine
     Referenzkarte mehr - dann muss gekuerzt werden, nicht der Test angepasst.
+
+    Beide Sprachen einzeln: deutscher Satz braucht mehr Platz, die Karte kippt
+    also zuerst dort - und zwar unbemerkt, wenn nur Englisch gemessen wird.
     """
     pypdfium2 = pytest.importorskip("pypdfium2")
     monkeypatch.chdir(tmp_path)
 
-    res = runner.invoke(app, ["cheatsheet", "--target", "pdf"])
+    res = runner.invoke(app, ["cheatsheet", "--lang", lang, "--target", "pdf"])
     assert res.exit_code == 0, res.stdout
 
     produced = list(tmp_path.glob("*.pdf"))
@@ -152,19 +156,64 @@ def test_cli_manual_renders_in_both_languages(tmp_path: Path, monkeypatch):
     assert len(list(tmp_path.glob("*.html"))) == 2
 
 
-def test_cli_manual_defaults_to_english(tmp_path: Path, monkeypatch):
+def test_cli_cheatsheet_renders_in_both_languages(tmp_path: Path, monkeypatch):
+    """Wie beim Handbuch: beide gepflegten Sprachen muessen durchlaufen."""
+    monkeypatch.chdir(tmp_path)
+
+    for lang in ("en", "de"):
+        res = runner.invoke(app, ["cheatsheet", "--lang", lang, "--target", "html"])
+        assert res.exit_code == 0, f"{lang}: {res.stdout}"
+
+    assert len(list(tmp_path.glob("*.html"))) == 2
+
+
+@pytest.mark.parametrize(
+    "system_locale,expected",
+    [
+        ("de_DE.UTF-8", "benutzerhandbuch"),
+        ("en_US.UTF-8", "user_guide"),
+        # Regionale Form ohne eigene Uebersetzung: die Basissprache greift.
+        ("de_AT", "benutzerhandbuch"),
+    ],
+)
+def test_cli_manual_follows_the_system_language(
+    tmp_path: Path, monkeypatch, system_locale, expected
+):
     """
-    Ohne --lang gilt DEFAULT_DOC_LANGUAGE. Das ist Englisch, weil CLI-Hilfe und
-    README es auch sind - ein deutsches Dokument ohne Vorwarnung waere fuer die
-    Mehrheit der Nutzer die Ueberraschung.
+    Ohne --lang entscheidet die Systemsprache. Die mitgelieferten Dokumente
+    richten sich an die Person vor dem Rechner, nicht an ein Publikum - deren
+    Sprache ist die beste verfuegbare Vermutung.
     """
     monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("LANGUAGE", system_locale)
 
     assert runner.invoke(app, ["manual", "--target", "html"]).exit_code == 0
 
     produced = list(tmp_path.glob("*.html"))
     assert len(produced) == 1
+    assert expected in produced[0].name
+
+
+def test_cli_manual_falls_back_silently_for_an_unshipped_system_language(
+    tmp_path: Path, monkeypatch
+):
+    """
+    Erkennung, die danebengreift, bleibt still: verlangt wurde nichts, und ein
+    Hinweis bei jedem Aufruf waere Laerm. Der Unterschied zum ausdruecklichen
+    --lang ist Absicht.
+    """
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("LANGUAGE", "fr_FR.UTF-8")
+
+    res = runner.invoke(app, ["manual", "--target", "html"])
+    assert res.exit_code == 0, res.stdout
+
+    produced = list(tmp_path.glob("*.html"))
+    assert len(produced) == 1
     assert "user_guide" in produced[0].name
+    assert "not available in" not in res.stdout, (
+        "Ein Hinweis gehoert nur zum ausdruecklichen --lang, nicht zur Erkennung"
+    )
 
 
 def test_cli_manual_says_so_when_a_language_is_missing(tmp_path: Path, monkeypatch):
@@ -190,7 +239,7 @@ def test_bundled_documents_declare_the_languages_they_ship(tmp_path: Path):
     from markpublish.cli import _available_doc_languages, get_bundled_doc_dir
 
     assert _available_doc_languages("manual") == ["de", "en"]
-    assert _available_doc_languages("cheatsheet") == ["en"]
+    assert _available_doc_languages("cheatsheet") == ["de", "en"]
 
     # Jede gemeldete Sprache hat auch wirklich Kapitel neben ihrem Manifest.
     for name in ("manual", "cheatsheet"):

@@ -54,20 +54,20 @@ in the directory. It is meant to be replaced by your own content.
 
 ### 2. Look things up
 ```bash
-markpublish cheatsheet          # two-page reference card
-markpublish manual              # the full user guide
-markpublish manual --lang de    # ... in German
+markpublish cheatsheet [--lang de|en]   # two-page reference card
+markpublish manual     [--lang de|en]   # the full user guide
 ```
 
 `cheatsheet` renders a two-page reference -- every key of `markpublish.yaml` on
 page one, themes and templates on page two. `manual` renders the complete user
-guide. Both sources ship inside the package and are rendered on demand, so they
-describe the version you actually have rather than whatever was current when
-someone last rebuilt a PDF -- and a successful run also confirms that the
-rendering toolchain works.
+guide. Both ship in German and English, their sources inside the package, and
+are rendered on demand -- so they describe the version you actually have rather
+than whatever was current when someone last rebuilt a PDF, and a successful run
+also confirms that the rendering toolchain works.
 
 `--lang` selects the source, not just the labels: each translation carries its
-own `language:` and pulls in the matching static texts by itself.
+own `language:` and pulls in the matching static texts by itself. Without it,
+your system language decides; where no translation exists, English appears.
 
 ### 3. Build PDF and HTML
 ```bash
@@ -94,7 +94,8 @@ document:
   author: "Frank Mustermann"
   date: "auto"                    # "auto" for current date, or "2026-08-31"
   version: "1.0.0"              # optional; omitted -> no version on the cover
-  language: "de"                 # Localization and hyphenation
+  language: "de"                 # Localization and hyphenation; omit it and
+                                 # your system language applies
 
   # Layout Toggles
   cover: true                    # Enable cover page
@@ -192,7 +193,9 @@ When rendering `pdf` with theme `default`:
 Fixed labels (table of contents heading, chapter tags, cover labels, page footer,
 callout titles) live in `i18n.yaml` files rather than in the templates. The language
 comes from `document.language`; `de` and `en` ship with the package, regional forms map
-onto them (`de-AT` -> `de`), and an unknown language falls back to English.
+onto them (`de-AT` -> `de`), and an unknown language falls back to English. Leave the key
+out and the system language applies -- `markpublish init` writes it down, so a document
+builds the same on every machine.
 
 *i18n* is the source data across all languages; *labels* is what it resolves to for one
 document in one language, i.e. what a template sees as `{{ labels.chapter }}`.

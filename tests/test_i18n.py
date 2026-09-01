@@ -12,6 +12,8 @@ from markpublish.i18n import (
     FALLBACK_LANGUAGE,
     LABELS,
     available_languages,
+    default_document_language,
+    detect_system_language,
     get_labels,
     normalize_language,
 )
@@ -209,3 +211,77 @@ def test_page_label_reaches_the_pdf_stylesheet(tmp_path: Path):
     )
     rendered = _Probe().render_template(ctx)
     assert '"Page " counter(page) " of " counter(pages)' in rendered
+
+
+# --------------------------------------------------------------------------
+# Systemsprache
+# --------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    "raw,expected",
+    [
+        ("de_DE.UTF-8", "de-DE"),
+        ("de-de", "de-DE"),
+        ("pt_BR", "pt-BR"),
+        ("en", "en"),
+        ("fr_FR@euro", "fr-FR"),
+        # Prioritaetsliste: der erste Eintrag zaehlt.
+        ("de:en:C", "de"),
+        # "Keine Sprache gewaehlt" ist keine Sprache.
+        ("C", None),
+        ("POSIX", None),
+        ("", None),
+    ],
+)
+def test_locale_strings_are_reduced_to_a_language_code(monkeypatch, raw, expected):
+    """
+    Aus dem, was ein System meldet, muss ein Sprachcode werden - Zeichensatz,
+    Modifikator und Prioritaetsliste gehoeren nicht dazu. Geschrieben wird die
+    uebliche Form 'de-DE', weil der Wert in einer markpublish.yaml landen kann.
+    """
+    for var in ("LANGUAGE", "LC_ALL", "LC_MESSAGES", "LANG"):
+        monkeypatch.delenv(var, raising=False)
+    if raw:
+        monkeypatch.setenv("LANGUAGE", raw)
+
+    detected = detect_system_language()
+    if expected is None:
+        # Ohne brauchbare Variable darf die Erkennung das System befragen; nur
+        # der leere/neutrale Wert selbst darf nicht durchschlagen.
+        assert detected != raw
+    else:
+        assert detected == expected
+
+
+def test_detected_language_resolves_to_a_label_set(monkeypatch):
+    """Regionale Formen muessen bei den Beschriftungen ankommen."""
+    monkeypatch.setenv("LANGUAGE", "de_AT.UTF-8")
+
+    assert detect_system_language() == "de-AT"
+    assert normalize_language(detect_system_language()) == "de"
+
+
+def test_document_language_falls_back_when_nothing_is_detected(monkeypatch):
+    """
+    Ohne erkennbare Systemsprache bleibt die Fallback-Sprache - raten waere
+    hier schlimmer als der bekannte Standard.
+    """
+    monkeypatch.setattr("markpublish.i18n.detect_system_language", lambda: None)
+
+    assert default_document_language() == FALLBACK_LANGUAGE
+
+
+def test_document_without_language_takes_the_system_language(tmp_path, monkeypatch):
+    """
+    Wer nichts hinschreibt, schreibt fast immer in der Sprache seines Rechners.
+    Ein fest verdrahteter Code waere fuer die Haelfte aller Nutzer falsch.
+    """
+    monkeypatch.setenv("LANGUAGE", "de_DE.UTF-8")
+
+    config = load_config({"document": {"title": "Ohne Sprachangabe"}})
+
+    assert normalize_language(config.document.language) == "de"
+    # Das Datum folgt derselben Sprache - sonst stuende ein ISO-Datum unter
+    # einem deutschen Dokument.
+    assert re.fullmatch(r"\d{2}\.\d{2}\.\d{4}", config.document.date)

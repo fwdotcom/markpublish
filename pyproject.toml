@@ -64,8 +64,7 @@ where = ["src"]
 [tool.setuptools.package-data]
 "markpublish" = [
     "templates/**/*",
-    "cheatsheet/**/*",
-    "manual/**/*",
+    "docs/**/*",
     "data/*.conf",
     "i18n.yaml",
 ]

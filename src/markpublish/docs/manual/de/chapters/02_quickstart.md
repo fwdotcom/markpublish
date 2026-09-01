@@ -43,18 +43,14 @@ mein-leitfaden/
 └── next-steps.md             # Ein Kapitel, zum Ersetzen gedacht
 ```
 
-Mehr Beispielinhalt gibt es nicht, denn alles, was `init` schreibt, löschen Sie
-beim ersten echten Kapitel wieder. Die Referenz liegt deshalb nicht im Stumpf,
-sondern in `markpublish cheatsheet` — dort bleibt sie auch dann verfügbar, wenn
-die letzte Stumpfdatei verschwunden ist.
-
 ## Nachschlagen
 
 ```bash
-markpublish cheatsheet         # zweiseitige Kurzreferenz
-markpublish manual             # dieses Handbuch
-markpublish manual --lang de   # Handbuch auf Deutsch
-markpublish manual --lang en   # Handbuch auf Englisch
+# zweiseitige Kurzreferenz
+markpublish cheatsheet [--lang de|en]
+
+# dieses Handbuch
+markpublish manual [--lang de|en]
 ```
 
 Beide werden aus Quellen gerendert, die im Paket mitgeliefert werden — sie
@@ -62,18 +58,19 @@ passen also immer zur installierten Version. Ein erfolgreicher Lauf ist zugleich
 der Nachweis, dass die Rendering-Kette funktioniert; unter Windows also, dass
 WeasyPrint seine GTK-Laufzeit findet.
 
-Der Parameter `--lang` waehlt die Sprachquelle des Handbuchs, nicht nur die
-Beschriftungen der Oberflaeche.
+Ohne `--lang` entscheidet die Sprache Ihres Systems; gibt es dafür keine
+Übersetzung, erscheint die englische. Der Parameter wählt die **Quelle** des
+Handbuchs, nicht bloß die Beschriftungen der Oberfläche.
 
 ## Dokument erstellen
 
 Rendern Sie Ihr Dokument mit dem `build`-Befehl:
 
 ```bash
-# PDF erstellen (Standard)
+# PDF aus dem aktuellen Projektverzeichnis erstellen
 markpublish build
 
-# HTML-Vorschau erzeugen
+# HTML-Ausgabe erzeugen
 markpublish build --target html
 
 # Sowohl PDF als auch HTML in einem Durchgang bauen

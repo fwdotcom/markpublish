@@ -7,18 +7,18 @@ from __future__ import annotations
 import copy
 import datetime
 from pathlib import Path
-from typing import Any, Dict, Union
+from typing import Any, Dict, Optional, Union
 
 import yaml
 
 from markpublish.config.models import MarkpublishConfig
-from markpublish.i18n import normalize_language
+from markpublish.i18n import default_document_language, normalize_language
 
 
-def format_current_date(language: str = "de") -> str:
+def format_current_date(language: Optional[str] = None) -> str:
     """Formats current date according to language conventions."""
     now = datetime.date.today()
-    if normalize_language(language) == "de":
+    if normalize_language(language or default_document_language()) == "de":
         return now.strftime("%d.%m.%Y")
     return now.strftime("%Y-%m-%d")
 
@@ -59,8 +59,10 @@ def load_config(config_path_or_str: Union[str, Path, Dict[str, Any]]) -> Markpub
     if isinstance(doc, dict):
         date_val = str(doc.get("date", "")).strip().lower()
         if date_val in ("auto", "today", "now", ""):
-            lang = str(doc.get("language", "de"))
-            doc["date"] = format_current_date(lang)
+            # Kein zweiter Default: format_current_date() greift selbst auf
+            # die Systemsprache zurueck, wenn hier nichts steht. Zwei Stellen
+            # mit eigenem Standard laufen frueher oder spaeter auseinander.
+            doc["date"] = format_current_date(doc.get("language"))
 
     return MarkpublishConfig(**raw_data)
 

@@ -15,7 +15,7 @@ document:
   organisation: "WASDCAT Games"
   date: "auto"                 # "auto" (Tagesdatum) oder festes Datum "2026-08-31"
   version: "1.0.0"             # optional - ohne Angabe entfällt das Feld
-  language: "de"               # Sprachcode für Beschriftungen und Datumsformat
+  language: "de"               # Beschriftungen und Datumsformat; ohne Angabe die Systemsprache
 
   # Globale Schalter
   cover: true                  # Deckblatt an/aus

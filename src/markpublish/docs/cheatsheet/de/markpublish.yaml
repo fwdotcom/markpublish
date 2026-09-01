@@ -1,0 +1,28 @@
+# Quelle der zweiseitigen Kurzreferenz, die "markpublish cheatsheet" rendert.
+#
+# Sie liegt im Paket und wird bei jedem Aufruf neu gerendert, passt also immer
+# zur installierten Version. Zwei Seiten sind Bedingung, nicht Zufall.
+#
+# Inhaltlich deckungsgleich mit ../en: gleiche Kapitel, gleiche Reihenfolge,
+# gleiche Tabellen. Nur die Sprache unterscheidet sich.
+document:
+  title: "markpublish Kurzreferenz"
+  subtitle: "Konfiguration und Templates auf zwei Seiten"
+  author: null
+  date: "auto"
+  language: "de"
+
+  cover: false
+  document_toc: "none"
+  autonum_type: "none"
+  header: true
+  footer: true
+
+theme: "default"
+
+chapters:
+  - file: "01_config.md"
+    title: "markpublish.yaml"
+
+  - file: "02_templates.md"
+    title: "Templates und Themes"

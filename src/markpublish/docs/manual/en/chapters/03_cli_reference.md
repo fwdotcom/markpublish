@@ -46,12 +46,14 @@ Both sources ship inside the package and are rendered on every call. The result 
 
 | Option | Default | Notes |
 | :--- | :--- | :--- |
-| `--lang`, `-l` | `en` | Which translation to render. `markpublish manual --lang de` |
+| `--lang`, `-l` | system language | Which translation to render. `markpublish manual --lang de` |
 | `--target`, `-t` | `pdf` | `pdf`, `html` or `all` |
 | `--output`, `-o` | current directory | File or directory |
 | `--theme` | built-in | Render with a theme of your own |
 
-`--lang` selects the **source**, not just the labels — each translation carries its own `language:` and therefore pulls in the matching static texts by itself. Ask for a language that is not shipped and markpublish says so and falls back, rather than silently mixing an English frame around German prose.
+`--lang` selects the **source**, not just the labels — each translation carries its own `language:` and therefore pulls in the matching static texts by itself.
+
+Given no language, your system decides. These two documents address the person at the keyboard rather than an audience, so their language is the best guess available. Where no translation exists, the English one appears without comment — nothing was asked for. An explicit `--lang fr`, by contrast, is reported, rather than silently wrapping an English frame around a French expectation.
 
 Without `--theme` or `--templates-dir`, both commands deliberately ignore user and project themes and render with the built-in one. Otherwise a `templates/` folder in your working directory — created with `export-template` and still half-finished — would drag the reference down with it: one missing label would abort the build at exactly the moment somebody wants to look up how labels work.
 

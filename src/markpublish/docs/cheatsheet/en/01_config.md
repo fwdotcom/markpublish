@@ -2,13 +2,17 @@
 /* Eine Referenzkarte ist absichtlich dichter gesetzt als Fliesstext: nur so
    bleiben beide Seiten vollstaendig. Der Block gilt nur fuer dieses Dokument -
    auf eigene Builds hat er keine Wirkung. Farben, Schrift und Rahmen kommen
-   weiterhin aus dem Theme, hier wird ausschliesslich die Dichte geregelt. */
-.chapter-body table { margin: 0.5em 0; font-size: 8.5pt; }
-.chapter-body th, .chapter-body td { padding: 1.1mm 2.5mm; }
+   weiterhin aus dem Theme, hier wird ausschliesslich die Dichte geregelt.
+
+   Beide Uebersetzungen tragen denselben Block, bemessen an der laengeren:
+   deutscher Satz braucht fuer dieselbe Aussage rund ein Sechstel mehr Platz.
+   Wer hier lockerer setzt, verliert die zweite Seite - in einer Sprache. */
+.chapter-body table { margin: 0.4em 0; font-size: 8.5pt; }
+.chapter-body th, .chapter-body td { padding: 0.9mm 2.2mm; }
 .chapter-body h1 { margin-top: 0; margin-bottom: 0.3em; }
-.chapter-body h2 { margin-top: 0.9em; margin-bottom: 0.2em; }
-.chapter-body p { margin: 0.45em 0; }
-.chapter-body pre { margin: 0.5em 0; }
+.chapter-body h2 { margin-top: 0.75em; margin-bottom: 0.15em; }
+.chapter-body p { margin: 0.35em 0; }
+.chapter-body pre { margin: 0.4em 0; }
 </style>
 
 # markpublish.yaml
@@ -25,7 +29,7 @@ Metadata and the global layout switches. Only `title` is required.
 | `title` / `subtitle` | *title required* | Cover, running header, output filename |
 | `author` | – | Cover |
 | `date` / `version` | `auto` / – | `auto` or `today` for the build date |
-| `language` | `de` | Picks the label set; falls back to `en` |
+| `language` | system language | Picks the label set, else `en` |
 | `cover` / `header` / `footer` | `true` | Cover page, running header and footer |
 | `document_toc` | `full` | Large TOC: `none`, `full` or a depth |
 | `chapter_toc` | `none` | Small divider-page TOCs: same three forms |

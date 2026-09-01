@@ -1,4 +1,7 @@
-# markpublish.yaml für das offizielle Benutzerhandbuch
+# markpublish.yaml für das offizielle Benutzerhandbuch.
+#
+# Deckungsgleich mit ../en/markpublish.yaml: gleiche Kapitel, gleiche
+# Reihenfolge, gleiche Schalter. Nur Titel und Fließtext unterscheiden sich.
 
 document:
   title: "markpublish Benutzerhandbuch"
@@ -12,7 +15,6 @@ document:
   language: "de"
 
   cover: true
-  document_toc: "full"
   document_toc: 2
   chapter_toc: 2
   autonum_type: "decimal"

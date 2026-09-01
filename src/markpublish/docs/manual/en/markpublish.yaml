@@ -1,7 +1,7 @@
-# markpublish.yaml for the official user guide (English edition).
+# markpublish.yaml for the official user guide.
 #
 # Kept in step with ../de/markpublish.yaml: same chapters, same order, same
-# switches. Only the prose and the titles differ.
+# switches. Only the titles and the prose differ.
 
 document:
   title: "markpublish User Guide"
@@ -14,47 +14,32 @@ document:
   version: "1.0.0"
   language: "en"
 
-  # Static texts (table-of-contents heading, "Chapter", "Part", cover labels,
-  # callout titles) are defined in the theme, not here. The cascade has three
-  # levels, each one overriding the one above it:
-  #
-  #   1. Program      markpublish/i18n.yaml
-  #   2. Theme        <templates>/<theme>/i18n.yaml
-  #   3. Target       <templates>/<theme>/<pdf|html>/i18n.yaml
-  #
-  # Create your own theme with  markpublish export-template
-  # See what actually applies:  markpublish labels --overridden
-
-  # Global layout switches
   cover: true
-  document_toc: "full"
-  autonum_type: "decimal"
+  document_toc: 2
   chapter_toc: 2
+  autonum_type: "decimal"
+
   header: true
   footer: true
 
 theme: "default"
 
 chapters:
-  # Part 1: Foundations
   - file: "chapters/01_introduction.md"
     title: "Introduction & Architecture"
     summary: "Goals, core concepts and the modular processing pipeline."
     break_before: "divider"
     chapter_toc: "none"
-    document_toc: 2
 
   - file: "chapters/02_quickstart.md"
     title: "Installation & Quickstart"
     summary: "Step-by-step installation and your first document."
     break_before: "divider"
 
-  # Part 2: Practice & configuration
   - file: "chapters/03_cli_reference.md"
     title: "The CLI Commands"
     summary: "Every command in detail: build, init, cheatsheet, manual, templates, export-template and labels."
     break_before: "divider"
-    document_toc: 2
 
   - file: "chapters/04_configuration_guide.md"
     title: "Configuration Guide"
@@ -72,9 +57,6 @@ chapters:
     break_before: "divider"
     chapter_toc: "none"
 
-  # ============================================================
-  # APPENDICES
-  # ============================================================
   - part: "Appendices"
     summary: "Complete specification tables, troubleshooting and best practices."
     break_before: "divider"

@@ -14,7 +14,7 @@ A complete overview of every configuration option in `markpublish.yaml`.
 | `copyright` | String | `null` | Copyright notice (e.g. "© 2026 Frank Winter") |
 | `date` | String | `"auto"` | A date, or `"auto"` for today |
 | `version` | String | `null` | Version identifier. Without it the field disappears from the cover page; when set, it appears in the footer to the left of the date |
-| `language` | String | `"de"` | ISO language code (`de`, `en`, …). Governs template labels, callout titles and date format |
+| `language` | String | system language | ISO language code (`de`, `en`, …). Governs template labels, callout titles and date format |
 | `cover` | Bool | `true` | Enable the cover page |
 | `document_toc` | String/Int | `full` | The large TOC: `none`, `full` or a depth. Default for the chapters |
 | `autonum_type` | String | `"decimal"` | `"decimal"`, `"roman"`, `"legal"`, `"none"`. Root for `chapters.autonum` |

@@ -59,7 +59,9 @@ document:
 ```
 
 Mitgeliefert sind `de` und `en`. Regionale Formen werden zugeordnet (`de-AT` → `de`),
-eine unbekannte Sprache fällt auf Englisch zurück.
+eine unbekannte Sprache fällt auf Englisch zurück. Fehlt `language:` ganz, gilt die
+Systemsprache — `markpublish init` schreibt sie gleich hin, damit ein Dokument auf
+jedem Rechner gleich gebaut wird.
 
 > [!NOTE]
 > **i18n** bezeichnet die Quellen — die Dateien und den YAML-Eintrag, jeweils über alle

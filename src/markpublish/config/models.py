@@ -9,6 +9,8 @@ from typing import Any, List, Optional, Union
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
+from markpublish.i18n import default_document_language
+
 
 class AutonumType(str, Enum):
     DECIMAL = "decimal"    # 1, 1.1, 1.1.1
@@ -128,7 +130,15 @@ class DocumentConfig(BaseModel):
     # mehr abschalten - jedes Template saehe eine gesetzte Version und druckte
     # sie. Wer eine Version will, schreibt sie hin.
     version: Optional[str] = Field(default=None, description="Version string, e.g. '1.0.0'")
-    language: str = Field(default="de", description="ISO language code, e.g. 'de' or 'en'")
+    # Ohne Angabe die Systemsprache: wer nichts hinschreibt, schreibt fast
+    # immer in der Sprache, in der sein Rechner mit ihm redet. Ein fest
+    # verdrahteter Code waere fuer die Haelfte aller Nutzer schlicht falsch.
+    # Wer ein Dokument auf jedem Rechner gleich gebaut haben will, notiert die
+    # Sprache - `markpublish init` tut das von sich aus.
+    language: str = Field(
+        default_factory=default_document_language,
+        description="ISO language code, e.g. 'de' or 'en'; defaults to the system language",
+    )
 
     # Global Layout Switches
     cover: bool = Field(default=True, description="Enable cover page")

@@ -15,7 +15,7 @@ document:
   organisation: "WASDCAT Games"
   date: "auto"                 # "auto" (today) or a fixed date "2026-08-31"
   version: "1.0.0"             # optional - omit it and the field disappears
-  language: "en"               # language code for labels and date format
+  language: "en"               # labels and date format; defaults to the system language
 
   # Global switches
   cover: true                  # Cover page on/off

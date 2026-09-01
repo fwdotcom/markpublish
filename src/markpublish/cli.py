@@ -31,7 +31,9 @@ from markpublish.i18n import (
     I18N_FILENAME,
     LabelFileError,
     UndefinedLabelError,
+    default_document_language,
     describe_labels,
+    detect_system_language,
 )
 from markpublish.markdown.engine import MarkdownPipeline
 from markpublish.markdown.toc import slugify
@@ -68,14 +70,20 @@ def main(
     pass
 
 
-#: Sprache, in der die mitgelieferten Dokumente erscheinen, wenn nichts anderes
-#: verlangt wird. Englisch, weil CLI-Hilfe und README es ebenfalls sind.
+#: Sprache, in der die mitgelieferten Dokumente erscheinen, wenn weder --lang
+#: noch die Systemsprache zu einer Uebersetzung fuehrt. Englisch, weil CLI-Hilfe
+#: und README es ebenfalls sind.
 DEFAULT_DOC_LANGUAGE = "en"
+
+#: Wurzel der mitgelieferten Dokumente. Handbuch und Kurzreferenz liegen darin
+#: nebeneinander, je Sprache ein Unterordner - dieselbe Form fuer beide, damit
+#: eine dritte Uebersetzung nur ein Verzeichnis kostet.
+BUNDLED_DOCS_DIRNAME = "docs"
 
 
 def get_bundled_doc_dir(name: str) -> Path:
     """Returns the directory of a document shipped with the package."""
-    return Path(__file__).resolve().parent / name
+    return Path(__file__).resolve().parent / BUNDLED_DOCS_DIRNAME / name
 
 
 def _available_doc_languages(name: str) -> List[str]:
@@ -86,14 +94,38 @@ def _available_doc_languages(name: str) -> List[str]:
     return sorted(d.name for d in base.iterdir() if (d / "markpublish.yaml").is_file())
 
 
+def _match_doc_language(available: List[str], requested: Optional[str]) -> Optional[str]:
+    """
+    Picks the shipped translation that fits `requested`, or None.
+
+    Erst der volle Code, dann die Basissprache: eine Systemsprache meldet sich
+    als "de-DE" oder "pt-BR", mitgeliefert wird "de". Ohne diesen zweiten
+    Versuch fiele jeder Rechner mit regionaler Einstellung auf Englisch zurueck.
+    """
+    if not requested:
+        return None
+    code = requested.strip().lower().replace("_", "-")
+    for candidate in (code, code.split("-", 1)[0]):
+        if candidate in available:
+            return candidate
+    return None
+
+
 def _resolve_bundled_doc(name: str, lang: Optional[str]) -> Path:
     """
     Resolves the requested translation of a packaged document to its manifest.
 
-    Eine nicht vorhandene Sprache faellt auf die Standardsprache zurueck und
-    sagt es. Still auf Englisch auszuweichen waere hier besonders unangenehm:
-    wer `--lang fr` tippt, bekaeme ein Dokument, das aussieht als waere es
-    uebersetzt worden, und merkte es womoeglich nicht.
+    Ohne --lang entscheidet die Systemsprache: die mitgelieferten Dokumente
+    richten sich an die Person vor dem Rechner, nicht an ein Publikum, und
+    deren Sprache ist die beste verfuegbare Vermutung.
+
+    Der Unterschied zwischen den beiden Wegen liegt im Hinweis. Eine
+    ausdruecklich verlangte Sprache, die es nicht gibt, wird gemeldet -- still
+    auf Englisch auszuweichen waere hier besonders unangenehm: wer `--lang fr`
+    tippt, bekaeme ein Dokument, das aussieht als waere es uebersetzt worden,
+    und merkte es womoeglich nicht. Greift dagegen nur die Erkennung daneben,
+    bleibt es still: verlangt wurde nichts, und ein Hinweis bei jedem Aufruf
+    waere Laerm.
     """
     available = _available_doc_languages(name)
     if not available:
@@ -104,17 +136,18 @@ def _resolve_bundled_doc(name: str, lang: Optional[str]) -> Path:
         )
         raise typer.Exit(code=1)
 
-    requested = (lang or DEFAULT_DOC_LANGUAGE).lower().strip()
-    if requested in available:
-        return get_bundled_doc_dir(name) / requested / "markpublish.yaml"
+    chosen = _match_doc_language(available, lang or detect_system_language())
 
-    fallback = DEFAULT_DOC_LANGUAGE if DEFAULT_DOC_LANGUAGE in available else available[0]
-    console.print(
-        f"[yellow]Note:[/yellow] '{name}' is not available in [cyan]{requested}[/cyan]. "
-        f"Rendering [cyan]{fallback}[/cyan] instead "
-        f"(available: {', '.join(available)})."
-    )
-    return get_bundled_doc_dir(name) / fallback / "markpublish.yaml"
+    if chosen is None:
+        chosen = DEFAULT_DOC_LANGUAGE if DEFAULT_DOC_LANGUAGE in available else available[0]
+        if lang:
+            console.print(
+                f"[yellow]Note:[/yellow] '{name}' is not available in "
+                f"[cyan]{lang.strip().lower()}[/cyan]. Rendering [cyan]{chosen}[/cyan] "
+                f"instead (available: {', '.join(available)})."
+            )
+
+    return get_bundled_doc_dir(name) / chosen / "markpublish.yaml"
 
 
 def _render_bundled_doc(
@@ -317,7 +350,11 @@ def build_cmd(
         Panel(
             f"[bold]{config.document.title}[/bold]\n"
             f"Author: {config.document.author or 'N/A'} | Version: {config.document.version or 'N/A'} | Date: {config.document.date}\n"
-            f"Theme: [cyan]{config.theme}[/cyan] | Targets: [yellow]{target.upper()}[/yellow]",
+            # Die Sprache steht mit in der Kopfzeile, weil sie ohne Angabe in
+            # der YAML vom System kommt - was gilt, soll man sehen, ohne es
+            # ausrechnen zu muessen.
+            f"Theme: [cyan]{config.theme}[/cyan] | Language: [cyan]{config.document.language}[/cyan]"
+            f" | Targets: [yellow]{target.upper()}[/yellow]",
             title="[bold blue]markpublish build[/bold blue]",
             border_style="blue",
         )
@@ -359,6 +396,9 @@ def init_cmd(
     target_dir = target_dir.resolve()
     target_dir.mkdir(parents=True, exist_ok=True)
 
+    # Die erkannte Sprache wird hingeschrieben, nicht erst beim Bauen
+    # ermittelt: sonst saehe dasselbe Projekt auf einem englischen Rechner
+    # anders aus als auf dem, auf dem es entstanden ist.
     yaml_content = f"""# markpublish.yaml
 #
 # Minimal starting point. For the full reference -- every key of this file, and
@@ -370,7 +410,7 @@ document:
   title: "{title}"
   author: "Your Name"
   date: "auto"
-  language: "en"
+  language: "{default_document_language()}"
 
   # A one-page draft needs neither of these. Switch them on once the document
   # has grown enough to need a way in.
@@ -446,7 +486,7 @@ def cheatsheet_cmd(
         None,
         "--lang",
         "-l",
-        help="Language of the bundled source to render (default: en).",
+        help="Language of the bundled source to render (default: your system language, else en).",
     ),
     target: str = typer.Option(
         "pdf",
@@ -488,7 +528,7 @@ def manual_cmd(
         None,
         "--lang",
         "-l",
-        help="Language of the bundled source to render (default: en).",
+        help="Language of the bundled source to render (default: your system language, else en).",
     ),
     target: str = typer.Option(
         "pdf",

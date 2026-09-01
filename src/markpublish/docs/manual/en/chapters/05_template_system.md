@@ -56,7 +56,7 @@ document:
   language: "en"      # governs labels, callout titles and date format
 ```
 
-`de` and `en` ship with markpublish. Regional forms are mapped (`de-AT` to `de`), and an unknown language falls back to English.
+`de` and `en` ship with markpublish. Regional forms are mapped (`de-AT` to `de`), and an unknown language falls back to English. Leave `language:` out altogether and the system language applies — `markpublish init` writes it down straight away, so that a document builds the same on every machine.
 
 > [!NOTE]
 > **i18n** refers to the sources — the files and the YAML entry, across all
