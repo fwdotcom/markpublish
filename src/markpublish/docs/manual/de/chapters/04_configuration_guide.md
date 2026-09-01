@@ -1,6 +1,6 @@
 # Konfigurations-Leitfaden
 
-Die Datei `markpublish.yaml` ist das zentrale Steuerungsdokument jeder Publikation. Sie gliedert sich in drei Teile: `document` für Metadaten und globale Schalter, `theme` für die Auswahl des Designs und `chapters` für den Aufbau des Dokuments.
+Die Datei `markpublish.yaml` ist das zentrale Steuerungsdokument jeder Publikation.
 
 ## Das `document`-Objekt
 
@@ -52,24 +52,9 @@ chapters:
 
 Alle Pfade sind relativ zur `markpublish.yaml`, nicht zum Arbeitsverzeichnis der Shell.
 
-## Hierarchische Unterkapitel
-
-Um ein Unterkapitel zu definieren, rücken Sie einfach weitere Kapitel unter `chapters:` ein:
-
-```yaml
-chapters:
-  - file: "chapters/02_architecture.md"
-    title: "Systemarchitektur"
-    break_before: "divider"
-    chapter_toc: 2             # Mini-TOC bis Überschriftstiefe 2
-    chapters:
-      - file: "chapters/02_1_backend.md"
-        title: "Backend Services"
-      - file: "chapters/02_2_frontend.md"
-        title: "Frontend Client"
 ## Dokumentaufbau in 2 Stufen: Parts und Kapitel
 
-`markpublish` trennt Dokumenten-Organisation (YAML) strikt von der Textstruktur (Markdown):
+`markpublish` organisiert Dokumente in einer klaren 2-stufigen Struktur:
 
 1. **Stufe 1 — Parts (`parts:`):** Gliedert das Dokument in logische Hauptabschnitte (z. B. Hauptteil, Anhänge, Bände). Jeder Part besitzt einen Namen (`title:` oder `part:`).
 2. **Stufe 2 — Kapitel (`chapters:`):** Die eigentlichen Inhaltsdateien (*.md) unter dem jeweiligen Part.

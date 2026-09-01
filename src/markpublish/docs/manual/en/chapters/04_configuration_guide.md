@@ -52,26 +52,9 @@ chapters:
 
 All paths are relative to `markpublish.yaml`, not to the shell's working directory.
 
-## Hierarchical sub-chapters
-
-To define a sub-chapter, simply indent further chapters under `chapters:`:
-
-```yaml
-chapters:
-  - file: "chapters/02_architecture.md"
-    title: "System Architecture"
-    break_before: "divider"
-    chapter_toc: 2             # Mini TOC down to heading depth 2
-    chapters:
-      - file: "chapters/02_1_backend.md"
-        title: "Backend Services"
-      - file: "chapters/02_2_frontend.md"
-        title: "Frontend Client"
-```
-
 ## Document Structure in 2 Tiers: Parts and Chapters
 
-`markpublish` strictly separates document organisation (YAML) from content structure (Markdown):
+`markpublish` organises documents in a clean 2-tier structure:
 
 1. **Tier 1 — Parts (`parts:`):** Organises the document into major logical sections (e.g. Main Body, Appendices, Volumes). Every part must have a name (`title:` or `part:`).
 2. **Tier 2 — Chapters (`chapters:`):** The actual content files (*.md) belonging to each part.

@@ -47,10 +47,10 @@ mein-leitfaden/
 
 ```bash
 # zweiseitige Kurzreferenz
-markpublish cheatsheet [--lang de|en]
+markpublish cheatsheet [--lang CODE] [--target pdf|html|all] [--output PFAD] [--theme NAME]
 
 # dieses Handbuch
-markpublish manual [--lang de|en]
+markpublish manual [--lang CODE] [--target pdf|html|all] [--output PFAD] [--theme NAME]
 ```
 
 Beide werden aus Quellen gerendert, die im Paket mitgeliefert werden — sie

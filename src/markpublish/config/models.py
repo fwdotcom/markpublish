@@ -179,6 +179,10 @@ class DocumentConfig(BaseModel):
         default=False,
         description="Whether each chapter starts numbering fresh",
     )
+    pagenum_reset: bool = Field(
+        default=False,
+        description="Whether page numbering resets per part or chapter",
+    )
     header: bool = Field(default=True, description="Enable running header")
     footer: bool = Field(default=True, description="Enable running footer")
 
@@ -277,6 +281,7 @@ class ChapterItem(BaseModel):
     autonum_from_level: Optional[int] = Field(default=None, ge=1, description="Start heading level for autonumbering; inherited downwards")
     autonum_prefix: Optional[str] = Field(default=None, description="Optional prefix for generated numbers; inherited downwards")
     autonum_reset: Optional[bool] = Field(default=None, description="Whether to reset counter at chapter start; inherited downwards")
+    pagenum_reset: Optional[bool] = Field(default=None, description="Reset page numbers at chapter start")
 
     model_config = {
         "extra": "allow"
@@ -356,6 +361,7 @@ class PartItem(BaseModel):
     autonum_from_level: Optional[int] = Field(default=None, ge=1, description="Start heading level for autonumbering; inherited downwards")
     autonum_prefix: Optional[str] = Field(default=None, description="Optional prefix for generated numbers; inherited downwards")
     autonum_reset: Optional[bool] = Field(default=None, description="Whether to reset counter; inherited downwards")
+    pagenum_reset: Optional[bool] = Field(default=None, description="Reset page numbers at the start of this part; inherited downwards")
     chapters: List[ChapterItem] = Field(default_factory=list, description="List of chapters in this part")
 
     model_config = {

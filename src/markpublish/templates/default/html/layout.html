@@ -86,9 +86,6 @@
 
         {% for item in content_items %}
           {% if item.is_part %}
-            {# Das id bleibt: die Seitenleiste verlinkt mit #part-<slug> hierher.
-               Die Trennseite selbst entfaellt wie beim Kapitel - part_divider.html
-               liegt weiterhin im Theme. #}
             <section class="part-section" id="part-{{ item.slug }}">
               {% for child in item.children %}
                 {{ render_chapter(child) }}
