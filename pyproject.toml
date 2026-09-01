@@ -9,7 +9,7 @@ description = "Modern, modular, and extensible Markdown-to-PDF/HTML publishing t
 readme = "README.md"
 license = { text = "MIT" }
 authors = [
-    { name = "markpublish contributors" }
+    { name = "Frank Winter", email = "studio@frankwinter.com" }
 ]
 keywords = ["markdown", "pdf", "html", "weasyprint", "publishing", "converter", "cli"]
 classifiers = [

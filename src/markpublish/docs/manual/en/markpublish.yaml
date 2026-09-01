@@ -58,8 +58,6 @@ chapters:
     chapter_toc: "none"
 
   - part: "Appendices"
-    summary: "Complete specification tables, troubleshooting and best practices."
-    break_before: "divider"
     autonum: "none"
     document_toc: 1
     chapters:

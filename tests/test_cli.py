@@ -289,3 +289,10 @@ def test_cli_export_template_keeps_an_edited_i18n(tmp_path: Path):
     assert runner.invoke(app, ["export-template", "default", str(dest)]).exit_code == 0
     assert edited.read_text(encoding="utf-8") == 'de:\n  part: "Abschnitt"\n'
 
+
+def test_cli_export_template_rejects_unknown_target(tmp_path: Path):
+    dest = tmp_path / "exported_templates"
+    res = runner.invoke(app, ["export-template", "default", str(dest), "--target", "invalid_target"])
+    assert res.exit_code == 1
+    assert "Unknown target 'invalid_target'" in res.stdout
+

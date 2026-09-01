@@ -96,7 +96,7 @@ document:
   chapter_toc: 2        # kleine Verzeichnisse ebenso
 ```
 
-`toc: "none"` lässt das große Verzeichnis ganz weg; die Angaben an den Kapiteln
+`document_toc: "none"` lässt das große Verzeichnis ganz weg; die Angaben an den Kapiteln
 sind dann gegenstandslos.
 
 ### Vererbung

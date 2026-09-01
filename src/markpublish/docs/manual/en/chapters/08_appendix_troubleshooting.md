@@ -29,7 +29,7 @@ Always give image paths relative to the Markdown file that references them:
 ![Architecture diagram](images/architecture.png)
 ```
 
-`markpublish` resolves relative paths to absolute file URIs automatically.
+`markpublish` inlines relative images automatically as portable data URIs (and falls back to absolute file URIs for files larger than 12 MB).
 
 ## The table of contents shows wrong page numbers
 

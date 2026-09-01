@@ -81,7 +81,7 @@ document:
   chapter_toc: 2        # small ones likewise
 ```
 
-`toc: "none"` leaves the large table out entirely; the per-chapter settings are then moot.
+`document_toc: "none"` leaves the large table out entirely; the per-chapter settings are then moot.
 
 ### Inheritance
 

@@ -608,7 +608,7 @@ def export_template_cmd(
     Exports a built-in template to project directory for customization.
     """
     pkg_base = get_package_templates_dir()
-    targets = ["pdf", "html"] if target.lower() in ("all", "both") else [target.lower()]
+    targets = _parse_targets(target)
 
     exported_any = False
     for tgt in targets:

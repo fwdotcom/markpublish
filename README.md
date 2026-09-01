@@ -259,8 +259,11 @@ markpublish export-template default
 | :--- | :--- |
 | `markpublish build [config.yaml]` | Builds PDF/HTML outputs (`-t pdf`, `-t html`, `-t all`) |
 | `markpublish init [path]` | Scaffolds a new project with chapters and configuration |
+| `markpublish cheatsheet` | Renders the two-page reference card (`--lang`, `--target`) |
+| `markpublish manual` | Renders the full user guide (`--lang`, `--target`) |
 | `markpublish templates` | Lists available templates across User, Common, and Package sources |
 | `markpublish export-template [theme]` | Copies a built-in template to project directory |
+| `markpublish labels` | Shows the resolved static texts and their cascade origin |
 
 ---
 

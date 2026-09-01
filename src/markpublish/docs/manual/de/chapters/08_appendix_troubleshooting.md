@@ -29,7 +29,7 @@ Geben Sie relative Bildpfade immer relativ zu der Markdown-Datei an, die sie ein
 ![Architekturdiagramm](images/architecture.png)
 ```
 
-`markpublish` löst relative Pfade automatisch zu absoluten Datei-URIs auf.
+`markpublish` bettet relative Grafiken automatisch als portable Data-URIs ein (und nutzt für Dateien über 12 MB absolute Datei-URIs).
 
 ## Inhaltsverzeichnis zeigt falsche Seitenzahlen
 
