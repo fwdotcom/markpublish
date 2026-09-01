@@ -58,6 +58,8 @@ chapters:
     chapter_toc: "none"
 
   - part: "Anhänge"
+    summary: "Vollständige Spezifikations-Tabellen, Troubleshooting und Best Practices."
+    break_before: "divider"
     autonum: "none"
     document_toc: 1
     chapters:

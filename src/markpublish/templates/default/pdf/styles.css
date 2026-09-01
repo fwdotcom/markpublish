@@ -332,33 +332,31 @@ strong, b {
 }
 
 /* --- Divider Pages --- */
-.part-divider {
-  border-bottom: 2pt solid #2563eb;
-  padding-bottom: 8mm;
-  margin-bottom: 10mm;
+.part-divider-container {
+  padding-top: 45mm;
 }
 
-.part-tag {
-  font-size: 10pt;
-  font-weight: 700;
-  color: #2563eb;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  margin-bottom: 3mm;
+.part-divider {
+  border-left: 6mm solid #2563eb;
+  padding-left: 8mm;
+  padding-bottom: 6mm;
+  margin-bottom: 12mm;
 }
 
 .part-title {
   font-size: 24pt;
   font-weight: 800;
   color: #0f172a;
+  line-height: 1.2;
   margin: 0 0 5mm 0;
   border: none;
 }
 
 .part-summary {
   font-size: 11pt;
-  color: #475569;
-  line-height: 1.5;
+  color: #334155;
+  line-height: 1.55;
+  max-width: 140mm;
 }
 
 .chapter-divider {
@@ -571,7 +569,15 @@ table {
   border-collapse: collapse;
   margin: 1.2em 0;
   font-size: 9pt;
+}
+
+thead {
+  display: table-header-group;
+}
+
+tr {
   page-break-inside: avoid;
+  break-inside: avoid;
 }
 
 th, td {
