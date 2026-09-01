@@ -32,6 +32,89 @@ class BreakBefore(str, Enum):
     NONE = "none"          # Kapitel laeuft im Fliesstext weiter
 
 
+class TocScope(BaseModel):
+    """
+    Wie weit ein Kapitel in *ein* Inhaltsverzeichnis hineinreicht.
+
+    Dasselbe Wertevokabular fuer beide Verzeichnisse - `chapter_toc` fuer das
+    kleine auf der Trennseite, `document_toc` fuer das grosse vorn im Dokument:
+
+        none     gar nicht
+        full     jede Ebene
+        <Zahl>   bis zu dieser Tiefe, gezaehlt ab der Kapitelueberschrift
+
+    Die Standardwerte unterscheiden sich - `chapter_toc` ist aus, `document_toc`
+    voll - und genau das steht jetzt im Wert selbst statt in zwei Schluesseln,
+    die verschieden heissen und verschieden zaehlen.
+    """
+    enabled: bool = Field(default=True, description="Whether the chapter appears in this TOC at all")
+    max_depth: Optional[int] = Field(default=None, description="Maximum heading depth; None means unlimited")
+
+    def __bool__(self) -> bool:
+        """
+        A BaseModel is truthy by default, so `if chapter.chapter_toc:` would
+        render the local TOC even for `none`. Templates and pipeline both test
+        the object directly - make that test mean what it reads like.
+        """
+        return self.enabled and (self.max_depth is None or self.max_depth > 0)
+
+
+#: Die drei Schreibweisen, die beide TOC-Schluessel annehmen.
+TOC_SCOPE_KEYWORDS = ("none", "full")
+
+
+def parse_toc_scope(value: Any, key_path: str) -> TocScope:
+    """
+    Bringt `none`, `full` oder eine Tiefenangabe auf einen TocScope.
+
+    Unbekannte Werte brechen ab. Ein stiller Rueckfall auf den Standard waere
+    hier schlecht zu finden: ein vertipptes "fill" ergaebe klaglos ein
+    Verzeichnis, dessen Fehlen erst beim Durchblaettern auffiele.
+    """
+    if isinstance(value, TocScope):
+        return value
+
+    if isinstance(value, bool):
+        # true/false saehe man die Tiefe nicht an - genau deshalb gibt es die
+        # Schluesselwoerter. Ein Wahrheitswert ist hier also keine Abkuerzung,
+        # sondern eine Angabe, die die Haelfte der Information unterschlaegt.
+        raise ValueError(
+            f"{key_path} nimmt keine Wahrheitswerte. "
+            f"Schreiben Sie 'none', 'full' oder eine Tiefe (z. B. 2)."
+        )
+
+    if isinstance(value, str):
+        keyword = value.lower().strip()
+        if keyword == "none":
+            return TocScope(enabled=False)
+        if keyword == "full":
+            return TocScope(enabled=True, max_depth=None)
+        if keyword.isdigit():
+            value = int(keyword)
+        else:
+            allowed = ", ".join(f"'{k}'" for k in TOC_SCOPE_KEYWORDS)
+            raise ValueError(
+                f"{key_path} kennt {allowed} oder eine Tiefe als Zahl "
+                f"(war: {value!r})."
+            )
+
+    if isinstance(value, int):
+        if value < 1:
+            raise ValueError(
+                f"{key_path} braucht eine Tiefe ab 1 (war: {value}). "
+                f"Fuer 'kommt nicht vor' schreiben Sie 'none'."
+            )
+        return TocScope(enabled=True, max_depth=value)
+
+    if isinstance(value, dict):
+        return TocScope(**value)
+
+    raise ValueError(
+        f"{key_path} kennt 'none', 'full' oder eine Tiefe als Zahl "
+        f"(war: {value!r})."
+    )
+
+
 class DocumentConfig(BaseModel):
     """Document-level metadata and global layout switches."""
     title: str = Field(..., description="Document title")
@@ -49,8 +132,21 @@ class DocumentConfig(BaseModel):
 
     # Global Layout Switches
     cover: bool = Field(default=True, description="Enable cover page")
-    toc: bool = Field(default=True, description="Enable global table of contents")
+    # Das grosse Verzeichnis vorn. 'none' laesst es ganz weg, sonst gibt der
+    # Wert die Vorgabe fuer die gleichnamige Angabe an den Kapiteln.
+    document_toc: TocScope = Field(
+        default_factory=lambda: TocScope(enabled=True),
+        description="Document TOC: 'none', 'full' or a depth; root for the chapters' document_toc",
+    )
     autonum_type: AutonumType = Field(default=AutonumType.DECIMAL, description="Numbering style")
+    # Vorgabe fuer das kleine Verzeichnis auf den Kapitel-Trennseiten. Steht zu
+    # `chapters.chapter_toc` wie `autonum_type` zu `chapters.autonum`: hier die
+    # Wurzel, dort der Einzelfall. Ohne sie wiederholt ein Dokument mit zehn
+    # Kapiteln zehnmal dieselbe Zeile.
+    chapter_toc: TocScope = Field(
+        default_factory=lambda: TocScope(enabled=False),
+        description="Default for chapters' divider-page TOC: 'none', 'full' or a depth",
+    )
     header: bool = Field(default=True, description="Enable the running header; its lines are laid out in the theme")
     footer: bool = Field(default=True, description="Enable the running footer; its lines are laid out in the theme")
 
@@ -71,16 +167,28 @@ class DocumentConfig(BaseModel):
                     return item
         return AutonumType.DECIMAL
 
+    @field_validator("document_toc", mode="before")
+    @classmethod
+    def parse_document_document_toc(cls, v: Any) -> TocScope:
+        return parse_toc_scope(v, "document.document_toc")
+
+    @field_validator("chapter_toc", mode="before")
+    @classmethod
+    def parse_document_chapter_toc(cls, v: Any) -> TocScope:
+        return parse_toc_scope(v, "document.chapter_toc")
+
     @model_validator(mode="before")
     @classmethod
     def reject_document_level_labels(cls, data: Any) -> Any:
         """
-        `document.i18n` (und der alte Alias `document.labels`) gibt es nicht mehr.
+        Statische Texte gehoeren ins Theme, nicht ins Dokument.
 
-        Statische Texte werden ausschliesslich im Theme definiert. Ein stiller
-        Fehlschlag waere hier besonders teuer: `extra: allow` wuerde den Block
-        anstandslos schlucken, der Build liefe durch, und im PDF staende
-        weiterhin der alte Text - ohne jeden Hinweis worauf es ankam.
+        Beides waeren plausible Stellen, an denen jemand sie vermutet -
+        `document.i18n` genauso wie `document.labels`, weil die Templates das
+        Ergebnis unter `labels.*` sehen. Ohne diesen Riegel wuerde
+        `extra: allow` den Block anstandslos schlucken: der Build liefe durch,
+        und im PDF staende der Standardtext, ohne jeden Hinweis worauf es
+        ankam.
         """
         if not isinstance(data, dict):
             return data
@@ -88,29 +196,15 @@ class DocumentConfig(BaseModel):
         for key in ("i18n", "labels"):
             if key in data:
                 raise ValueError(
-                    f"document.{key} wird nicht mehr unterstuetzt. Statische Texte "
+                    f"document.{key} gibt es nicht. Statische Texte "
                     "gehoeren in die i18n.yaml des Themes:\n"
                     "  <templates>/<theme>/i18n.yaml          fuer alle Zielformate\n"
                     "  <templates>/<theme>/<pdf|html>/i18n.yaml  nur fuer ein Zielformat\n"
-                    "Der Aufbau ist derselbe wie bisher (Sprachcode, darunter die Texte). "
+                    "Aufbau: Sprachcode, darunter die Texte. "
                     "Ein eigenes Theme legen Sie mit 'markpublish export-template' an; "
                     "'markpublish labels' zeigt, was am Ende gilt."
                 )
         return data
-
-
-class ChapterTOCConfig(BaseModel):
-    """Configuration for per-chapter local table of contents."""
-    enabled: bool = Field(default=True, description="Enable local chapter TOC")
-    max_depth: int = Field(default=3, description="Maximum heading depth for chapter TOC")
-
-    def __bool__(self) -> bool:
-        """
-        A BaseModel is truthy by default, so `if chapter.toc:` would render the
-        local TOC even for `toc: {enabled: false}`. Templates and pipeline both
-        test the object directly - make that test mean what it reads like.
-        """
-        return self.enabled and self.max_depth > 0
 
 
 class ChapterItem(BaseModel):
@@ -130,11 +224,22 @@ class ChapterItem(BaseModel):
         default=BreakBefore.PAGE,
         description="How this chapter is set off: 'page', 'divider' or 'none'",
     )
-    toc: Union[bool, int, ChapterTOCConfig] = Field(default=False, description="Per-chapter TOC (bool, max_depth int, or config)")
-    # Begrenzt, wie tief dieser Zweig ins globale Inhaltsverzeichnis einzieht.
-    # Gezaehlt wird innerhalb des Kapitels, wie bei `toc`: 1 ist die eigene
-    # Ueberschrift, 2 die Ebene darunter. None heisst unbegrenzt.
-    toc_depth: Optional[int] = Field(default=None, description="Max heading depth this branch adds to the global TOC")
+    # Das kleine Verzeichnis auf der Trennseite dieses Kapitels. None heisst
+    # "nicht gesetzt" und faellt auf document.chapter_toc zurueck. Anders als
+    # document_toc wird der Wert nicht von Kapitel zu Unterkapitel gereicht: er
+    # beschreibt eine Trennseite, und die hat jedes Kapitel fuer sich.
+    chapter_toc: Optional[TocScope] = Field(
+        default=None,
+        description="Local TOC on the chapter divider page: 'none', 'full' or a depth",
+    )
+    # Der Beitrag zum grossen Verzeichnis vorn im Dokument. Standard: voll.
+    # None heisst "nicht gesetzt" und erbt vom Part bzw. Elternkapitel - deshalb
+    # Optional statt eines Defaults, sonst waere "geerbt" von "ausdruecklich
+    # voll" nicht zu unterscheiden.
+    document_toc: Optional[TocScope] = Field(
+        default=None,
+        description="Contribution to the document TOC: 'none', 'full' or a depth; inherited downwards",
+    )
     autonum: Optional[Union[AutonumType, str]] = Field(default=None, description="Override numbering type for this chapter")
     chapters: List[ChapterItem] = Field(default_factory=list, description="Nested child chapters")
 
@@ -142,18 +247,21 @@ class ChapterItem(BaseModel):
         "extra": "allow"
     }
 
-    @field_validator("toc", mode="before")
+    @field_validator("chapter_toc", mode="before")
     @classmethod
-    def parse_toc(cls, v: Any) -> Union[bool, ChapterTOCConfig]:
-        if isinstance(v, bool):
-            return ChapterTOCConfig(enabled=v, max_depth=3) if v else False
-        if isinstance(v, int):
-            return ChapterTOCConfig(enabled=True, max_depth=v)
-        if isinstance(v, dict):
-            return ChapterTOCConfig(**v)
-        if isinstance(v, ChapterTOCConfig):
-            return v
-        return False
+    def parse_chapter_toc(cls, v: Any) -> Optional[TocScope]:
+        if v is None:
+            return None
+        return parse_toc_scope(v, "chapters.chapter_toc")
+
+    @field_validator("document_toc", mode="before")
+    @classmethod
+    def parse_document_toc(cls, v: Any) -> Optional[TocScope]:
+        # None heisst "nicht gesetzt" - erst die Pipeline entscheidet daraus
+        # geerbt oder voll. Das ist kein Wert, den jemand hinschreibt.
+        if v is None:
+            return None
+        return parse_toc_scope(v, "chapters.document_toc")
 
     @field_validator("break_before", mode="before")
     @classmethod
@@ -177,24 +285,6 @@ class ChapterItem(BaseModel):
         raise ValueError(
             f"chapters.break_before kennt nur {allowed} (war: {v!r})."
         )
-
-    @field_validator("toc_depth", mode="before")
-    @classmethod
-    def parse_toc_depth(cls, v: Any) -> Optional[int]:
-        """
-        `toc_depth: 0` oder negativ waere ein Kapitel, das im Inhaltsverzeichnis
-        gar nicht vorkaeme - dafuer gibt es keinen sinnvollen Anwendungsfall,
-        und ein stiller Ausschluss waere im fertigen PDF schwer zu finden.
-        """
-        if v is None:
-            return None
-        depth = int(v)
-        if depth < 1:
-            raise ValueError(
-                f"chapters.toc_depth muss mindestens 1 sein (war: {depth}). "
-                "1 nimmt nur die Kapitelueberschrift ins Inhaltsverzeichnis auf."
-            )
-        return depth
 
     @property
     def is_part(self) -> bool:

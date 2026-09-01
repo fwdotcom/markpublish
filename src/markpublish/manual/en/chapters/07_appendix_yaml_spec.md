@@ -16,8 +16,9 @@ A complete overview of every configuration option in `markpublish.yaml`.
 | `version` | String | `null` | Version identifier. Without it the field disappears from the cover page; when set, it appears in the footer to the left of the date |
 | `language` | String | `"de"` | ISO language code (`de`, `en`, …). Governs template labels, callout titles and date format |
 | `cover` | Bool | `true` | Enable the cover page |
-| `toc` | Bool | `true` | Enable the global table of contents |
-| `autonum_type` | String | `"decimal"` | `"decimal"`, `"roman"`, `"legal"`, `"none"` |
+| `document_toc` | String/Int | `full` | The large TOC: `none`, `full` or a depth. Default for the chapters |
+| `autonum_type` | String | `"decimal"` | `"decimal"`, `"roman"`, `"legal"`, `"none"`. Root for `chapters.autonum` |
+| `chapter_toc` | String/Int | `none` | The small TOCs: `none`, `full` or a depth. Default for the chapters |
 | `header` | Bool | `true` | Enable the running header (its layout lives in the theme) |
 | `footer` | Bool | `true` | Enable the running footer (its layout lives in the theme) |
 
@@ -30,9 +31,9 @@ A complete overview of every configuration option in `markpublish.yaml`.
 | `summary` | String | `null` | Abstract for the divider page |
 | `part` | String | `null` | Declares an overarching part |
 | `break_before` | String | `page` | How the chapter is set off: `page`, `divider` or `none`. PDF only — the bundled HTML theme has neither pages nor divider pages |
-| `toc` | Bool/Int | `false` | Local chapter TOC (e.g. `2` for maximum depth). It appears on the divider page, so PDF only as well |
-| `toc_depth` | Int | `null` | Limits how deep this branch enters the global table of contents |
-| `autonum` | String | `null` | Local override of the numbering style |
+| `chapter_toc` | String/Int | `none` | The small TOC on this chapter's divider page. PDF only as well |
+| `document_toc` | String/Int | `full` | This chapter's contribution to the large TOC at the front. Inherited downwards |
+| `autonum` | String | `null` | Numbering style for this branch. Inherited downwards |
 | `chapters` | List | `[]` | Nested sub-chapters |
 
 ### `break_before` — how a chapter is set off
@@ -53,15 +54,42 @@ With `divider`, the chapter's own break and the divider page's break fall in the
 
 An unknown value aborts the build instead of quietly falling back to `page`: a mistyped `divder` would otherwise become an ordinary page break without complaint, and you would find the missing divider page only when leafing through the finished PDF.
 
-### `toc_depth` — keeping appendices flat in the table of contents
+### `chapter_toc` and `document_toc` — two tables of contents, one vocabulary
 
-Depth counts within the chapter, exactly as it does for `toc`: depth 1 is the chapter heading itself, depth 2 the level below it. `toc_depth: 1` therefore puts the chapter into the global table of contents but none of its sub-headings.
+A document has two tables of contents, and each has a pair of keys — one for the default, one for the individual case:
 
-The value is inherited downwards: set on a part, it applies to every chapter below it, and a chapter passes it on to its sub-chapters. For the most common case — an appendix whose internal structure only bloats the table of contents — one line is enough:
+| Table of contents | Default under `document:` | On a chapter |
+| :--- | :--- | :--- |
+| The **large** one at the front | `document_toc` | `document_toc` |
+| The **small** one on a divider page | `chapter_toc` | `chapter_toc` |
+
+All four take the same three forms:
+
+| Value | Meaning |
+| :--- | :--- |
+| `none` | Does not appear in this table of contents at all |
+| `full` | Every level |
+| *number* | Down to this depth, counted from the chapter heading |
+
+Depth counts **within the chapter**: 1 is the chapter heading itself, 2 the level below it. `document_toc: 1` therefore puts the chapter into the large TOC but none of its sub-headings. `chapter_toc: 2` lists exactly the level below the chapter heading on the divider page.
+
+For the common case, two lines in the `document` block are enough:
+
+```yaml
+document:
+  document_toc: 2       # large TOC, two levels deep
+  chapter_toc: 2        # small ones likewise
+```
+
+`toc: "none"` leaves the large table out entirely; the per-chapter settings are then moot.
+
+### Inheritance
+
+`document_toc` is inherited downwards: set on a part, it applies to every chapter below it, and a chapter passes it on to its sub-chapters. For the most common case — an appendix whose internal structure only bloats the table of contents — one line is enough:
 
 ```yaml
   - part: "Appendices"
-    toc_depth: 1
+    document_toc: 1
     chapters:
       - file: "chapters/07_appendix_yaml_spec.md"
         title: "Appendix A: YAML Schema Reference"
@@ -69,4 +97,31 @@ The value is inherited downwards: set on a part, it applies to every chapter bel
         title: "Appendix B: Troubleshooting"
 ```
 
+An individual chapter beats what it inherited — including back to `full`. That is exactly why the keyword exists: without it you would have to write an arbitrarily large number to say "everything after all".
+
+`chapter_toc` is **not** passed from chapter to sub-chapter. It describes the divider page of this one chapter, and every chapter has its own; without a value of its own, `document.chapter_toc` simply applies.
+
+### What is shortened, and what is not
+
 The prose is untouched: the sub-headings remain in the chapter, numbering and anchors included. Only the table of contents is shortened. A sub-chapter keeps its own entry — the depth is inherited relative to each chapter, not applied across the combined list.
+
+An unknown value aborts the build. Booleans are rejected too: a `true` would not show the depth — that is exactly what `full` is for.
+
+## Numbering
+
+`document.autonum_type` sets the style for the whole document; `autonum` on a chapter or part departs from it and **passes the value down**. Without that inheritance the setting on a part would do nothing: the headings live in the chapter files, not in the part.
+
+`autonum: "none"` means **nothing** in that branch carries a number — neither the chapter heading nor the levels below it. There is therefore no restart at 1 either: no count is running inside the branch that could begin again.
+
+The document counter is left untouched. An unnumbered stretch consumes no number:
+
+```yaml
+chapters:
+  - file: "chapters/01.md"          # 1
+  - part: "Appendices"
+    autonum: "none"                 # appendices: no numbers
+    chapters:
+      - file: "chapters/a.md"
+      - file: "chapters/b.md"
+  - file: "chapters/02.md"          # 2, not 4
+```

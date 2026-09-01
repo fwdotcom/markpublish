@@ -12,6 +12,7 @@ import re
 from pathlib import Path
 
 import pytest
+from pydantic import ValidationError
 
 from markpublish.config.loader import load_config
 from markpublish.config.models import ChapterItem
@@ -38,7 +39,7 @@ document:
   version: "1.0.0"
   language: "de"
   cover: false
-  toc: true
+  document_toc: "full"
   header: true
   footer: true
 
@@ -48,7 +49,7 @@ chapters:
   - file: "chapters/parent.md"
     title: "Elternkapitel"
     break_before: "divider"
-    toc: 2
+    chapter_toc: 2
     chapters:
       - file: "chapters/child.md"
         title: "Kindkapitel"
@@ -172,23 +173,37 @@ def test_c3_toc_entries_carry_page_numbers(nested_project: Path):
 
 
 # --------------------------------------------------------------------------
-# H2 - toc: {enabled: false} wurde ignoriert
+# H2 - ein abgeschaltetes TOC wurde ignoriert
 # --------------------------------------------------------------------------
 
 @pytest.mark.parametrize(
     "toc_value, expected",
     [
-        (True, True),
-        (False, False),
+        ("full", True),
+        ("none", False),
         (2, True),
-        (0, False),
         ({"enabled": True, "max_depth": 2}, True),
         ({"enabled": False, "max_depth": 3}, False),
     ],
 )
 def test_h2_toc_truthiness(toc_value, expected):
-    item = ChapterItem(file="a.md", title="A", toc=toc_value)
-    assert bool(item.toc) is expected
+    """
+    Ein BaseModel ist von Haus aus truthy - ohne eigenes __bool__ wuerde
+    `{% if chapter.chapter_toc %}` auch fuer 'none' rendern.
+    """
+    item = ChapterItem(file="a.md", title="A", chapter_toc=toc_value)
+    assert bool(item.chapter_toc) is expected
+
+
+@pytest.mark.parametrize("bad", [True, False, 0, -1, "fill"])
+def test_toc_keys_reject_what_they_cannot_mean(bad):
+    """
+    Wahrheitswerte und Unsinn brechen ab, statt still auf den Standard
+    zurueckzufallen: ein fehlendes Verzeichnis faellt sonst erst beim
+    Durchblaettern des fertigen PDFs auf.
+    """
+    with pytest.raises(ValidationError):
+        ChapterItem(file="a.md", chapter_toc=bad)
 
 
 # --------------------------------------------------------------------------
@@ -204,7 +219,7 @@ def test_m1_m2_local_toc_scope(nested_project: Path):
 
     # M1: die eigene Kapitelueberschrift gehoert nicht in "Inhalt dieses Kapitels"
     assert "Ueberschrift parent" not in titles
-    # toc: 2 -> genau die h2-Ebene, nicht h3
+    # chapter_toc: 2 -> genau die h2-Ebene, nicht h3
     assert "Abschnitt parent" in titles
     assert "Unterabschnitt parent" not in titles
 

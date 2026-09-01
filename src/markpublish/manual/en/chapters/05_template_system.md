@@ -23,13 +23,6 @@ templates/
         └── ...
 ```
 
-> [!NOTE]
-> Up to and including version 0.1 the structure was the other way round
-> (`templates/pdf/default`). Templates in the old layout are still found;
-> `markpublish templates` marks them in the *Layout* column and prints a notice.
-> Move them when convenient — the old resolution will be removed in a future
-> version.
-
 ## The three-level resolution hierarchy
 
 When looking for a template (say `default/pdf`), this strict priority applies:

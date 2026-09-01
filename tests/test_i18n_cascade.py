@@ -209,7 +209,7 @@ document:
   date: "2026-08-31"
   language: "de"
   cover: false
-  toc: true
+  document_toc: "full"
 {extra}
 theme: "{theme}"
 templates_dir: "./templates"
@@ -218,7 +218,7 @@ chapters:
   - file: "chapters/01.md"
     title: "First"
     break_before: "divider"
-    toc: 2
+    chapter_toc: 2
 """
 
 
@@ -283,7 +283,7 @@ def test_label_source_dirs_are_theme_then_target(tmp_path: Path):
 def test_theme_labels_reach_the_rendered_html(tmp_path: Path):
     """
     Sondiert ueber toc_sidebar: das HTML-Theme zeigt weder Trennseiten noch
-    Kapitel-TOC, chapter_toc_title kommt dort also gar nicht mehr vor.
+    Kapitel-TOC, chapter_toc_title kommt dort also gar nicht vor.
     """
     theme_dir = _project_with_theme(tmp_path)
     write_i18n(theme_dir, 'de:\n  toc_sidebar: "Wegweiser"\n')
@@ -329,37 +329,6 @@ def test_target_alert_titles_reach_the_markdown_output(tmp_path: Path):
     )
 
     assert "Nur im HTML" in _render(tmp_path, "html")
-
-
-def test_legacy_layout_skips_the_theme_level(tmp_path: Path):
-    """
-    Im alten <target>/<theme> ist das Elternverzeichnis das Zielformat und
-    wird von allen Themes geteilt - es darf nicht als Theme-Ebene zaehlen.
-    """
-    import shutil
-
-    legacy = tmp_path / "templates" / "pdf" / "altes-theme"
-    shutil.copytree(resolve_template_path("pdf", "default"), legacy)
-
-    (tmp_path / "markpublish.yaml").write_text(
-        YAML.format(theme="altes-theme", extra=""), encoding="utf-8"
-    )
-    config = load_config(tmp_path / "markpublish.yaml")
-
-    with pytest.warns(DeprecationWarning):
-        resolved = resolve_template_path(
-            "pdf", "altes-theme", custom_templates_dir=tmp_path / "templates"
-        )
-
-    ctx = DocumentContext(
-        config=config,
-        content_items=[],
-        toc_tree=[],
-        template_path=resolved,
-        base_dir=tmp_path,
-        target="pdf",
-    )
-    assert ctx.label_source_dirs == [legacy]
 
 
 # --------------------------------------------------------------------------

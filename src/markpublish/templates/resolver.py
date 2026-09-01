@@ -6,7 +6,6 @@ Manages resolution hierarchy: User directory > Common/Project directory > Packag
 from __future__ import annotations
 
 import os
-import warnings
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Union
 
@@ -113,10 +112,7 @@ def resolve_template_path(
     """
     Resolves the theme template directory for a given target format.
 
-    Layout is <base>/<theme>/<target>, e.g. templates/default/pdf. The older
-    <base>/<target>/<theme> layout is still resolved as a fallback so that
-    existing custom templates keep working, but it raises a DeprecationWarning
-    naming the directory to move.
+    Layout is <base>/<theme>/<target>, e.g. templates/default/pdf.
 
     Hierarchy: User > Common/Project > Package.
 
@@ -138,25 +134,10 @@ def resolve_template_path(
 
     bases = _search_bases(custom_templates_dir, config_base_dir, package_only)
 
-    # 1. Aktuelles Layout: <base>/<theme>/<target>
     for _, base_path in bases:
         candidate = base_path / theme / target
         if candidate.is_dir():
             return candidate
-
-    # 2. Altes Layout: <base>/<target>/<theme>
-    for _, base_path in bases:
-        legacy = base_path / target / theme
-        if legacy.is_dir():
-            warnings.warn(
-                f"Template '{theme}' liegt im alten Layout unter {legacy}. "
-                f"Bitte nach {base_path / theme / target} verschieben - "
-                "die Aufloesung ueber <target>/<theme> entfaellt in einer "
-                "kuenftigen Version.",
-                DeprecationWarning,
-                stacklevel=2,
-            )
-            return legacy
 
     searched = [str(base / theme / target) for _, base in bases]
     raise FileNotFoundError(
@@ -171,15 +152,11 @@ def list_templates(
 ) -> List[Dict[str, str]]:
     """
     Lists all available templates across User, Common, and Package locations.
-
-    Reports both the current <theme>/<target> layout and the deprecated
-    <target>/<theme> one; the latter is marked via the "layout" key so
-    `markpublish templates` can point at what needs moving.
     """
     results: List[Dict[str, str]] = []
     seen: set = set()
 
-    def add(target_name: str, theme_name: str, source: str, path: Path, layout: str) -> None:
+    def add(target_name: str, theme_name: str, source: str, path: Path) -> None:
         if not ((path / "layout.html").is_file() or (path / "styles.css").is_file()):
             return
         key = (target_name, theme_name)
@@ -188,30 +165,20 @@ def list_templates(
             "theme": theme_name,
             "source": source,
             "path": str(path),
-            "layout": layout,
             "is_active": key not in seen,
         })
         seen.add(key)
-
-    known_targets = {"pdf", "html"}
 
     for source_name, base_path in _search_bases(custom_templates_dir, config_base_dir):
         if not base_path.is_dir():
             continue
 
-        for entry in sorted(base_path.iterdir()):
-            if not entry.is_dir() or entry.name.startswith((".", "_")):
+        # <base>/<theme>/<target>
+        for theme_entry in sorted(base_path.iterdir()):
+            if not theme_entry.is_dir() or theme_entry.name.startswith((".", "_")):
                 continue
-
-            if entry.name.lower() in known_targets:
-                # Altes Layout: <base>/<target>/<theme>
-                for theme_dir in sorted(entry.iterdir()):
-                    if theme_dir.is_dir() and not theme_dir.name.startswith((".", "_")):
-                        add(entry.name, theme_dir.name, source_name, theme_dir, "legacy")
-            else:
-                # Aktuelles Layout: <base>/<theme>/<target>
-                for target_dir in sorted(entry.iterdir()):
-                    if target_dir.is_dir() and not target_dir.name.startswith((".", "_")):
-                        add(target_dir.name, entry.name, source_name, target_dir, "current")
+            for target_dir in sorted(theme_entry.iterdir()):
+                if target_dir.is_dir() and not target_dir.name.startswith((".", "_")):
+                    add(target_dir.name, theme_entry.name, source_name, target_dir)
 
     return results

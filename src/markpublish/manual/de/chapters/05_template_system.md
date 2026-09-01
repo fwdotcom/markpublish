@@ -25,12 +25,6 @@ templates/
         └── ...
 ```
 
-> [!NOTE]
-> Bis einschließlich Version 0.1 lag die Struktur umgekehrt (`templates/pdf/default`).
-> Templates im alten Layout werden weiterhin gefunden, `markpublish templates` markiert
-> sie in der Spalte *Layout* und gibt einen Hinweis aus. Verschieben Sie sie bei
-> Gelegenheit — die alte Auflösung entfällt in einer künftigen Version.
-
 ## Die 3-stufige Auflösungs-Hierarchie
 
 Beim Suchen nach einem Template (z. B. `default/pdf`) gilt folgende strikte Priorität:

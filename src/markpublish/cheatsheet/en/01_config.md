@@ -26,9 +26,10 @@ Metadata and the global layout switches. Only `title` is required.
 | `author` | – | Cover |
 | `date` / `version` | `auto` / – | `auto` or `today` for the build date |
 | `language` | `de` | Picks the label set; falls back to `en` |
-| `cover` / `toc` | `true` | Cover page and global table of contents |
+| `cover` / `header` / `footer` | `true` | Cover page, running header and footer |
+| `document_toc` | `full` | Large TOC: `none`, `full` or a depth |
+| `chapter_toc` | `none` | Small divider-page TOCs: same three forms |
 | `autonum_type` | `decimal` | `decimal`, `roman`, `legal`, `none` |
-| `header` / `footer` | `true` | Running header and footer |
 
 Also available: `summary` (abstract on the cover), `status`, `copyright`
 (footer). Unknown keys are handed to the theme as `{{ document.your_key }}`.
@@ -43,11 +44,11 @@ Chapters, sub-chapters and parts. Nesting is recursive.
 | `title` | – | Overrides the heading for TOC and header |
 | `part` | – | Makes the item a part header, not a chapter |
 | `break_before` | `page` | `page`, `divider` (own separator page) or `none` |
-| `toc` | `false` | Local TOC: `true`, a depth as integer, or a map |
-| `toc_depth` | – | How deep this branch enters the global TOC |
+| `chapter_toc` | `none` | Small TOC on this chapter's divider page |
+| `document_toc` | `full` | This chapter's share of the TOC at the front |
 | `chapters` | `[]` | Nested children |
 
-Depth counts from the chapter's own heading, so `toc_depth: 1` puts the chapter
-into the global table of contents but none of its sub-headings -- set it on a
-part to flatten every appendix at once; sub-chapters inherit it. Also available:
-`summary` and `autonum`.
+Both TOC keys take `none`, `full` or a depth, counted from the chapter's own
+heading. `document_toc: 1` lists the chapter but none of its sub-headings; set
+it on a part to flatten every appendix at once. `document_toc` and `autonum` are
+inherited downwards, `chapter_toc` falls back to `document.chapter_toc`.

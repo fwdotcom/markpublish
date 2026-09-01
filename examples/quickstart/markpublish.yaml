@@ -9,7 +9,7 @@ document:
   language: "de"
 
   cover: true
-  toc: true
+  document_toc: "full"
   autonum_type: "decimal"
   header: true
   footer: true
@@ -21,13 +21,13 @@ chapters:
     title: "Einleitung"
     summary: "Einführung in das Thema."
     break_before: "divider"
-    toc: false
+    chapter_toc: "none"
 
   - file: "chapters/02_architecture.md"
     title: "Hauptteil"
     summary: "Detaillierte Erläuterungen und Architektur."
     break_before: "divider"
-    toc: 2
+    chapter_toc: 2
     chapters:
       - file: "chapters/02_1_details.md"
         title: "Detailaspekte"

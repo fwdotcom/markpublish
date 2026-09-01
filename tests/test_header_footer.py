@@ -2,7 +2,7 @@
 Tests fuer Kopf- und Fusszeile des PDF-Themes.
 
 Kopf und Fuss sind Running Elements (`position: running()`, eingesetzt ueber
-`content: element()`), nicht mehr eine `content`-Zeichenkette mit `\\A`-Umbruch.
+`content: element()`), nicht eine `content`-Zeichenkette mit `\\A`-Umbruch.
 Das ist der Unterschied, um den es hier geht:
 
   * echtes Markup -> pro Zeile eigene Auszeichnung (Titel fett, Untertitel nicht)
@@ -47,7 +47,7 @@ document:
   date: "31.08.2026"
   language: "de"
   cover: false
-  toc: false
+  document_toc: "none"
   header: true
   footer: true
 
@@ -310,8 +310,8 @@ def test_footer_drops_the_separator_without_a_version(tmp_path: Path):
 
 def test_version_defaults_to_unset(tmp_path: Path):
     """
-    Frueher stand hier "1.0.0" als Default. Damit liess sich die Version nicht
-    weglassen: jedes Template sah einen gesetzten Wert und druckte ihn.
+    Ohne Angabe bleibt die Version leer. Ein erfundener Default liesse sich
+    nicht abschalten: jedes Template saehe einen gesetzten Wert und druckte ihn.
     """
     (tmp_path / "chapters").mkdir(parents=True, exist_ok=True)
     (tmp_path / "chapters" / "01.md").write_text("# K\n\nText.\n", encoding="utf-8")

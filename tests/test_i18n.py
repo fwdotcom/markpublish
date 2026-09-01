@@ -62,7 +62,7 @@ def test_available_languages():
 
 
 def test_alert_titles_come_from_the_same_table():
-    """alerts.py hatte frueher eine eigene Titeltabelle - jetzt nur noch eine."""
+    """Die Alert-Titel kommen aus derselben Tabelle wie alle anderen Texte."""
     de = MarkdownEngine(language="de").convert("> [!WARNING]\n> Text.")
     en = MarkdownEngine(language="en").convert("> [!WARNING]\n> Text.")
     assert LABELS["de"]["alert_warning"] in de
@@ -99,13 +99,13 @@ document:
   date: "2026-08-31"
   language: "{lang}"
   cover: true
-  toc: true
+  document_toc: "full"
 {extra}
 chapters:
   - file: "chapters/01.md"
     title: "First"
     break_before: "divider"
-    toc: 2
+    chapter_toc: 2
 """
 
 
@@ -141,7 +141,7 @@ def _body_only(html: str) -> str:
 
 # Sondiert werden Seitenleiste und Deckblatt: das HTML-Theme zeigt weder
 # Trennseiten noch Kapitel-TOC, die Marken "Kapitel" und chapter_toc_title
-# kommen dort also nicht mehr vor. Im PDF tun sie es weiterhin - dafuer
+# kommen dort also nicht vor. Im PDF tun sie es - dafuer
 # steht test_page_label_reaches_the_pdf_stylesheet.
 def _cover_label(html: str, value: str) -> str:
     """Das Label, das im Deckblatt ueber einem bestimmten Wert steht."""
@@ -174,8 +174,8 @@ def test_english_labels_reach_the_html_output(tmp_path: Path):
 
 def test_document_level_labels_are_rejected_by_the_loader(tmp_path: Path):
     """
-    Frueher Ebene 4. Der Test steht hier, weil er den kompletten Weg nimmt -
-    YAML-Datei, Loader, Modell - und nicht nur das Modell direkt.
+    Der Test nimmt den kompletten Weg - YAML-Datei, Loader, Modell - und nicht
+    nur das Modell direkt.
     """
     extra = '  labels:\n    chapter_toc_title: "Auf dieser Seite"\n'
     with pytest.raises(Exception) as excinfo:

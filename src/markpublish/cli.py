@@ -360,7 +360,7 @@ document:
   # A one-page draft needs neither of these. Switch them on once the document
   # has grown enough to need a way in.
   cover: false
-  toc: false
+  document_toc: "none"
 
 theme: "default"
 
@@ -531,29 +531,16 @@ def templates_list_cmd(
     table.add_column("Target", style="yellow")
     table.add_column("Theme", style="bold")
     table.add_column("Source", style="cyan")
-    table.add_column("Layout", style="magenta")
     table.add_column("Active", justify="center")
     table.add_column("Path", style="dim")
 
-    has_legacy = False
     for t in all_tmpls:
         if target and t["target"] != target.lower().strip():
             continue
         active_str = "[bold green]Yes[/bold green]" if t["is_active"] else "[dim]No[/dim]"
-        legacy = t.get("layout") == "legacy"
-        has_legacy = has_legacy or legacy
-        layout_str = "[yellow]<target>/<theme>[/yellow]" if legacy else "[dim]<theme>/<target>[/dim]"
-        table.add_row(t["target"], t["theme"], t["source"], layout_str, active_str, t["path"])
+        table.add_row(t["target"], t["theme"], t["source"], active_str, t["path"])
 
     console.print(table)
-
-    if has_legacy:
-        console.print(
-            "\n[yellow]Hinweis:[/yellow] Die gelb markierten Templates liegen im alten Layout "
-            "[bold]<target>/<theme>[/bold]. Bitte nach [bold]<theme>/<target>[/bold] verschieben "
-            "(z. B. [cyan]templates/pdf/mytheme[/cyan] -> [cyan]templates/mytheme/pdf[/cyan]); "
-            "die alte Aufloesung entfaellt in einer kuenftigen Version."
-        )
 
 
 @app.command(name="export-template")

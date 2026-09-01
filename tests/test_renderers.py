@@ -32,7 +32,7 @@ document:
   version: "1.0.0"
   language: "de"
   cover: true
-  toc: true
+  document_toc: "full"
   header: true
   footer: true
 
@@ -42,11 +42,11 @@ chapters:
   - file: "chapters/01.md"
     title: "Einleitung"
     break_before: "divider"
-    toc: false
+    chapter_toc: "none"
   - file: "chapters/02.md"
     title: "Hauptteil"
     break_before: "divider"
-    toc: 2
+    chapter_toc: 2
 """
     config_file = tmp_path / "markpublish.yaml"
     config_file.write_text(yaml_content, encoding="utf-8")
@@ -101,7 +101,7 @@ document:
   date: "01.09.2026"
   language: "de"
   cover: true
-  toc: false
+  document_toc: "none"
 
 theme: "default"
 
@@ -164,7 +164,7 @@ document:
   date: "01.09.2026"
   language: "de"
   cover: false
-  toc: true
+  document_toc: "full"
 
 theme: "default"
 
@@ -173,7 +173,7 @@ chapters:
     title: "Erstes Kapitel"
     summary: "Zusammenfassung des Kapitels."
     break_before: "divider"
-    toc: 2
+    chapter_toc: 2
   - part: "Anhaenge"
     summary: "Zusammenfassung des Blocks."
     break_before: "divider"

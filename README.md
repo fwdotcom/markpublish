@@ -98,8 +98,9 @@ document:
 
   # Layout Toggles
   cover: true                    # Enable cover page
-  toc: true                      # Global table of contents
+  document_toc: 2                # Large TOC, two levels deep
   autonum_type: "decimal"        # "decimal" (1, 1.1), "roman", "legal", "none"
+  chapter_toc: 2                 # Default for the chapters' divider-page TOC
   header: true                   # Enable running header (laid out in the theme)
   footer: true                   # Enable running footer (laid out in the theme)
 
@@ -114,14 +115,14 @@ chapters:
     title: "Introduction"
     summary: "Scope and motivation."
     break_before: "divider"      # Dedicated divider/separator page
-    toc: false
+    chapter_toc: "none"
 
   # Level 1 Chapter with Nested Sub-chapters
   - file: "chapters/02_architecture.md"
     title: "Core Architecture"
     summary: "System components and flows."
     break_before: "divider"
-    toc: 2                       # Local chapter TOC up to depth 2
+    chapter_toc: 2               # Local chapter TOC up to depth 2
     chapters:
       # Level 2 (2.1)
       - file: "chapters/02_1_backend.md"
@@ -137,7 +138,7 @@ chapters:
     summary: "Glossary and reference tables."
     break_before: "divider"      # Dedicated Part separator page
     autonum: "none"
-    toc_depth: 1                 # Appendices enter the global TOC by title only
+    document_toc: 1              # Appendices enter the front TOC by title only
     chapters:
       - file: "chapters/appendix_a.md"
         title: "Appendix A: Glossary"
@@ -147,10 +148,18 @@ chapters:
 single axis: `page` (the default) starts it at the top of a fresh page,
 `divider` gives it a separator page of its own, and `none` lets it run on.
 
-`toc_depth` limits how deep a branch enters the global table of contents --
-counted from the chapter's own heading, so `1` contributes the chapter title and
-nothing below it. It is inherited downwards, which is why one line on the
-`Appendices` part flattens every appendix at once.
+A document has two tables of contents and one key each, written the same way in
+the `document` block and on a chapter: `document_toc` for the large one at the
+front, `chapter_toc` for the small ones on the divider pages. Under `document`
+they set the default, on a chapter they override it. Both take `none`, `full` or
+a depth counted from the chapter's own heading, so `document_toc: 1` contributes
+the chapter title and nothing below it.
+
+`document_toc` and `autonum` are inherited downwards, which is why one line on
+the `Appendices` part flattens every appendix at once -- and why `autonum:
+"none"` there leaves the whole appendix unnumbered without consuming a chapter
+number. `chapter_toc` is not chained; it falls back to `document.chapter_toc`,
+so the common case is one line at the top instead of one per chapter.
 
 ---
 

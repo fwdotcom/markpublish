@@ -2,5 +2,5 @@
 
 Dies ist ein hierarchisches Unterkapitel.
 
-### Spezifische Konfiguration
+## Spezifische Konfiguration
 Hier folgen weitere Details.

@@ -24,8 +24,9 @@ Ein modernes, modulares und erweiterbares Open-Source-Publishing-Tool für Markd
   - `cover: true/false`
   - `break_before: page|divider|none` je Kapitel oder Part.
 - **Inhaltsverzeichnisse (TOC)**:
-  - Globales TOC (Baumstruktur aus Kapitelhierarchie).
-  - Lokales Kapitel-TOC (`toc: true` oder `toc: 2` mit maximaler Tiefe).
+  - Globales TOC (`document_toc: none|full|<Tiefe>`), im document-Block wie am Kapitel.
+  - Lokales Kapitel-TOC (`chapter_toc: full` oder `chapter_toc: 2`), Vorgabe unter `document.chapter_toc`.
+  - Beitrag zum Dokument-TOC je Zweig (`document_toc: none|full|<Tiefe>`).
 - **2-zeilige Kopf- und Fußzeilen**:
   - Layout und Design liegen vollständig im Template (HTML/CSS) und werden aus Metadaten gespeist (`document.title`, `document.version`, `document.date`, `document.author`, `chapter.title`, `part.title`).
 - **Plattformunabhängig**: Voll kompatibel mit Linux, macOS und Windows.
@@ -48,7 +49,7 @@ document:
   
   # Layout & Schalter
   cover: true                    # Deckblatt an/aus (true/false)
-  toc: true                      # Globales Inhaltsverzeichnis (Tiefe aus Hierarchie)
+  document_toc: 2                # Großes Verzeichnis: none | full | Tiefe
   autonum_type: "decimal"        # "decimal" (1, 1.1), "roman", "legal", "none"
   header: true                   # Kopfzeile an/aus (Layout liegt im Template)
   footer: true                   # Fußzeile an/aus (Layout liegt im Template)
@@ -64,14 +65,14 @@ chapters:
     title: "Einleitung & Motivation"
     summary: "Überblick über die Ziele und den Kontext des Projekts."
     break_before: "divider"      # page (Standard) | divider | none
-    toc: false                   # Kein lokales Kapitel-TOC
+    chapter_toc: "none"          # Kein lokales Kapitel-TOC
 
   # Hauptkapitel mit Unterkapiteln (Hierarchie durch Einrückung)
   - file: "chapters/02_architecture.md"
     title: "Systemarchitektur"
     summary: "Detaillierte Darstellung der Kernkomponenten."
     break_before: "divider"
-    toc: 2                       # Lokales Kapitel-TOC bis Tiefe 2
+    chapter_toc: 2               # Lokales Kapitel-TOC bis Tiefe 2
     chapters:
       - file: "chapters/02_1_backend.md"
         title: "Backend Services"

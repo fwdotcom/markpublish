@@ -47,10 +47,9 @@ class DocumentContext:
         the theme directory, then the target directory inside it.
 
         template_path points at <theme>/<target>. Its parent only counts as the
-        theme level when it actually carries the theme name -- in the
-        deprecated <target>/<theme> layout the parent is the target directory
-        and shared across themes, which would leak one theme's texts into
-        another.
+        theme level when it actually carries the theme name -- a parent that
+        does not is shared across themes, and taking it would leak one theme's
+        texts into another.
         """
         dirs: List[Path] = []
         theme_dir = self.template_path.parent

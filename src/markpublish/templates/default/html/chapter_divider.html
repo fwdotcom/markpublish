@@ -9,11 +9,11 @@
 
   {# Lokales Kapitel-TOC falls aktiviert.
 
-     Dieses Partial wird vom HTML-Theme nicht mehr eingebunden: am Bildschirm
+     Dieses Partial wird vom HTML-Theme nicht eingebunden: am Bildschirm
      zeigt die Seitenleiste die Gliederung bereits, ein zweites Verzeichnis
      pro Kapitel wiederholt sie nur. Die Datei bleibt als Vorlage liegen -
      wer sie zurueckholen moechte, findet die noetige Zeile in layout.html. #}
-  {% if chapter.toc and chapter.local_toc_items %}
+  {% if chapter.chapter_toc and chapter.local_toc_items %}
     <nav class="local-toc">
       <div class="local-toc-title">{{ labels.chapter_toc_title }}</div>
       <ul class="toc-list">

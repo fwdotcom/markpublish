@@ -10,7 +10,7 @@ document:
   language: "en"
 
   cover: false
-  toc: false
+  document_toc: "none"
   autonum_type: "none"
   header: true
   footer: true

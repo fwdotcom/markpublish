@@ -36,7 +36,7 @@ document:
   date: "01.09.2026"
   language: "de"
   cover: false
-  toc: true
+  document_toc: "full"
 
 theme: "default"
 
@@ -184,8 +184,8 @@ def test_toc_part_entry_keeps_the_grid(tmp_path: Path):
 def test_theme_declares_its_fonts_in_one_place():
     """
     Die Schriftfamilien stehen als Custom Property in :root. Verstreute
-    font-family-Ketten waren der Grund, warum eine Schriftumstellung frueher
-    fuenf Stellen brauchte - und eine davon vergessen wurde.
+    font-family-Ketten wuerden eine Schriftumstellung auf fuenf Stellen
+    verteilen - und eine davon bliebe stehen.
     """
     css = (resolve_template_path("pdf", "default") / "styles.css").read_text(
         encoding="utf-8"
@@ -382,7 +382,7 @@ def test_chapters_start_on_a_new_page_by_default(tmp_path: Path):
 
     pages = _render_pages(
         tmp_path,
-        'document:\n  title: "T"\n  cover: false\n  toc: false\nchapters:\n'
+        'document:\n  title: "T"\n  cover: false\n  document_toc: "none"\nchapters:\n'
         '  - file: "a.md"\n  - file: "b.md"\n  - file: "c.md"\n',
     )
 
@@ -399,7 +399,7 @@ def test_break_before_none_lets_chapters_run_on(tmp_path: Path):
 
     pages = _render_pages(
         tmp_path,
-        'document:\n  title: "T"\n  cover: false\n  toc: false\nchapters:\n'
+        'document:\n  title: "T"\n  cover: false\n  document_toc: "none"\nchapters:\n'
         '  - file: "a.md"\n  - file: "b.md"\n    break_before: "none"\n',
     )
 
@@ -418,7 +418,7 @@ def test_a_divider_page_does_not_add_a_blank_page(tmp_path: Path):
 
     pages = _render_pages(
         tmp_path,
-        'document:\n  title: "T"\n  cover: false\n  toc: false\nchapters:\n'
+        'document:\n  title: "T"\n  cover: false\n  document_toc: "none"\nchapters:\n'
         '  - file: "a.md"\n    title: "A"\n    break_before: "divider"\n',
     )
 
