@@ -47,7 +47,7 @@ theme: "default"
 chapters:
   - file: "chapters/parent.md"
     title: "Elternkapitel"
-    divider_page: true
+    break_before: "divider"
     toc: 2
     chapters:
       - file: "chapters/child.md"
@@ -59,7 +59,7 @@ chapters:
             title: "Enkelkapitel"
 
   - part: "Anhaenge"
-    divider_page: true
+    break_before: "divider"
     chapters:
       - file: "chapters/appendix.md"
         title: "Anhang A"

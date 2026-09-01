@@ -41,11 +41,11 @@ theme: "default"
 chapters:
   - file: "chapters/01.md"
     title: "Einleitung"
-    divider_page: true
+    break_before: "divider"
     toc: false
   - file: "chapters/02.md"
     title: "Hauptteil"
-    divider_page: true
+    break_before: "divider"
     toc: 2
 """
     config_file = tmp_path / "markpublish.yaml"
@@ -172,11 +172,11 @@ chapters:
   - file: "chapters/01.md"
     title: "Erstes Kapitel"
     summary: "Zusammenfassung des Kapitels."
-    divider_page: true
+    break_before: "divider"
     toc: 2
   - part: "Anhaenge"
     summary: "Zusammenfassung des Blocks."
-    divider_page: true
+    break_before: "divider"
     chapters:
       - file: "chapters/02.md"
         title: "Anhang A"

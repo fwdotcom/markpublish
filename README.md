@@ -49,9 +49,27 @@ markpublish init my-book --title "My Architecture Guide"
 cd my-book
 ```
 
-This creates a starter directory with `markpublish.yaml` and sample chapters.
+This creates a minimal stub: `markpublish.yaml` plus one chapter, both directly
+in the directory. It is meant to be replaced by your own content.
 
-### 2. Build PDF and HTML
+### 2. Look things up
+```bash
+markpublish cheatsheet          # two-page reference card
+markpublish manual              # the full user guide
+markpublish manual --lang de    # ... in German
+```
+
+`cheatsheet` renders a two-page reference -- every key of `markpublish.yaml` on
+page one, themes and templates on page two. `manual` renders the complete user
+guide. Both sources ship inside the package and are rendered on demand, so they
+describe the version you actually have rather than whatever was current when
+someone last rebuilt a PDF -- and a successful run also confirms that the
+rendering toolchain works.
+
+`--lang` selects the source, not just the labels: each translation carries its
+own `language:` and pulls in the matching static texts by itself.
+
+### 3. Build PDF and HTML
 ```bash
 # Build PDF
 markpublish build
@@ -95,36 +113,44 @@ chapters:
   - file: "chapters/01_introduction.md"
     title: "Introduction"
     summary: "Scope and motivation."
-    divider_page: true           # Dedicated divider/separator page
+    break_before: "divider"      # Dedicated divider/separator page
     toc: false
 
   # Level 1 Chapter with Nested Sub-chapters
   - file: "chapters/02_architecture.md"
     title: "Core Architecture"
     summary: "System components and flows."
-    divider_page: true
+    break_before: "divider"
     toc: 2                       # Local chapter TOC up to depth 2
     chapters:
       # Level 2 (2.1)
       - file: "chapters/02_1_backend.md"
         title: "Backend Services"
-        divider_page: false
-        
+
       # Level 2 (2.2)
       - file: "chapters/02_2_frontend.md"
         title: "Frontend Application"
-        divider_page: false
+        break_before: "none"     # Runs on from the previous chapter
 
   # Overarching Part / Section (e.g. Appendices)
   - part: "Appendices"
     summary: "Glossary and reference tables."
-    divider_page: true           # Dedicated Part separator page
+    break_before: "divider"      # Dedicated Part separator page
     autonum: "none"
+    toc_depth: 1                 # Appendices enter the global TOC by title only
     chapters:
       - file: "chapters/appendix_a.md"
         title: "Appendix A: Glossary"
-        divider_page: false
 ```
+
+`break_before` decides how far a chapter is set off from the one before it, on a
+single axis: `page` (the default) starts it at the top of a fresh page,
+`divider` gives it a separator page of its own, and `none` lets it run on.
+
+`toc_depth` limits how deep a branch enters the global table of contents --
+counted from the chapter's own heading, so `1` contributes the chapter title and
+nothing below it. It is inherited downwards, which is why one line on the
+`Appendices` part flattens every appendix at once.
 
 ---
 

@@ -34,17 +34,31 @@ markpublish init mein-leitfaden --title "Mein Leitfaden"
 cd mein-leitfaden
 ```
 
-Dieser Befehl erstellt die folgende Verzeichnisstruktur:
+Der Befehl legt einen bewusst minimalen Stumpf an — zwei Dateien, direkt im
+Zielordner:
 
 ```
 mein-leitfaden/
 ├── markpublish.yaml          # Das Dokumenten-Manifest
-└── chapters/                 # Markdown-Kapiteldateien
-    ├── 01_introduction.md
-    ├── 02_architecture.md
-    ├── 02_1_details.md
-    └── 03_appendix.md
+└── next-steps.md             # Ein Kapitel, zum Ersetzen gedacht
 ```
+
+Mehr Beispielinhalt gibt es nicht, denn alles, was `init` schreibt, löschen Sie
+beim ersten echten Kapitel wieder. Die Referenz liegt deshalb nicht im Stumpf,
+sondern in `markpublish cheatsheet` — dort bleibt sie auch dann verfügbar, wenn
+die letzte Stumpfdatei verschwunden ist.
+
+## Nachschlagen
+
+```bash
+markpublish cheatsheet         # zweiseitige Kurzreferenz
+markpublish manual             # dieses Handbuch
+```
+
+Beide werden aus Quellen gerendert, die im Paket mitgeliefert werden — sie
+passen also immer zur installierten Version. Ein erfolgreicher Lauf ist zugleich
+der Nachweis, dass die Rendering-Kette funktioniert; unter Windows also, dass
+WeasyPrint seine GTK-Laufzeit findet.
 
 ## Dokument erstellen
 

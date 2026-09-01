@@ -27,11 +27,12 @@
          zweites Mal. Der Kapiteltitel steht ohnehin als Ueberschrift im
          Kapiteltext.
 
-         `divider_page:` und `toc:` bleiben in der Konfiguration gueltig und
+         `break_before:` und `toc:` bleiben in der Konfiguration gueltig und
          wirken im PDF-Theme unveraendert - sie sind hier nur ohne Wirkung.
-         Wer sie am Bildschirm doch moechte, holt chapter_divider.html zurueck:
+         Wer die Trennseiten am Bildschirm doch moechte, holt
+         chapter_divider.html zurueck:
 
-             {% raw %}{% if item.divider_page %}
+             {% raw %}{% if item.has_divider_page %}
                {% with chapter = item %}{% include "chapter_divider.html" %}{% endwith %}
              {% endif %}{% endraw %}
 

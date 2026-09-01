@@ -5,7 +5,7 @@ Tests for configuration parsing and data models.
 import datetime
 
 from markpublish.config.loader import format_current_date, load_config
-from markpublish.config.models import AutonumType, ChapterTOCConfig
+from markpublish.config.models import AutonumType, BreakBefore, ChapterTOCConfig
 
 
 def test_format_current_date():
@@ -34,13 +34,13 @@ def test_load_config_from_dict():
             {
                 "file": "chapters/01.md",
                 "title": "Chapter 1",
-                "divider_page": True,
+                "break_before": "divider",
                 "toc": 2,
             },
             {
                 "part": "Appendices",
                 "summary": "Appendix section",
-                "divider_page": True,
+                "break_before": "divider",
                 "autonum": "none",
                 "chapters": [
                     {
@@ -64,7 +64,7 @@ def test_load_config_from_dict():
     # Check chapter 1
     c1 = config.chapters[0]
     assert c1.title == "Chapter 1"
-    assert c1.divider_page is True
+    assert c1.break_before is BreakBefore.DIVIDER
     assert isinstance(c1.toc, ChapterTOCConfig)
     assert c1.toc.enabled is True
     assert c1.toc.max_depth == 2

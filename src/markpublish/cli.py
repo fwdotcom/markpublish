@@ -68,6 +68,195 @@ def main(
     pass
 
 
+#: Sprache, in der die mitgelieferten Dokumente erscheinen, wenn nichts anderes
+#: verlangt wird. Englisch, weil CLI-Hilfe und README es ebenfalls sind.
+DEFAULT_DOC_LANGUAGE = "en"
+
+
+def get_bundled_doc_dir(name: str) -> Path:
+    """Returns the directory of a document shipped with the package."""
+    return Path(__file__).resolve().parent / name
+
+
+def _available_doc_languages(name: str) -> List[str]:
+    """Language codes the packaged document `name` is available in."""
+    base = get_bundled_doc_dir(name)
+    if not base.is_dir():
+        return []
+    return sorted(d.name for d in base.iterdir() if (d / "markpublish.yaml").is_file())
+
+
+def _resolve_bundled_doc(name: str, lang: Optional[str]) -> Path:
+    """
+    Resolves the requested translation of a packaged document to its manifest.
+
+    Eine nicht vorhandene Sprache faellt auf die Standardsprache zurueck und
+    sagt es. Still auf Englisch auszuweichen waere hier besonders unangenehm:
+    wer `--lang fr` tippt, bekaeme ein Dokument, das aussieht als waere es
+    uebersetzt worden, und merkte es womoeglich nicht.
+    """
+    available = _available_doc_languages(name)
+    if not available:
+        console.print(
+            f"[bold red]Error:[/bold red] The packaged '{name}' is missing from "
+            f"'{get_bundled_doc_dir(name)}'. This points to an incomplete "
+            "installation - reinstall markpublish."
+        )
+        raise typer.Exit(code=1)
+
+    requested = (lang or DEFAULT_DOC_LANGUAGE).lower().strip()
+    if requested in available:
+        return get_bundled_doc_dir(name) / requested / "markpublish.yaml"
+
+    fallback = DEFAULT_DOC_LANGUAGE if DEFAULT_DOC_LANGUAGE in available else available[0]
+    console.print(
+        f"[yellow]Note:[/yellow] '{name}' is not available in [cyan]{requested}[/cyan]. "
+        f"Rendering [cyan]{fallback}[/cyan] instead "
+        f"(available: {', '.join(available)})."
+    )
+    return get_bundled_doc_dir(name) / fallback / "markpublish.yaml"
+
+
+def _render_bundled_doc(
+    name: str,
+    lang: Optional[str],
+    target: str,
+    output: Optional[Path],
+    theme: Optional[str],
+    templates_dir: Optional[Path],
+) -> None:
+    """Renders one of the documents that ship with markpublish."""
+    config_file = _resolve_bundled_doc(name, lang)
+    targets_to_build = _parse_targets(target)
+
+    try:
+        config = load_config(config_file)
+    except Exception as e:
+        console.print(f"[bold red]Configuration error:[/bold red] {e}")
+        raise typer.Exit(code=1) from e
+
+    if theme:
+        config.theme = theme
+
+    # Die Quelle liegt im Paket, das Ergebnis gehoert ins Arbeitsverzeichnis:
+    # site-packages ist haeufig schreibgeschuetzt, und selbst wo es das nicht
+    # ist, wuerde dort niemand nach seinem PDF suchen.
+    #
+    # Ohne ausdruecklichen Wunsch rendert das Dokument im mitgelieferten Theme.
+    # Sonst zoege ein 'templates/' im Arbeitsverzeichnis - angelegt mit
+    # export-template und noch mitten in der Anpassung - die Referenz mit sich:
+    # ein fehlendes Label liesse sie abbrechen, ausgerechnet in dem Moment, in
+    # dem jemand nachschlagen will, wie Labels funktionieren.
+    _render_document(
+        config=config,
+        base_dir=config_file.parent,
+        targets_to_build=targets_to_build,
+        output=output,
+        effective_templates_dir=templates_dir,
+        output_base_dir=Path.cwd(),
+        package_templates_only=not (theme or templates_dir),
+    )
+
+
+def _parse_targets(target: str) -> List[str]:
+    """Maps the --target option to the list of formats to render."""
+    cleaned = target.lower().strip()
+    if cleaned in ("all", "both"):
+        return ["pdf", "html"]
+    if cleaned in ("pdf", "html"):
+        return [cleaned]
+    console.print(f"[bold red]Error:[/bold red] Unknown target '{target}'. Choose 'pdf', 'html', or 'all'.")
+    raise typer.Exit(code=1)
+
+
+def _render_document(
+    config,
+    base_dir: Path,
+    targets_to_build: List[str],
+    output: Optional[Path],
+    effective_templates_dir: Optional[Path],
+    output_base_dir: Optional[Path] = None,
+    package_templates_only: bool = False,
+) -> None:
+    """
+    Renders one loaded configuration into every requested target format.
+
+    `base_dir` is where chapter files and a project theme are looked up.
+    `output_base_dir` is where a result lands when no --output was given; it
+    defaults to `base_dir`. The two differ for the packaged cheat sheet, whose
+    sources sit in site-packages -- writing the PDF next to them would fail on
+    a read-only installation and hide the file from the user either way.
+    """
+    out_root = output_base_dir or base_dir
+
+    for tgt in targets_to_build:
+        with console.status(f"[bold green]Processing Markdown and rendering {tgt.upper()}...[/bold green]"):
+            try:
+                tmpl_path = resolve_template_path(
+                    target=tgt,
+                    theme=config.theme,
+                    custom_templates_dir=effective_templates_dir,
+                    config_base_dir=base_dir,
+                    package_only=package_templates_only,
+                )
+            except Exception as e:
+                console.print(f"[bold red]Template error for {tgt}:[/bold red] {e}")
+                raise typer.Exit(code=1) from e
+
+            context = DocumentContext(
+                config=config,
+                content_items=[],
+                toc_tree=[],
+                template_path=tmpl_path,
+                base_dir=base_dir,
+                target=tgt,
+            )
+
+            # Die Kaskade endet beim Zielformat (Ebene 3), und die Alert-Titel
+            # entstehen schon beim Markdown-Parsen. Die Pipeline laeuft deshalb
+            # pro Zielformat mit dessen Labels -- sonst haette ein
+            # <theme>/pdf/i18n.yaml auf "Hinweis" keine Wirkung.
+            try:
+                labels = context.labels
+            except LabelFileError as e:
+                console.print(f"[bold red]Label file error ({tgt}):[/bold red] {e}")
+                raise typer.Exit(code=1) from e
+
+            pipeline = MarkdownPipeline(config, base_dir=base_dir, labels=labels)
+            context.content_items, context.toc_tree = pipeline.process_document()
+
+            # Determine output file path
+            doc_slug = slugify(config.document.title, separator="_")
+            if output:
+                if output.is_dir() or str(output).endswith(("/", "\\")):
+                    out_file = output / f"{doc_slug}.{tgt}"
+                elif len(targets_to_build) > 1 and output.suffix != f".{tgt}":
+                    out_file = output.parent / f"{output.stem}.{tgt}"
+                else:
+                    out_file = output
+            else:
+                out_file = out_root / f"{doc_slug}.{tgt}"
+
+            try:
+                if tgt == "pdf":
+                    renderer = PDFRenderer()
+                else:
+                    renderer = HTMLRenderer()
+
+                out_result = renderer.render(context, out_file)
+                console.print(f"[bold green][OK][/bold green] {tgt.upper()} successfully generated: [cyan]{out_result}[/cyan]")
+            except UndefinedLabelError as e:
+                # Eigener Zweig, weil die Meldung mehrzeilig ist und Fundstelle
+                # samt durchsuchten Dateien nennt - die gehoert nicht hinter ein
+                # "Rendering error:" auf dieselbe Zeile gequetscht.
+                console.print(f"[bold red]Undefined label ({tgt}):[/bold red]")
+                console.print(str(e))
+                raise typer.Exit(code=1) from e
+            except Exception as e:
+                console.print(f"[bold red]Rendering error ({tgt}):[/bold red] {e}")
+                raise typer.Exit(code=1) from e
+
+
 @app.command(name="build")
 def build_cmd(
     config_file: Path = typer.Argument(
@@ -119,84 +308,16 @@ def build_cmd(
         )
     )
 
-    # Determine targets to build
-    targets_to_build: List[str] = []
-    target_clean = target.lower().strip()
-    if target_clean in ("all", "both"):
-        targets_to_build = ["pdf", "html"]
-    elif target_clean in ("pdf", "html"):
-        targets_to_build = [target_clean]
-    else:
-        console.print(f"[bold red]Error:[/bold red] Unknown target '{target}'. Choose 'pdf', 'html', or 'all'.")
-        raise typer.Exit(code=1)
-
+    targets_to_build = _parse_targets(target)
     effective_templates_dir = templates_dir or (Path(config.templates_dir) if config.templates_dir else None)
 
-    for tgt in targets_to_build:
-        with console.status(f"[bold green]Processing Markdown and rendering {tgt.upper()}...[/bold green]"):
-            try:
-                tmpl_path = resolve_template_path(
-                    target=tgt,
-                    theme=config.theme,
-                    custom_templates_dir=effective_templates_dir,
-                    config_base_dir=base_dir,
-                )
-            except Exception as e:
-                console.print(f"[bold red]Template error for {tgt}:[/bold red] {e}")
-                raise typer.Exit(code=1) from e
-
-            context = DocumentContext(
-                config=config,
-                content_items=[],
-                toc_tree=[],
-                template_path=tmpl_path,
-                base_dir=base_dir,
-                target=tgt,
-            )
-
-            # Die Kaskade endet beim Zielformat (Ebene 3), und die Alert-Titel
-            # entstehen schon beim Markdown-Parsen. Die Pipeline laeuft deshalb
-            # pro Zielformat mit dessen Labels -- sonst haette ein
-            # <theme>/pdf/i18n.yaml auf "Hinweis" keine Wirkung.
-            try:
-                labels = context.labels
-            except LabelFileError as e:
-                console.print(f"[bold red]Label file error ({tgt}):[/bold red] {e}")
-                raise typer.Exit(code=1) from e
-
-            pipeline = MarkdownPipeline(config, base_dir=base_dir, labels=labels)
-            context.content_items, context.toc_tree = pipeline.process_document()
-
-            # Determine output file path
-            doc_slug = slugify(config.document.title, separator="_")
-            if output:
-                if output.is_dir() or str(output).endswith(("/", "\\")):
-                    out_file = output / f"{doc_slug}.{tgt}"
-                elif len(targets_to_build) > 1 and output.suffix != f".{tgt}":
-                    out_file = output.parent / f"{output.stem}.{tgt}"
-                else:
-                    out_file = output
-            else:
-                out_file = base_dir / f"{doc_slug}.{tgt}"
-
-            try:
-                if tgt == "pdf":
-                    renderer = PDFRenderer()
-                else:
-                    renderer = HTMLRenderer()
-
-                out_result = renderer.render(context, out_file)
-                console.print(f"[bold green][OK][/bold green] {tgt.upper()} successfully generated: [cyan]{out_result}[/cyan]")
-            except UndefinedLabelError as e:
-                # Eigener Zweig, weil die Meldung mehrzeilig ist und Fundstelle
-                # samt durchsuchten Dateien nennt - die gehoert nicht hinter ein
-                # "Rendering error:" auf dieselbe Zeile gequetscht.
-                console.print(f"[bold red]Undefined label ({tgt}):[/bold red]")
-                console.print(str(e))
-                raise typer.Exit(code=1) from e
-            except Exception as e:
-                console.print(f"[bold red]Rendering error ({tgt}):[/bold red] {e}")
-                raise typer.Exit(code=1) from e
+    _render_document(
+        config=config,
+        base_dir=base_dir,
+        targets_to_build=targets_to_build,
+        output=output,
+        effective_templates_dir=effective_templates_dir,
+    )
 
 
 @app.command(name="init")
@@ -206,119 +327,185 @@ def init_cmd(
         help="Directory to initialize.",
     ),
     title: str = typer.Option(
-        "Neues Dokument",
+        "New Document",
         "--title",
         "-t",
         help="Document title.",
     ),
 ):
     """
-    Initializes a new markpublish project with sample structure and chapters.
+    Creates a minimal markpublish project: one config file and one chapter.
+
+    Deliberately small. The scaffold is meant to be deleted as soon as real
+    content arrives, so it demonstrates nothing it does not have to -- the
+    reference lives in 'markpublish cheatsheet', which stays available after
+    the last scaffold file is gone.
     """
     target_dir = target_dir.resolve()
     target_dir.mkdir(parents=True, exist_ok=True)
 
-    chapters_dir = target_dir / "chapters"
-    chapters_dir.mkdir(exist_ok=True)
-
-    # 1. Sample YAML
     yaml_content = f"""# markpublish.yaml
+#
+# Minimal starting point. For the full reference -- every key of this file, and
+# how themes work -- run:
+#
+#     markpublish cheatsheet
+#
 document:
   title: "{title}"
-  subtitle: "Erstellt mit markpublish"
-  summary: "Kurze Zusammenfassung des Dokuments."
-  author: "Autor Name"
+  author: "Your Name"
   date: "auto"
-  version: "1.0.0"
-  language: "de"
+  language: "en"
 
-  cover: true
-  toc: true
-  autonum_type: "decimal"
-  header: true
-  footer: true
+  # A one-page draft needs neither of these. Switch them on once the document
+  # has grown enough to need a way in.
+  cover: false
+  toc: false
 
 theme: "default"
 
 chapters:
-  - file: "chapters/01_introduction.md"
-    title: "Einleitung"
-    summary: "Einführung in das Thema."
-    divider_page: true
-    toc: false
-
-  - file: "chapters/02_architecture.md"
-    title: "Hauptteil"
-    summary: "Detaillierte Erläuterungen und Architektur."
-    divider_page: true
-    toc: 2
-    chapters:
-      - file: "chapters/02_1_details.md"
-        title: "Detailaspekte"
-
-  - part: "Anhänge"
-    summary: "Glossar und Zusatzinformationen."
-    divider_page: true
-    autonum: "none"
-    chapters:
-      - file: "chapters/03_appendix.md"
-        title: "Anhang A: Glossar"
+  - file: "next-steps.md"
+    title: "Next steps"
 """
     yaml_file = target_dir / "markpublish.yaml"
     if not yaml_file.exists():
         yaml_file.write_text(yaml_content, encoding="utf-8")
 
-    # 2. Sample Chapters
-    c1 = chapters_dir / "01_introduction.md"
-    if not c1.exists():
-        c1.write_text("""# Einleitung
+    chapter = target_dir / "next-steps.md"
+    if not chapter.exists():
+        chapter.write_text("""# Next steps
 
-Willkommen zu Ihrem neuen Dokument. Dieses Projekt wurde mit **markpublish** erstellt.
+This project is two files: `markpublish.yaml` and this chapter. Replace both
+with your own content -- nothing here is needed once you start writing.
 
-## Zielsetzung
-Hier beschreiben Sie die Ziele und Anforderungen.
+## Build it
 
-!!! note "Hinweis"
-    Admonitions und Callouts werden voll unterstützt.
-""", encoding="utf-8")
-
-    c2 = chapters_dir / "02_architecture.md"
-    if not c2.exists():
-        c2.write_text("""# Hauptteil
-
-In diesem Kapitel beschreiben Sie die Kerninhalte.
-
-## Übersicht
-Die Systemlandschaft gliedert sich in modulare Komponenten.
-
-```python
-def publish(doc):
-    print(f"Publishing {doc}...")
+```bash
+markpublish build                 # PDF
+markpublish build --target html   # standalone HTML
+markpublish build --target all    # both
 ```
-""", encoding="utf-8")
 
-    c2_1 = chapters_dir / "02_1_details.md"
-    if not c2_1.exists():
-        c2_1.write_text("""# Detailaspekte
+## Look things up
 
-Dies ist ein hierarchisches Unterkapitel.
+```bash
+markpublish cheatsheet
+```
 
-### Spezifische Konfiguration
-Hier folgen weitere Details.
-""", encoding="utf-8")
+Renders a two-page reference: every key of `markpublish.yaml` on page one,
+themes and templates on page two. It is generated by the version you have
+installed, so it cannot drift out of date.
 
-    c3 = chapters_dir / "03_appendix.md"
-    if not c3.exists():
-        c3.write_text("""# Anhang A: Glossar
+## Add a chapter
 
-| Begriff | Erklärung |
-| :--- | :--- |
-| **markpublish** | Modulares Markdown Publishing Tool |
-| **WeasyPrint** | CSS Paged Media PDF Engine |
+Write a Markdown file, then list it under `chapters:` in `markpublish.yaml`.
+Paths are relative to the config file:
+
+```yaml
+chapters:
+  - file: "next-steps.md"
+    title: "Next steps"
+  - file: "chapters/01_introduction.md"
+    title: "Introduction"
+```
+
+## Change the look
+
+```bash
+markpublish export-template default ./templates
+```
+
+Copies the built-in theme into your project, where markpublish picks it up
+automatically on the next build.
 """, encoding="utf-8")
 
     console.print(f"[bold green][OK][/bold green] Initialized markpublish project in [cyan]{target_dir}[/cyan]")
-    console.print("Run [bold cyan]markpublish build[/bold cyan] to generate your first PDF!")
+    console.print("Run [bold cyan]markpublish build[/bold cyan] to generate your first PDF.")
+    console.print("Run [bold cyan]markpublish cheatsheet[/bold cyan] for the two-page reference.")
+
+
+@app.command(name="cheatsheet")
+def cheatsheet_cmd(
+    lang: Optional[str] = typer.Option(
+        None,
+        "--lang",
+        "-l",
+        help="Language of the bundled source to render (default: en).",
+    ),
+    target: str = typer.Option(
+        "pdf",
+        "--target",
+        "-t",
+        help="Output target: 'pdf', 'html', or 'all'.",
+    ),
+    output: Optional[Path] = typer.Option(
+        None,
+        "--output",
+        "-o",
+        help="Custom output file or directory path. Defaults to the current directory.",
+    ),
+    theme: Optional[str] = typer.Option(
+        None,
+        "--theme",
+        help="Render with a theme of your own instead of the built-in one.",
+    ),
+    templates_dir: Optional[Path] = typer.Option(
+        None,
+        "--templates-dir",
+        help="Custom templates directory path.",
+    ),
+):
+    """
+    Renders the two-page reference for markpublish.yaml and themes.
+
+    The source ships inside the package and is rendered on demand, so the
+    result always matches the installed version -- and a successful run doubles
+    as proof that the rendering toolchain works. Only the finished document is
+    written; no sources land in your project.
+    """
+    _render_bundled_doc("cheatsheet", lang, target, output, theme, templates_dir)
+
+
+@app.command(name="manual")
+def manual_cmd(
+    lang: Optional[str] = typer.Option(
+        None,
+        "--lang",
+        "-l",
+        help="Language of the bundled source to render (default: en).",
+    ),
+    target: str = typer.Option(
+        "pdf",
+        "--target",
+        "-t",
+        help="Output target: 'pdf', 'html', or 'all'.",
+    ),
+    output: Optional[Path] = typer.Option(
+        None,
+        "--output",
+        "-o",
+        help="Custom output file or directory path. Defaults to the current directory.",
+    ),
+    theme: Optional[str] = typer.Option(
+        None,
+        "--theme",
+        help="Render with a theme of your own instead of the built-in one.",
+    ),
+    templates_dir: Optional[Path] = typer.Option(
+        None,
+        "--templates-dir",
+        help="Custom templates directory path.",
+    ),
+):
+    """
+    Renders the full user guide.
+
+    Same deal as 'cheatsheet': the source ships with the package, so the guide
+    describes the version you actually have rather than whatever was current
+    when someone last rebuilt a PDF. Use --lang to pick a translation.
+    """
+    _render_bundled_doc("manual", lang, target, output, theme, templates_dir)
 
 
 @app.command(name="templates")

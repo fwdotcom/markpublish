@@ -322,3 +322,105 @@ def embedded_fonts(pdf_path: Path):
         except Exception:
             continue
     return sorted(name.decode() for name in found)
+
+
+#: Ein Kapitel ohne Zwischenueberschriften - fuer die Umbruchtests genuegt das.
+#: Bewusst NICHT CHAPTER_MD: diese Datei definiert weiter oben bereits eine
+#: Vorlage dieses Namens, aus der build_pages seine Kapitel baut. Eine zweite
+#: Zuweisung auf Modulebene wuerde sie ueberschreiben - den dortigen Tests
+#: fehlten dann saemtliche Zwischenueberschriften.
+BREAK_CHAPTER_MD = "# {title}\n\nText.\n"
+
+
+def _render_pages(tmp_path: Path, yaml_body: str):
+    """Baut ein Dokument und gibt die gerenderten PDF-Seiten zurueck."""
+    # Lokal importiert wie in den uebrigen Tests dieser Datei: WeasyPrint zieht
+    # beim Import die GTK-Laufzeit nach.
+    from markpublish.renderers.pdf import PDFRenderer, _load_weasyprint
+
+    (tmp_path / "markpublish.yaml").write_text(yaml_body, encoding="utf-8")
+
+    config = load_config(tmp_path / "markpublish.yaml")
+    tmpl = resolve_template_path(target="pdf", theme=config.theme, config_base_dir=tmp_path)
+    context = DocumentContext(
+        config=config,
+        content_items=[],
+        toc_tree=[],
+        template_path=tmpl,
+        base_dir=tmp_path,
+        target="pdf",
+    )
+    pipeline = MarkdownPipeline(config, base_dir=tmp_path, labels=context.labels)
+    context.content_items, context.toc_tree = pipeline.process_document()
+
+    html = PDFRenderer().render_template(context, template_name="layout.html")
+    html_cls, error = _load_weasyprint()
+    assert html_cls is not None, error
+    return html_cls(string=html, base_url=str(tmp_path)).render().pages
+
+
+def _page_text(page) -> str:
+    out = []
+
+    def walk(box):
+        if getattr(box, "text", None) and box.text.strip():
+            out.append(box.text.strip())
+        for child in getattr(box, "all_children", lambda: [])():
+            walk(child)
+
+    walk(page._page_box)
+    return " ".join(out)
+
+
+def test_chapters_start_on_a_new_page_by_default(tmp_path: Path):
+    """
+    Ein Kapitel beginnt oben auf einer Seite. Ohne diese Regel liefen kurze
+    Kapitel ineinander, was in einem gesetzten Dokument niemand erwartet.
+    """
+    for name in ("a", "b", "c"):
+        (tmp_path / f"{name}.md").write_text(BREAK_CHAPTER_MD.format(title=name.upper()), encoding="utf-8")
+
+    pages = _render_pages(
+        tmp_path,
+        'document:\n  title: "T"\n  cover: false\n  toc: false\nchapters:\n'
+        '  - file: "a.md"\n  - file: "b.md"\n  - file: "c.md"\n',
+    )
+
+    assert len(pages) == 3
+    # Kein Leerblatt am Anfang: der Umbruch vor dem ersten Kapitel darf keine
+    # Seite erzeugen.
+    assert "A" in _page_text(pages[0])
+
+
+def test_break_before_none_lets_chapters_run_on(tmp_path: Path):
+    """Der Schalter muss den Umbruch wirklich abstellen, nicht nur verschieben."""
+    for name in ("a", "b"):
+        (tmp_path / f"{name}.md").write_text(BREAK_CHAPTER_MD.format(title=name.upper()), encoding="utf-8")
+
+    pages = _render_pages(
+        tmp_path,
+        'document:\n  title: "T"\n  cover: false\n  toc: false\nchapters:\n'
+        '  - file: "a.md"\n  - file: "b.md"\n    break_before: "none"\n',
+    )
+
+    assert len(pages) == 1
+    text = _page_text(pages[0])
+    assert "A" in text and "B" in text
+
+
+def test_a_divider_page_does_not_add_a_blank_page(tmp_path: Path):
+    """
+    Trennseite und Kapitelumbruch fallen auf dieselbe Stelle. Verschmelzen sie
+    nicht, steht vor jeder Trennseite ein Leerblatt - im PDF sofort sichtbar,
+    im Code leicht zu uebersehen.
+    """
+    (tmp_path / "a.md").write_text(BREAK_CHAPTER_MD.format(title="A"), encoding="utf-8")
+
+    pages = _render_pages(
+        tmp_path,
+        'document:\n  title: "T"\n  cover: false\n  toc: false\nchapters:\n'
+        '  - file: "a.md"\n    title: "A"\n    break_before: "divider"\n',
+    )
+
+    assert len(pages) == 2, "Trennseite und Kapitelseite - dazwischen nichts"
+    assert _page_text(pages[0]).strip(), "die erste Seite ist die Trennseite, nicht leer"

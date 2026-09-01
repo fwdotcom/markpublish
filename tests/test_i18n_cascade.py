@@ -217,7 +217,7 @@ templates_dir: "./templates"
 chapters:
   - file: "chapters/01.md"
     title: "First"
-    divider_page: true
+    break_before: "divider"
     toc: 2
 """
 

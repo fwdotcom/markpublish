@@ -63,11 +63,20 @@ def get_common_templates_dir(
 def _search_bases(
     custom_templates_dir: Optional[Union[str, Path]] = None,
     config_base_dir: Optional[Path] = None,
+    package_only: bool = False,
 ) -> List[Tuple[str, Path]]:
     """
     Returns the template base directories in resolution order:
     User > Common/Project > Package. Duplicates are dropped.
+
+    `package_only` skips the User- and Projekt-Ebene und laesst ausschliesslich
+    die mitgelieferten Themes zu. Gedacht fuer Dokumente, die das Programm
+    selbst ausliefert: die duerfen nicht daran scheitern, dass im
+    Arbeitsverzeichnis ein halbfertiges eigenes Theme liegt.
     """
+    if package_only:
+        return [("package", get_package_templates_dir())]
+
     bases: List[Tuple[str, Path]] = [
         ("user", get_user_templates_dir()),
         ("user", Path.home() / ".markpublish" / "templates"),
@@ -99,6 +108,7 @@ def resolve_template_path(
     theme: str,
     custom_templates_dir: Optional[Union[str, Path]] = None,
     config_base_dir: Optional[Path] = None,
+    package_only: bool = False,
 ) -> Path:
     """
     Resolves the theme template directory for a given target format.
@@ -115,6 +125,7 @@ def resolve_template_path(
         theme: Theme name, e.g. "default"
         custom_templates_dir: Optional explicit templates directory path
         config_base_dir: Base directory of the config file
+        package_only: Ignore user and project themes, use the built-ins only
 
     Returns:
         Resolved Path to template directory.
@@ -125,7 +136,7 @@ def resolve_template_path(
     target = target.lower().strip()
     theme = theme.lower().strip()
 
-    bases = _search_bases(custom_templates_dir, config_base_dir)
+    bases = _search_bases(custom_templates_dir, config_base_dir, package_only)
 
     # 1. Aktuelles Layout: <base>/<theme>/<target>
     for _, base_path in bases:

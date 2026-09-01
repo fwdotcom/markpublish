@@ -20,13 +20,13 @@ chapters:
   - file: "chapters/01_introduction.md"
     title: "Einleitung"
     summary: "Einführung in das Thema."
-    divider_page: true
+    break_before: "divider"
     toc: false
 
   - file: "chapters/02_architecture.md"
     title: "Hauptteil"
     summary: "Detaillierte Erläuterungen und Architektur."
-    divider_page: true
+    break_before: "divider"
     toc: 2
     chapters:
       - file: "chapters/02_1_details.md"
@@ -34,7 +34,7 @@ chapters:
 
   - part: "Anhänge"
     summary: "Glossar und Zusatzinformationen."
-    divider_page: true
+    break_before: "divider"
     autonum: "none"
     chapters:
       - file: "chapters/03_appendix.md"

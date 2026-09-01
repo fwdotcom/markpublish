@@ -22,7 +22,7 @@ Ein modernes, modulares und erweiterbares Open-Source-Publishing-Tool für Markd
   - Übergeordnete Parts/Blöcke (`part: "Anhänge"`) mit eigener Trennseite und Wiederholung in Kopf-/Fußzeilen.
 - **Trennseiten & Deckblatt**:
   - `cover: true/false`
-  - `divider_page: true/false` je Kapitel oder Part.
+  - `break_before: page|divider|none` je Kapitel oder Part.
 - **Inhaltsverzeichnisse (TOC)**:
   - Globales TOC (Baumstruktur aus Kapitelhierarchie).
   - Lokales Kapitel-TOC (`toc: true` oder `toc: 2` mit maximaler Tiefe).
@@ -63,42 +63,38 @@ chapters:
   - file: "chapters/01_introduction.md"
     title: "Einleitung & Motivation"
     summary: "Überblick über die Ziele und den Kontext des Projekts."
-    divider_page: true           # Separate Trennseite vor dem Kapitel (true/false)
+    break_before: "divider"      # page (Standard) | divider | none
     toc: false                   # Kein lokales Kapitel-TOC
 
   # Hauptkapitel mit Unterkapiteln (Hierarchie durch Einrückung)
   - file: "chapters/02_architecture.md"
     title: "Systemarchitektur"
     summary: "Detaillierte Darstellung der Kernkomponenten."
-    divider_page: true
+    break_before: "divider"
     toc: 2                       # Lokales Kapitel-TOC bis Tiefe 2
     chapters:
       - file: "chapters/02_1_backend.md"
         title: "Backend Services"
-        divider_page: false
       - file: "chapters/02_2_frontend.md"
         title: "Frontend Client"
-        divider_page: false
 
   # Weiteres Hauptkapitel
   - file: "chapters/03_security.md"
     title: "Sicherheit & Compliance"
-    divider_page: true
+    break_before: "divider"
 
   # ============================================================
   # OBERSTER BLOCK / PART (z. B. "Anhänge")
   # ============================================================
   - part: "Anhänge"              # Übergeordneter Block/Part
     summary: "Ergänzende Spezifikationen, Glossar und Referenztabellen."
-    divider_page: true           # Eigene Trennseite "Anhänge" vor dem Block
+    break_before: "divider"      # Eigene Trennseite "Anhänge" vor dem Block
     autonum: "none"              # Keine Ziffer für diesen Block
     chapters:
       - file: "chapters/appendix_glossar.md"
         title: "Anhang A: Glossar"
-        divider_page: false
       - file: "chapters/appendix_tables.md"
         title: "Anhang B: Referenztabellen"
-        divider_page: false
 ```
 
 ---

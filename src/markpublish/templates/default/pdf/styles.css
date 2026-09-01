@@ -195,6 +195,17 @@
   border-left: 12mm solid #2563eb;
 }
 
+/* Kapitel beginnen oben auf einer Seite (chapters: break_before, Standard 'page').
+
+   Der Umbruch sitzt auf dem Kapitel selbst, nicht auf dessen Ueberschrift:
+   traegt das Kapitel eine Trennseite, faellt deren eigener Umbruch auf
+   dieselbe Stelle und beide verschmelzen zu einem - sonst bliebe eine leere
+   Seite davor stehen. Vor dem ersten Kapitel greift die Regel nicht, ein
+   Umbruch am Dokumentanfang erzeugt keine Seite. */
+.chapter-starts-page {
+  page-break-before: always;
+}
+
 .divider-page-container {
   page: divider-page;
   page-break-before: always;

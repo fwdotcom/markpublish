@@ -10,7 +10,7 @@ from typing import Any, Dict, List, Mapping, Optional, Tuple
 import frontmatter
 import markdown
 
-from markpublish.config.models import AutonumType, ChapterItem, MarkpublishConfig
+from markpublish.config.models import AutonumType, BreakBefore, ChapterItem, MarkpublishConfig
 from markpublish.markdown.alerts import GitHubAlertsExtension
 from markpublish.markdown.assets import rewrite_html_asset_paths
 from markpublish.markdown.toc import (
@@ -110,7 +110,7 @@ class ContentItem:
         slug: str,
         is_part: bool = False,
         summary: Optional[str] = None,
-        divider_page: bool = False,
+        break_before: BreakBefore = BreakBefore.PAGE,
         number_prefix: Optional[str] = None,
         html_content: str = "",
         toc_config: Any = False,
@@ -121,12 +121,22 @@ class ContentItem:
         self.slug = slug
         self.is_part = is_part
         self.summary = summary
-        self.divider_page = divider_page
+        self.break_before = break_before
         self.number_prefix = number_prefix
         self.html_content = html_content
         self.toc = toc_config
         self.local_toc_items = local_toc_items or []
         self.children: List[ContentItem] = []
+
+    @property
+    def has_divider_page(self) -> bool:
+        """True, wenn dem Kapitel eine eigene Trennseite vorangeht."""
+        return self.break_before == BreakBefore.DIVIDER
+
+    @property
+    def starts_new_page(self) -> bool:
+        """True, wenn das Kapitel oben auf einer Seite beginnt."""
+        return self.break_before != BreakBefore.NONE
 
 
 def build_toc_tree(flat_nodes: List[TOCNode]) -> List[TOCNode]:
@@ -184,7 +194,7 @@ class MarkdownPipeline:
                     slug=part_slug,
                     is_part=True,
                     summary=item_cfg.summary,
-                    divider_page=item_cfg.divider_page,
+                    break_before=item_cfg.break_before,
                     number_prefix=None,
                     html_content="",
                 )
@@ -201,7 +211,11 @@ class MarkdownPipeline:
 
                 # Process child chapters in part
                 for child_cfg in item_cfg.chapters:
-                    child_item, child_toc_nodes = self._process_chapter(child_cfg, base_level=2)
+                    child_item, child_toc_nodes = self._process_chapter(
+                        child_cfg,
+                        base_level=2,
+                        inherited_toc_depth=item_cfg.toc_depth,
+                    )
                     part_item.children.append(child_item)
                     for n in child_toc_nodes:
                         part_toc_node.children.append(n)
@@ -217,15 +231,27 @@ class MarkdownPipeline:
         global_toc_tree = build_toc_tree(all_toc_nodes)
         return content_items, global_toc_tree
 
-    def _process_chapter(self, chapter_cfg: ChapterItem, base_level: int = 1) -> Tuple[ContentItem, List[TOCNode]]:
+    def _process_chapter(
+        self,
+        chapter_cfg: ChapterItem,
+        base_level: int = 1,
+        inherited_toc_depth: Optional[int] = None,
+    ) -> Tuple[ContentItem, List[TOCNode]]:
         raw_md = ""
         file_base_dir = self.base_dir
 
         # 1. Read file and extract frontmatter
         title = chapter_cfg.title
         summary = chapter_cfg.summary
-        divider_page = chapter_cfg.divider_page
+        break_before = chapter_cfg.break_before
         toc_config = chapter_cfg.toc
+
+        # Ein Part gibt seine Tiefe an alle Kapitel darunter weiter, ein Kapitel
+        # an seine Unterkapitel. So genuegt eine Zeile am Anhang-Part, um den
+        # gesamten Anhang im Inhaltsverzeichnis flach zu halten.
+        effective_toc_depth = (
+            chapter_cfg.toc_depth if chapter_cfg.toc_depth is not None else inherited_toc_depth
+        )
 
         if chapter_cfg.file:
             file_path = (self.base_dir / chapter_cfg.file).resolve()
@@ -238,8 +264,8 @@ class MarkdownPipeline:
                         title = str(post.metadata["title"])
                     if "summary" in post.metadata and not summary:
                         summary = str(post.metadata["summary"])
-                    if "divider_page" in post.metadata:
-                        divider_page = bool(post.metadata["divider_page"])
+                    if "break_before" in post.metadata:
+                        break_before = BreakBefore(str(post.metadata["break_before"]).lower().strip())
 
         # Determine autonum override
         autonum_override = None
@@ -293,18 +319,33 @@ class MarkdownPipeline:
             slug=slug,
             is_part=False,
             summary=summary,
-            divider_page=divider_page,
+            break_before=break_before,
             number_prefix=number_prefix,
             html_content=processed_html,
             toc_config=toc_config,
             local_toc_items=local_toc_items,
         )
 
+        # Beitrag zum globalen Inhaltsverzeichnis kuerzen. Gefiltert wird nur
+        # ueber die eigenen Ueberschriften - die Kinder haben ihre eigene Tiefe
+        # bereits angewandt, jeweils relativ zu sich selbst. Wuerde man ueber
+        # die zusammengelegte Liste filtern, fiele mit `toc_depth: 1` auch jedes
+        # Unterkapitel weg, statt nur dessen Zwischenueberschriften.
+        if effective_toc_depth is not None:
+            max_level = base_level + effective_toc_depth - 1
+            global_toc_nodes = [n for n in toc_nodes if n.level <= max_level]
+        else:
+            global_toc_nodes = list(toc_nodes)
+
         # Process recursive child chapters
         for sub_child in chapter_cfg.chapters:
-            sub_item, sub_tocs = self._process_chapter(sub_child, base_level=base_level + 1)
+            sub_item, sub_tocs = self._process_chapter(
+                sub_child,
+                base_level=base_level + 1,
+                inherited_toc_depth=effective_toc_depth,
+            )
             item.children.append(sub_item)
-            toc_nodes.extend(sub_tocs)
+            global_toc_nodes.extend(sub_tocs)
 
-        return item, toc_nodes
+        return item, global_toc_nodes
 

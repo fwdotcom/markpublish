@@ -1,0 +1,25 @@
+# Source of the two-page reference that "markpublish cheatsheet" renders.
+#
+# It ships inside the package and is rendered on demand, so it always matches
+# the installed version. Keep it at two pages - that is the whole point.
+document:
+  title: "markpublish Cheat Sheet"
+  subtitle: "Configuration and template reference"
+  author: null
+  date: "auto"
+  language: "en"
+
+  cover: false
+  toc: false
+  autonum_type: "none"
+  header: true
+  footer: true
+
+theme: "default"
+
+chapters:
+  - file: "01_config.md"
+    title: "markpublish.yaml"
+
+  - file: "02_templates.md"
+    title: "Templates and themes"
