@@ -6,11 +6,19 @@
 
 | Befehl | Kurzbeschreibung |
 | :--- | :--- |
-| `markpublish build` | Kompiliert das Dokument zu PDF und/oder HTML |
 | `markpublish init` | Erzeugt ein neues Projekt mit Beispieldateien |
+| `markpublish build` | Kompiliert das Dokument zu PDF und/oder HTML |
 | `markpublish templates` | Listet alle gefundenen Templates und deren Quellen auf |
 | `markpublish export-template` | Exportiert ein Template zur individuellen Anpassung |
 | `markpublish labels` | Zeigt die aufgelösten statischen Texte und ihre Herkunft |
+
+## `markpublish init`
+
+Initialisiert ein neues Projektverzeichnis.
+
+```bash
+markpublish init [ZIELORDNER] [--title "Titel"]
+```
 
 ## `markpublish build`
 
@@ -36,14 +44,6 @@ markpublish build markpublish.yaml -t html -o dist/
 
 # Benutzerdefiniertes Template-Verzeichnis nutzen
 markpublish build --templates-dir /shared/company-templates
-```
-
-## `markpublish init`
-
-Initialisiert ein neues Projektverzeichnis.
-
-```bash
-markpublish init [ZIELORDNER] [--title "Titel"]
 ```
 
 ## `markpublish templates`
