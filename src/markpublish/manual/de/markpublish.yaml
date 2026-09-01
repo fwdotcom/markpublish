@@ -55,9 +55,6 @@ chapters:
     break_before: "divider"
     chapter_toc: "none"
 
-  # ============================================================
-  # OBERSTER BLOCK: ANHÄNGE
-  # ============================================================
   - part: "Anhänge"
     summary: "Vollständige Spezifikations-Tabellen, Troubleshooting und Best Practices."
     break_before: "divider"

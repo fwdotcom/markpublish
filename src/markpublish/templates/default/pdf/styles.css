@@ -443,13 +443,18 @@ strong, b {
   margin: 0;
 }
 
+/* Jeder Block der obersten Ebene - Kapitel wie Part - setzt sich vom
+   vorhergehenden durch genau eine leere Rasterzeile ab. Das Raster bleibt
+   dadurch intakt, die Gliederung wird trotzdem auf einen Blick lesbar. Vor
+   dem ersten Eintrag steht keine Luft. */
+.toc-page > .toc-list > .toc-item + .toc-item {
+  margin-top: var(--toc-line);
+}
+
 .toc-item-part {
   font-weight: 600;
   color: #0f172a;
   border-bottom: 0.5pt solid #e2e8f0;
-  /* Genau eine Rasterzeile Luft vor einem Block - das Raster bleibt intakt,
-     der Absatz ist trotzdem sichtbar. */
-  margin-top: var(--toc-line);
 }
 
 .toc-item-h1 {

@@ -29,6 +29,12 @@ PX_PER_MM = 96 / 25.4
 #: Muss zu --toc-line in default/pdf/styles.css passen.
 TOC_LINE_MM = 6.0
 
+#: Ein Block der obersten Ebene - ein Kapitel ohne Elternteil oder ein Part.
+#: Nur diese setzen sich im Verzeichnis durch eine Leerzeile voneinander ab;
+#: Parts gibt es ausschliesslich dort, und ein Kapitel unter einem Part liegt
+#: bereits auf Ebene 2.
+TOP_LEVEL_CLASSES = {"toc-item-h1", "toc-item-part"}
+
 YAML = """
 document:
   title: "Raster Test"
@@ -151,33 +157,39 @@ def toc_steps(pages):
 
 def test_toc_uses_one_uniform_line_height(tmp_path: Path):
     """
-    Jeder Eintrag belegt genau eine Rasterzeile - unabhaengig von der
-    Gliederungsebene.
+    Innerhalb eines Blocks belegt jeder Eintrag genau eine Rasterzeile -
+    unabhaengig von der Gliederungsebene.
     """
     steps = toc_steps(build_pages(tmp_path))
     assert len(steps) > 8, f"Zu wenige TOC-Eintraege zum Messen: {steps}"
 
-    levels = {c for _, css in steps for c in css if "toc-item-part" not in c}
+    levels = {c for _, css in steps for c in css if c.startswith("toc-item-h")}
     assert len(levels) >= 3, f"Test braucht mehrere Gliederungsebenen: {levels}"
 
-    normal = [step for step, css in steps if "toc-item-part" not in css]
-    assert set(normal) == {TOC_LINE_MM}, (
-        f"Uneinheitliche Zeilenabstaende im TOC: {sorted(set(normal))}"
+    inner = [step for step, css in steps if not css & TOP_LEVEL_CLASSES]
+    assert set(inner) == {TOC_LINE_MM}, (
+        f"Uneinheitliche Zeilenabstaende im TOC: {sorted(set(inner))}"
     )
 
 
-def test_toc_part_entry_keeps_the_grid(tmp_path: Path):
+def test_toc_separates_the_top_level_blocks(tmp_path: Path):
     """
-    Ein Part-Eintrag darf sich absetzen - aber um ein Vielfaches der
-    Rasterzeile, nicht um einen krummen Wert.
+    Vor jedem Block der obersten Ebene steht genau eine leere Rasterzeile -
+    beim Part wie beim Kapitel. Der Abstand bleibt damit auf dem Raster.
     """
     steps = toc_steps(build_pages(tmp_path))
-    part_steps = [step for step, css in steps if "toc-item-part" in css]
-    assert part_steps, "Kein Part-Eintrag im Inhaltsverzeichnis gefunden"
-    for step in part_steps:
-        multiple = step / TOC_LINE_MM
-        assert multiple == pytest.approx(round(multiple), abs=0.01), (
-            f"Part-Abstand {step}mm liegt nicht auf dem {TOC_LINE_MM}mm-Raster"
+    top = [(step, css) for step, css in steps if css & TOP_LEVEL_CLASSES]
+    assert top, "Kein Block der obersten Ebene im Inhaltsverzeichnis gefunden"
+
+    seen = set().union(*(css for _, css in top))
+    assert TOP_LEVEL_CLASSES <= seen, (
+        f"Der Test misst nur eine Sorte Block der obersten Ebene: {seen}"
+    )
+
+    for step, css in top:
+        assert step == pytest.approx(2 * TOC_LINE_MM, abs=0.01), (
+            f"Block der obersten Ebene {sorted(css)} steht {step}mm tiefer, "
+            f"erwartet sind {2 * TOC_LINE_MM}mm (eine Leerzeile im Raster)"
         )
 
 

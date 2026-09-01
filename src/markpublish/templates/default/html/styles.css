@@ -275,9 +275,14 @@ a:hover { text-decoration: underline; }
   font-size: 0.9rem;
 }
 
+/* Wie im PDF: die Bloecke der obersten Ebene werden voneinander durch eine
+   Leerzeile getrennt, vor dem ersten steht keine. */
+.sidebar-nav > .toc-list > .toc-item + .toc-item {
+  margin-top: 1rem;
+}
+
 .toc-item-part {
   font-weight: 700;
-  margin-top: 1rem;
   color: #0f172a;
 }
 
