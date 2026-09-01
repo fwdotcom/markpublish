@@ -6,7 +6,10 @@
     {% for node in nodes %}
       {% if node.is_part %}
         <li class="toc-item toc-item-part">
-          <div class="toc-part-title">{{ node.title }}</div>
+          <a href="#{{ node.slug }}" class="toc-link toc-part-link">
+            <span class="toc-text toc-part-title">{{ node.title }}</span>
+            <span class="toc-leader"></span>
+          </a>
           {% if node.children %}
             {{ toc_entries(node.children) }}
           {% endif %}

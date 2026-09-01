@@ -120,41 +120,41 @@ document:
 theme: "default"
 templates_dir: "./templates"     # Optional: custom shared templates directory
 
-# Chapters & Overarching Parts
-chapters:
-  # Level 1 Chapter
-  - file: "chapters/01_introduction.md"
-    title: "Introduction"
-    summary: "Scope and motivation."
-    break_before: "divider"      # Dedicated divider/separator page
-    chapter_toc: "none"
-
-  # Level 1 Chapter with Nested Sub-chapters
-  - file: "chapters/02_architecture.md"
-    title: "Core Architecture"
-    summary: "System components and flows."
-    break_before: "divider"
-    chapter_toc: 2               # Local chapter TOC up to depth 2
+# Parts and Chapters (hierarchical structure)
+parts:
+  # Main part (no part divider page, chapters listed directly in TOC)
+  - title: "Main"
+    break_before: "none"
+    document_toc: "none"
     chapters:
-      # Level 2 (2.1)
-      - file: "chapters/02_1_backend.md"
-        title: "Backend Services"
+      - file: "chapters/01_introduction.md"
+        title: "Introduction"
+        summary: "Scope and motivation."
+        break_before: "divider"      # Dedicated divider/separator page
+        chapter_toc: "none"
 
-      # Level 2 (2.2)
-      - file: "chapters/02_2_frontend.md"
-        title: "Frontend Application"
-        break_before: "none"     # Runs on from the previous chapter
+      - file: "chapters/02_architecture.md"
+        title: "Core Architecture"
+        summary: "System components and flows."
+        break_before: "divider"
+        chapter_toc: 2               # Local chapter TOC up to depth 2
 
   # Overarching Part / Section (e.g. Appendices)
-  - part: "Appendices"
+  - title: "Appendices"
     summary: "Glossary and reference tables."
-    break_before: "divider"      # Dedicated Part separator page
-    autonum: "none"
-    document_toc: 1              # Appendices enter the front TOC by title only
+    break_before: "divider"          # Dedicated Part separator page
+    autonum_from_level: 2            # Number sub-headings (A.1, A.2)
+    document_toc: 2                  # Include down to depth 2 in front TOC
     chapters:
       - file: "chapters/appendix_a.md"
-        title: "Appendix A: Glossary"
+        title: "Appendix A: Reference"
+        autonum_prefix: "A."
+      - file: "chapters/appendix_b.md"
+        title: "Appendix B: Troubleshooting"
+        autonum_prefix: "B."
 ```
+
+For simple documents (e.g. leaflets or short reports), the `parts:` layer is optional; you can also write `chapters: [...]` directly at the top level.
 
 `break_before` decides how far a chapter is set off from the one before it, on a
 single axis: `page` (the default) starts it at the top of a fresh page,
@@ -163,11 +163,11 @@ single axis: `page` (the default) starts it at the top of a fresh page,
 A document has two tables of contents and one key each, written the same way in
 the `document` block and on a chapter: `document_toc` for the large one at the
 front, `chapter_toc` for the small ones on the divider pages. Under `document`
-they set the default, on a chapter they override it. Both take `none`, `full` or
+they set the default, on a chapter or part they override it. Both take `none`, `full` or
 a depth counted from the chapter's own heading, so `document_toc: 1` contributes
 the chapter title and nothing below it.
 
-`document_toc`, `autonum`, and `autonum_from_level` (e.g. `2` to number sub-headings while leaving chapter titles unnumbered, with optional `autonum_prefix`) are inherited downwards, which is why one line on the `Appendices` part configures every appendix at once -- and resets counters per chapter. `chapter_toc` is not chained; it falls back to `document.chapter_toc`, so the common case is one line at the top instead of one per chapter.
+`document_toc`, `autonum_style`, `autonum_from_level`, and `autonum_prefix` are inherited downwards from a part, which is why one line on the `Appendices` part configures every appendix at once. `chapter_toc` is not chained; it falls back to `document.chapter_toc`.
 
 ---
 

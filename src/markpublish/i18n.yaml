@@ -24,6 +24,7 @@ en:
   toc_title: "Table of Contents"
   toc_sidebar: "Contents"
   chapter_toc_title: "In this chapter"
+  part_toc_title: "In this part"
 
   # Marken auf den Trennseiten
   chapter: "Chapter"
@@ -51,6 +52,7 @@ de:
   toc_title: "Inhaltsverzeichnis"
   toc_sidebar: "Inhalt"
   chapter_toc_title: "Inhalt dieses Kapitels"
+  part_toc_title: "Inhalt dieses Abschnitts"
 
   chapter: "Kapitel"
   part: "Teil"

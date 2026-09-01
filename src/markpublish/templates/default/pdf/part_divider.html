@@ -1,8 +1,30 @@
 <div class="divider-page-container part-divider-container">
   <div class="part-divider">
     <h1 class="part-title">{{ part.title }}</h1>
+    {% if part.subtitle %}
+      <div class="part-subtitle">{{ part.subtitle }}</div>
+    {% endif %}
     {% if part.summary %}
       <div class="part-summary">{{ part.summary }}</div>
+    {% endif %}
+
+    {# Lokales Part-TOC falls aktiviert #}
+    {% if part.part_toc and part.local_toc_items %}
+      <div class="local-toc">
+        <div class="local-toc-title">{{ labels.part_toc_title }}</div>
+        <ul class="toc-list">
+          {% for toc_item in part.local_toc_items %}
+            <li class="toc-item toc-item-h{{ toc_item.level }}">
+              <a href="#{{ toc_item.slug }}" class="toc-link">
+                <span class="toc-text">
+                  {% if toc_item.number %}{{ toc_item.number }} {% endif %}{{ toc_item.title }}
+                </span>
+                <span class="toc-leader"></span>
+              </a>
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
     {% endif %}
   </div>
 </div>

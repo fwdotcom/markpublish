@@ -490,7 +490,7 @@ def test_mapping_methods_are_not_mistaken_for_labels(tmp_path: Path):
 #: sonst waere jede Pruefung dagegen zirkulaer und eine leere Tabelle bestuende
 #: den Test.
 EXPECTED_KEYS = {
-    "toc_title", "toc_sidebar", "chapter_toc_title",
+    "toc_title", "toc_sidebar", "chapter_toc_title", "part_toc_title",
     "chapter", "part",
     "author", "status", "version", "date", "copyright",
     "page", "page_of",

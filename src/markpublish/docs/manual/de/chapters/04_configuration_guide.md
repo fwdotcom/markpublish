@@ -67,29 +67,37 @@ chapters:
         title: "Backend Services"
       - file: "chapters/02_2_frontend.md"
         title: "Frontend Client"
-        break_before: "none"   # Läuft ohne Umbruch weiter
-```
+## Dokumentaufbau in 2 Stufen: Parts und Kapitel
 
-`markpublish` nummeriert die Unterkapitel automatisch konsistent als `2.1` und `2.2`. Die Verschachtelung ist rekursiv — eine feste Obergrenze für die Tiefe gibt es nicht.
+`markpublish` trennt Dokumenten-Organisation (YAML) strikt von der Textstruktur (Markdown):
 
-Ohne Angabe beginnt jedes Kapitel oben auf einer neuen Seite, auch ein Unterkapitel. Wie weit ein Kapitel abgesetzt wird, steuert durchgehend `break_before:` (`page`, `divider`, `none`); die Werte sind in Anhang A beschrieben.
-
-## Übergeordnete Abschnitte (Parts / Blöcke)
-
-Für Hauptabschnitte oder Anhangsblöcke, die mehrere Kapitel umfassen, verwenden Sie das Schlüsselwort `part:`:
+1. **Stufe 1 — Parts (`parts:`):** Gliedert das Dokument in logische Hauptabschnitte (z. B. Hauptteil, Anhänge, Bände). Jeder Part besitzt einen Namen (`title:` oder `part:`).
+2. **Stufe 2 — Kapitel (`chapters:`):** Die eigentlichen Inhaltsdateien (*.md) unter dem jeweiligen Part.
+3. **Binnenstruktur (`##`, `###`):** Wird direkt im Markdown formatiert.
 
 ```yaml
-chapters:
-  - part: "Anhänge"
+parts:
+  - title: "Hauptteil"         # Hauptabschnitt
+    break_before: "none"       # Keine Part-Trennseite für den Hauptteil
+    document_toc: "none"       # 'Hauptteil' erscheint nicht im TOC; Kapitel direkt gelistet
+    chapters:
+      - file: "chapters/01_intro.md"
+        title: "Einführung"
+      - file: "chapters/02_usage.md"
+        title: "Nutzung"
+
+  - title: "Anhänge"           # Gliedernder Abschnitt mit Trennseite & TOC-Rubrik
     summary: "Ergänzende Tabellen und Referenzen."
-    break_before: "divider"    # Große Trennseite für den gesamten Anhang
-    autonum: "none"            # Keine vorangestellte Ziffer
-    document_toc: 1            # Anhänge nur mit Titel ins Inhaltsverzeichnis
+    break_before: "divider"
+    autonum_from_level: 2
+    document_toc: 2
     chapters:
       - file: "chapters/appendix_a.md"
         title: "Anhang A: Referenz"
+        autonum_prefix: "A."
       - file: "chapters/appendix_b.md"
         title: "Anhang B: Glossar"
+        autonum_prefix: "B."
 ```
 
-Ein Part trägt selbst keinen Text: er gruppiert die Kapitel unter sich und bekommt eine eigene Trennseite. Der Part-Titel (hier *"Anhänge"*) wird automatisch in die laufende Kopfzeile der Einzelseiten übernommen.
+Ein benannter Part gruppiert seine Kapitel, erhält auf Wunsch eine Trennseite und steht als gliedernde Rubrik im Inhaltsverzeichnis (wenn nicht mit `document_toc: "none"` ausgeblendet). Alle Kapitel stehen typografisch bündig auf derselben primären Fluchtlinie.

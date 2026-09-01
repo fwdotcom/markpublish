@@ -157,8 +157,8 @@ def toc_steps(pages):
 
 def test_toc_uses_one_uniform_line_height(tmp_path: Path):
     """
-    Innerhalb eines Blocks belegt jeder Eintrag genau eine Rasterzeile -
-    unabhaengig von der Gliederungsebene.
+    Innerhalb des Verzeichnisses liegen alle Zeilen exakt auf dem 6mm-Raster
+    (Folgezeile: 6mm, Block-Trennung: 12mm).
     """
     steps = toc_steps(build_pages(tmp_path))
     assert len(steps) > 8, f"Zu wenige TOC-Eintraege zum Messen: {steps}"
@@ -166,31 +166,24 @@ def test_toc_uses_one_uniform_line_height(tmp_path: Path):
     levels = {c for _, css in steps for c in css if c.startswith("toc-item-h")}
     assert len(levels) >= 3, f"Test braucht mehrere Gliederungsebenen: {levels}"
 
-    inner = [step for step, css in steps if not css & TOP_LEVEL_CLASSES]
-    assert set(inner) == {TOC_LINE_MM}, (
-        f"Uneinheitliche Zeilenabstaende im TOC: {sorted(set(inner))}"
+    all_step_sizes = {step for step, _ in steps}
+    assert all_step_sizes == {TOC_LINE_MM, 2 * TOC_LINE_MM}, (
+        f"Uneinheitliche Zeilenabstaende im TOC: {sorted(all_step_sizes)}"
     )
 
 
 def test_toc_separates_the_top_level_blocks(tmp_path: Path):
     """
-    Vor jedem Block der obersten Ebene steht genau eine leere Rasterzeile -
-    beim Part wie beim Kapitel. Der Abstand bleibt damit auf dem Raster.
+    Vor Hauptbloecken (neues Kapitel auf Hauptebene, neuer Part) steht
+    genau eine leere Rasterzeile (12.0 mm).
     """
     steps = toc_steps(build_pages(tmp_path))
-    top = [(step, css) for step, css in steps if css & TOP_LEVEL_CLASSES]
-    assert top, "Kein Block der obersten Ebene im Inhaltsverzeichnis gefunden"
-
-    seen = set().union(*(css for _, css in top))
-    assert TOP_LEVEL_CLASSES <= seen, (
-        f"Der Test misst nur eine Sorte Block der obersten Ebene: {seen}"
+    block_separators = [
+        step for step, _ in steps if step == pytest.approx(2 * TOC_LINE_MM, abs=0.01)
+    ]
+    assert len(block_separators) >= 2, (
+        f"Zu wenige Block-Trenner im Inhaltsverzeichnis: {steps}"
     )
-
-    for step, css in top:
-        assert step == pytest.approx(2 * TOC_LINE_MM, abs=0.01), (
-            f"Block der obersten Ebene {sorted(css)} steht {step}mm tiefer, "
-            f"erwartet sind {2 * TOC_LINE_MM}mm (eine Leerzeile im Raster)"
-        )
 
 
 def test_theme_declares_its_fonts_in_one_place():

@@ -45,19 +45,21 @@ document:
 
 theme: "default"
 
-chapters:
-  - file: "chapters/parent.md"
-    title: "Elternkapitel"
-    break_before: "divider"
-    chapter_toc: 2
+parts:
+  - title: "Hauptteil"
+    break_before: "none"
+    document_toc: "none"
     chapters:
+      - file: "chapters/parent.md"
+        title: "Elternkapitel"
+        break_before: "divider"
+        chapter_toc: 2
       - file: "chapters/child.md"
         title: "Kindkapitel"
       - file: "chapters/grandchild_host.md"
         title: "Zweites Kind"
-        chapters:
-          - file: "chapters/grandchild.md"
-            title: "Enkelkapitel"
+      - file: "chapters/grandchild.md"
+        title: "Enkelkapitel"
 
   - part: "Anhaenge"
     break_before: "divider"

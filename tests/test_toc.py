@@ -123,27 +123,24 @@ def test_document_toc_on_a_part_reaches_every_chapter_below_it(tmp_path: Path):
     assert "Ebene drei" not in titles
 
 
-def test_document_toc_one_keeps_sub_chapters_but_drops_their_headings(tmp_path: Path):
+def test_document_toc_one_includes_only_chapter_title(tmp_path: Path):
     """
-    Vererbung gilt pro Kapitel, nicht ueber die zusammengelegte Liste: ein
-    Unterkapitel behaelt seinen eigenen Eintrag, verliert aber die Ebenen
-    darunter. Wuerde ueber die Gesamtliste gefiltert, fiele das Unterkapitel
-    selbst mit heraus.
+    document_toc: 1 liefert nur die Kapitelueberschrift (Ebene 1),
+    saemtliche Zwischenueberschriften (h2, h3) fallen heraus.
     """
     _write(tmp_path, "deep.md", DEEP_MD)
     _write(
         tmp_path,
         "markpublish.yaml",
         'document:\n  title: "T"\nchapters:\n'
-        '  - file: "deep.md"\n    title: "Oben"\n    document_toc: 1\n    chapters:\n'
-        '      - file: "deep.md"\n        title: "Unten"\n',
+        '  - file: "deep.md"\n    title: "Oben"\n    document_toc: 1\n',
     )
 
     config = load_config(tmp_path / "markpublish.yaml")
     _, tree = MarkdownPipeline(config, base_dir=tmp_path, labels={}).process_document()
 
     levels = [lvl for lvl, _ in _tree_titles(tree)]
-    assert levels == [1, 2], "Kapitel und Unterkapitel, sonst nichts"
+    assert levels == [1], "Nur die Hauptueberschrift, keine Zwischenueberschriften"
 
 
 def test_document_toc_defaults_to_the_full_depth(tmp_path: Path):
@@ -256,13 +253,28 @@ def test_document_chapter_toc_is_the_root_for_chapters(tmp_path: Path):
     assert items[2].local_toc_items == []
 
 
-def test_document_chapter_toc_defaults_to_none(tmp_path: Path):
-    """Ohne Vorgabe bleibt es beim bisherigen Verhalten: keine Kapitel-TOCs."""
+def test_document_chapter_toc_defaults_to_full(tmp_path: Path):
+    """Ohne Vorgabe gilt der Standard 'full': Unterueberschriften werden erfasst."""
     _write(tmp_path, "deep.md", DEEP_MD)
     _write(
         tmp_path,
         "markpublish.yaml",
         'document:\n  title: "T"\nchapters:\n  - file: "deep.md"\n    title: "K"\n',
+    )
+
+    config = load_config(tmp_path / "markpublish.yaml")
+    items, _ = MarkdownPipeline(config, base_dir=tmp_path, labels={}).process_document()
+
+    assert [n.title for n in items[0].local_toc_items] == ["Ebene zwei", "Ebene drei"]
+
+
+def test_document_chapter_toc_can_be_disabled(tmp_path: Path):
+    """Mit chapter_toc: 'none' wird das lokale Kapitel-TOC deaktiviert."""
+    _write(tmp_path, "deep.md", DEEP_MD)
+    _write(
+        tmp_path,
+        "markpublish.yaml",
+        'document:\n  title: "T"\n  chapter_toc: "none"\nchapters:\n  - file: "deep.md"\n    title: "K"\n',
     )
 
     config = load_config(tmp_path / "markpublish.yaml")
@@ -365,7 +377,7 @@ def test_chapters_under_a_part_nest_by_level_in_the_toc(tmp_path: Path):
     assert len(part.children) == 2
 
     chapter = part.children[0]
-    assert chapter.level == 2
+    assert chapter.level == 1
     assert [c.title for c in chapter.children] == ["Ebene zwei"]
     assert [c.title for c in chapter.children[0].children] == ["Ebene drei"]
 
@@ -497,9 +509,9 @@ def test_autonum_resets_counter_per_chapter_when_from_level_greater_than_one(tmp
     config = load_config(tmp_path / "markpublish.yaml")
     items, _ = MarkdownPipeline(config, base_dir=tmp_path, labels={}).process_document()
 
-    part = items[0]
-    app_a = part.children[0]
-    app_b = part.children[1]
+    # items = [part_divider, app_a, app_b]
+    app_a = items[1]
+    app_b = items[2]
 
     assert '<span class="heading-number">A.1</span> Ebene zwei' in app_a.html_content
     assert '<span class="heading-number">B.1</span> Ebene zwei' in app_b.html_content

@@ -13,31 +13,54 @@ Vollständige Übersicht aller Konfigurationsoptionen in `markpublish.yaml`.
 | `status` | String | `null` | Dokumentstatus (z. B. "Entwurf", "Freigegeben") |
 | `copyright` | String | `null` | Copyright-Angabe (z. B. "© 2026 Frank Winter") |
 | `date` | String | `"auto"` | Datum oder `"auto"` für Tagesdatum |
-| `version` | String | `null` | Versionskennung. Ohne Angabe entfällt das Feld auf dem Deckblatt; ist sie gesetzt, steht sie in der Fußzeile links neben dem Datum |
-| `language` | String | Systemsprache | ISO-Sprachcode (`de`, `en`, ...). Steuert Template-Beschriftungen, Callout-Titel und Datumsformat |
+| `version` | String | `null` | Versionskennung |
+| `language` | String | Systemsprache | ISO-Sprachcode (`de`, `en`, ...) |
 | `cover` | Bool | `true` | Deckblatt aktivieren/deaktivieren |
-| `document_toc` | String/Int | `full` | Das große Verzeichnis: `none`, `full` oder eine Tiefe. Vorgabe für die Kapitel |
-| `autonum_style` | String | `"decimal"` | `"decimal"`, `"roman"`, `"legal"`, `"none"`. Wurzel für `chapters.autonum_style` |
-| `chapter_toc` | String/Int | `none` | Die kleinen Verzeichnisse: `none`, `full` oder eine Tiefe. Vorgabe für die Kapitel |
-| `header` | Bool | `true` | Laufende Kopfzeile aktivieren (Aufbau im Theme) |
-| `footer` | Bool | `true` | Laufende Fußzeile aktivieren (Aufbau im Theme) |
+| `document_toc` | String/Int | `full` | Vorgabe für das Hauptverzeichnis |
+| `part_toc` | String/Int | `full` | Vorgabe für Part-Trennseiten-TOCs |
+| `chapter_toc` | String/Int | `full` | Vorgabe für Kapitel-Trennseiten-TOCs |
+| `autonum_style` | String | `"decimal"` | Vorgabe für Nummerierungsstil (`decimal`, `roman`, `legal`, `none`) |
+| `autonum_from_level` | Int | `1` | Vorgabe für Start-Überschriftenebene |
+| `autonum_prefix` | String | `null` | Vorgabe für Ziffernpräfix |
+| `autonum_reset` | Bool | `false` | Vorgabe für Zähler-Reset |
+| `pagenum_reset` | Bool | `false` | Vorgabe für Seitennummern-Reset |
+| `header` | Bool | `true` | Laufende Kopfzeile aktivieren |
+| `footer` | Bool | `true` | Laufende Fußzeile aktivieren |
 
-## Kapitel- und Part-Eigenschaften (`chapters`)
+## Part-Eigenschaften (`parts`)
+
+| Schlüssel | Typ | Standard | Beschreibung |
+| :--- | :--- | :--- | :--- |
+| `title` / `part` | String | *Pflicht* | Titel des Parts (z. B. `"Anhänge"`, `"Hauptteil"`) |
+| `subtitle` | String | `null` | Untertitel für die Part-Trennseite |
+| `summary` | String | `null` | Zusammenfassung für die Part-Trennseite |
+| `break_before` | String | `"divider"` | `"divider"`, `"page"` oder `"none"` |
+| `document_toc` | String/Int | `full` | Beitrag des Parts zum Inhaltsverzeichnis |
+| `part_toc` | String/Int | `full` | Lokales Inhaltsverzeichnis auf der Part-Trennseite |
+| `chapter_toc` | String/Int | `full` | Vorgabe für Kapitel-TOCs in diesem Part |
+| `autonum_style` | String | `"decimal"` | Nummerierungsstil für den Part |
+| `autonum_from_level` | Int | `1` | Start-Ebene für Zählung |
+| `autonum_prefix` | String | `null` | Präfix für Ziffern (z. B. `"A."`) |
+| `autonum_reset` | Bool | `false` | Zähler-Reset bei Part-/Kapitelwechsel |
+| `pagenum_reset` | Bool | `false` | Seitennummerierung ab Part-Beginn auf 1 zurücksetzen |
+| `chapters` | Liste | `[]` | Flache Liste der Kapitel dieses Parts |
+
+## Kapitel-Eigenschaften (`chapters`)
 
 | Schlüssel | Typ | Standard | Beschreibung |
 | :--- | :--- | :--- | :--- |
 | `file` | String | `null` | Pfad zur Markdown-Datei |
 | `title` | String | `null` | Überschreibt den Titel der Datei |
+| `subtitle` | String | `null` | Untertitel für die Kapitel-Trennseite |
 | `summary` | String | `null` | Zusammenfassung für Trennseite |
-| `part` | String | `null` | Deklariert einen übergeordneten Part |
-| `break_before` | String | `page` | Wie das Kapitel abgesetzt wird: `page`, `divider` oder `none`. Nur PDF — das mitgelieferte HTML-Theme kennt weder Seiten noch Trennseiten |
-| `chapter_toc` | String/Int | `none` | Das kleine Verzeichnis auf der Trennseite des Kapitels. Also ebenfalls nur PDF |
-| `document_toc` | String/Int | `full` | Der Beitrag zum großen Verzeichnis vorn im Dokument. Wird nach unten vererbt |
-| `autonum_style` | String | `null` | Nummerierungsstil für diesen Zweig (`decimal`, `roman`, `legal`, `none`). Wird nach unten vererbt |
-| `autonum_from_level` | Int | `1` | Ab welcher Überschriften-Ebene nummeriert wird (`1` = `h1`, `2` = `h2`, ...). Wird nach unten vererbt |
-| `autonum_prefix` | String | `null` | Optionales Präfix für Ziffern (z. B. `"A."` ➔ `A.1`, `A.2`). Wird nach unten vererbt |
-| `autonum_reset` | Bool | `false` | Zähler zu Kapitelbeginn auf 0 zurücksetzen (Standard `true` bei `autonum_from_level > 1`) |
-| `chapters` | Liste | `[]` | Verschachtelte Unterkapitel |
+| `break_before` | String | `page` | Wie das Kapitel abgesetzt wird: `page`, `divider` oder `none` |
+| `document_toc` | String/Int | `full` | Beitrag zum Haupt-Inhaltsverzeichnis |
+| `chapter_toc` | String/Int | `full` | Lokales Inhaltsverzeichnis auf der Kapitel-Trennseite |
+| `autonum_style` | String | `"decimal"` | Nummerierungsstil für dieses Kapitel |
+| `autonum_from_level` | Int | `1` | Ab welcher Überschriften-Ebene nummeriert wird |
+| `autonum_prefix` | String | `null` | Optionales Präfix für Ziffern (z. B. `"A."` ➔ `A.1`, `A.2`) |
+| `autonum_reset` | Bool | `false` | Zähler zu Kapitelbeginn auf 0 zurücksetzen |
+| `pagenum_reset` | Bool | `false` | Seitennummerierung ab Kapitelbeginn auf 1 zurücksetzen |
 
 ### `break_before` — wie ein Kapitel abgesetzt wird
 
@@ -152,14 +175,16 @@ Der Dokumentzähler bleibt dabei unangetastet. Eine unnummerierte Strecke
 verbraucht keine Nummer:
 
 ```yaml
-chapters:
-  - file: "chapters/01.md"          # 1
+parts:
+  - chapters:
+      - file: "chapters/01.md"          # 1
   - part: "Anhänge"
     autonum_style: "none"           # Anhänge: keine Nummern
     chapters:
       - file: "chapters/a.md"
       - file: "chapters/b.md"
-  - file: "chapters/02.md"          # 2, nicht 4
+  - chapters:
+      - file: "chapters/02.md"          # 2, nicht 4
 ```
 
 ### Nummerierung ab Unterebenen (`autonum_from_level` & `autonum_prefix`)
@@ -171,6 +196,7 @@ Für lange Anhänge oder spezialisierte Abschnitte, deren Haupttitel keine Ziffe
 - `autonum_prefix: "A."` stellt den generierten Nummern ein Präfix voran (`A.1`, `A.2`, `A.2.1`).
 
 ```yaml
+parts:
   - part: "Anhänge"
     autonum_from_level: 2           # erbt autonum_style aus document
     chapters:

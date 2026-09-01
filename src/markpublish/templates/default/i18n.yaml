@@ -25,11 +25,13 @@
 de:
   part: "Abschnitt"                  # statt "Teil"
   chapter_toc_title: "Auf einen Blick"
+  part_toc_title: "Inhalt dieses Abschnitts"
 
 
 en:
   part: "Section"
   chapter_toc_title: "At a glance"
+  part_toc_title: "Contents of this section"
 
 # Der Sonderschluessel "*" gilt fuer jede Sprache -- fuer Begriffe, die
 # unabhaengig von der Dokumentsprache gleich heissen sollen:

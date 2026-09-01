@@ -17,6 +17,7 @@ document:
   cover: true
   document_toc: 2
   chapter_toc: 2
+  part_toc: 2
   autonum_style: "decimal"
 
   header: true
@@ -24,44 +25,47 @@ document:
 
 theme: "default"
 
-chapters:
-  - file: "chapters/01_introduction.md"
-    title: "Einführung & Architektur"
-    summary: "Überblick über Zielsetzung, Kernkonzepte und die modulare Verarbeitungs-Pipeline."
-    break_before: "divider"
-    chapter_toc: "none"
+parts:
+  - title: "Hauptteil"
+    break_before: "none"
+    document_toc: "none"
+    chapters:
+      - file: "chapters/01_introduction.md"
+        title: "Einführung & Architektur"
+        summary: "Überblick über Zielsetzung, Kernkonzepte und die modulare Verarbeitungs-Pipeline."
+        break_before: "divider"
+        chapter_toc: "none"
 
-  - file: "chapters/02_quickstart.md"
-    title: "Installation & Schnellstart"
-    summary: "Schritt-für-Schritt-Anleitung zur Installation und Erstellung des ersten Dokuments."
-    break_before: "divider"
+      - file: "chapters/02_quickstart.md"
+        title: "Installation & Schnellstart"
+        summary: "Schritt-für-Schritt-Anleitung zur Installation und Erstellung des ersten Dokuments."
+        break_before: "divider"
 
-  - file: "chapters/03_cli_reference.md"
-    title: "Die CLI-Befehle"
-    summary: "Alle Befehle im Detail: build, init, cheatsheet, manual, templates, export-template und labels."
-    break_before: "divider"
+      - file: "chapters/03_cli_reference.md"
+        title: "Die CLI-Befehle"
+        summary: "Alle Befehle im Detail: build, init, cheatsheet, manual, templates, export-template und labels."
+        break_before: "divider"
 
-  - file: "chapters/04_configuration_guide.md"
-    title: "Konfigurations-Leitfaden"
-    summary: "Deklarative Definition von Dokumentenmetadaten, Kapiteln und Hierarchien."
-    break_before: "divider"
+      - file: "chapters/04_configuration_guide.md"
+        title: "Konfigurations-Leitfaden"
+        summary: "Deklarative Definition von Dokumentenmetadaten, Kapiteln und Hierarchien."
+        break_before: "divider"
 
-  - file: "chapters/05_template_system.md"
-    title: "Das Template- und Design-System"
-    summary: "3-stufige Auflösungshierarchie, CSS Paged Media und 2-zeilige Kopf-/Fußzeilen."
-    break_before: "divider"
+      - file: "chapters/05_template_system.md"
+        title: "Das Template- und Design-System"
+        summary: "3-stufige Auflösungshierarchie, CSS Paged Media und 2-zeilige Kopf-/Fußzeilen."
+        break_before: "divider"
 
-  - file: "chapters/06_markdown_features.md"
-    title: "Markdown-Features & Syntax"
-    summary: "Tabellen, Admonitions/Callouts, Pygments Syntax-Highlighting und Tasklisten."
-    break_before: "divider"
-    chapter_toc: "none"
+      - file: "chapters/06_markdown_features.md"
+        title: "Markdown-Features & Syntax"
+        summary: "Tabellen, Admonitions/Callouts, Pygments Syntax-Highlighting und Tasklisten."
+        break_before: "divider"
+        chapter_toc: "none"
 
-  - part: "Anhänge"
+  - title: "Anhänge"
     summary: "Vollständige Spezifikations-Tabellen, Troubleshooting und Best Practices."
     break_before: "divider"
     autonum_from_level: 2
-    document_toc: 2
     chapters:
       - file: "chapters/07_appendix_yaml_spec.md"
         title: "Anhang A: YAML-Schema-Referenz"

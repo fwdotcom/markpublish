@@ -1,50 +1,12 @@
 # Appendix B: Troubleshooting & FAQ
 
-Common questions and fixes when producing documents.
+Common questions, error messages, and fixes when producing documents.
 
-## WeasyPrint & the GTK runtime on Windows
+| Issue / Error Message | Possible Cause | Solution |
+| :--- | :--- | :--- |
+| `cannot load library 'libgobject-2.0-0'` | WeasyPrint requires native Pango and GTK C-libraries on Windows. | Install GTK3 runtime ([GTK-Installer](https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer)) or MSYS2: `pacman -S mingw-w64-x86_64-pango`. Quick alternative: `--target html` renders without WeasyPrint. |
+| Missing graphics / empty image frames | Image path is broken or absolute instead of relative. | Always specify paths relative to the referring Markdown file (e.g. `images/diag.png`). markpublish inlines graphics up to 12 MB as data URIs. |
+| Table of Contents shows wrong page numbers | Manually specified heading IDs collide during two-pass rendering. | Rely on markpublish's automatic slug generator or check custom anchors (`{#id}`). |
+| `Label 'x' is used in template but defined in no i18n level` | A theme uses a static text key not defined in any `i18n.yaml` level. | Define the key in `<theme>/i18n.yaml` for all languages or under `*`. Inspect active labels with `markpublish labels`. |
+| `cheatsheet` or `manual` ignores working directory theme | Built-in reference documents render with the stable default theme by default. | Use `--theme <name>` to explicitly enforce rendering in your custom theme. |
 
-### Problem: `cannot load library 'libgobject-2.0-0'`
-
-On Windows, WeasyPrint needs the native C libraries of Pango and GTK.
-
-**Fix**:
-`markpublish` looks for installed GTK environments automatically (MSYS2, GTK3 Runtime, darktable, Inkscape). If none is present, install the official GTK3 runtime package:
-
-- Download: [GTK-for-Windows-Runtime-Environment-Installer](https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer)
-- Or via MSYS2: `pacman -S mingw-w64-x86_64-pango`
-
-If you only need to read something quickly, `--target html` renders without WeasyPrint at all — including `markpublish cheatsheet --target html` and `markpublish manual --target html`.
-
-## Images do not appear in the PDF
-
-### Problem: empty image frames or missing graphics
-
-WeasyPrint needs valid relative paths or absolute file URIs.
-
-**Fix**:
-Always give image paths relative to the Markdown file that references them:
-
-```markdown
-![Architecture diagram](images/architecture.png)
-```
-
-`markpublish` inlines relative images automatically as portable data URIs (and falls back to absolute file URIs for files larger than 12 MB).
-
-## The table of contents shows wrong page numbers
-
-PDF rendering happens in several layout passes (WeasyPrint's two-pass rendering). Make sure all internal heading IDs are unique — `markpublish` guarantees this through its internal slug generator.
-
-## A build aborts naming a label
-
-```
-Label 'imprint_title' is used in the template but defined in no i18n level.
-```
-
-A theme uses a static text that resolves in no level of the i18n cascade. This is deliberate rather than a silent empty string: an empty text in a finished PDF goes unnoticed, an abort does not.
-
-**Fix**: define the key in the theme's `i18n.yaml`, under every language you ship, or under `"*"` if it should read the same everywhere. `markpublish labels` shows what currently resolves.
-
-## `markpublish cheatsheet` or `manual` fails after I edited a theme
-
-Both commands deliberately render with the built-in theme and ignore a `templates/` folder in your working directory — precisely so that a half-finished theme cannot take the reference down with it. If you *want* to see them in your own theme, ask for it explicitly with `--theme NAME`; then a broken theme will surface, which is the point of asking.

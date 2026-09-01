@@ -5,7 +5,7 @@ Pydantic data models for markpublish configuration.
 from __future__ import annotations
 
 from enum import Enum
-from typing import Any, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
@@ -147,25 +147,40 @@ class DocumentConfig(BaseModel):
     # Global Layout Switches
     cover: bool = Field(default=True, description="Enable cover page")
     # Das grosse Verzeichnis vorn. 'none' laesst es ganz weg, sonst gibt der
-    # Wert die Vorgabe fuer die gleichnamige Angabe an den Kapiteln.
+    # Wert die Vorgabe fuer die gleichnamige Angabe an den Kapiteln
     document_toc: TocScope = Field(
-        default_factory=lambda: TocScope(enabled=True),
-        description="Document TOC: 'none', 'full' or a depth; root for the chapters' document_toc",
+        default_factory=lambda: TocScope(enabled=True, max_depth=None),
+        description="Contribution to the document TOC: 'none', 'full' or a depth",
     )
-    autonum_style: AutonumStyle = Field(default=AutonumStyle.DECIMAL, description="Numbering style ('decimal', 'roman', 'legal', 'none')")
-    autonum_from_level: int = Field(default=1, ge=1, description="Start heading level for autonumbering (default: 1)")
-    autonum_prefix: Optional[str] = Field(default=None, description="Optional prefix for generated numbers")
-    autonum_reset: bool = Field(default=False, description="Reset numbering counter per chapter")
-    # Vorgabe fuer das kleine Verzeichnis auf den Kapitel-Trennseiten. Steht zu
-    # `chapters.chapter_toc` wie `autonum_style` zu `chapters.autonum_style`: hier die
-    # Wurzel, dort der Einzelfall. Ohne sie wiederholt ein Dokument mit zehn
-    # Kapiteln zehnmal dieselbe Zeile.
+    # Vorgabe fuer Part-Trennseiten-TOCs. Standard: 'full'.
+    part_toc: TocScope = Field(
+        default_factory=lambda: TocScope(enabled=True, max_depth=None),
+        description="Default local TOC on part divider pages: 'none', 'full' or a depth",
+    )
+    # Vorgabe fuer Kapitel-Trennseiten-TOCs. Standard: 'full'.
     chapter_toc: TocScope = Field(
-        default_factory=lambda: TocScope(enabled=False),
-        description="Default for chapters' divider-page TOC: 'none', 'full' or a depth",
+        default_factory=lambda: TocScope(enabled=True, max_depth=None),
+        description="Default local TOC on chapter divider pages: 'none', 'full' or a depth",
     )
-    header: bool = Field(default=True, description="Enable the running header; its lines are laid out in the theme")
-    footer: bool = Field(default=True, description="Enable the running footer; its lines are laid out in the theme")
+    autonum_style: AutonumStyle = Field(
+        default=AutonumStyle.DECIMAL,
+        description="Global heading numbering style: decimal, roman, legal, or none",
+    )
+    autonum_from_level: int = Field(
+        default=1,
+        ge=1,
+        description="Heading level from which numbering starts (1 = h1, 2 = h2, ...)",
+    )
+    autonum_prefix: Optional[str] = Field(
+        default=None,
+        description="Optional prefix prepended to numbers (e.g. 'A.' -> A.1, A.2)",
+    )
+    autonum_reset: bool = Field(
+        default=False,
+        description="Whether each chapter starts numbering fresh",
+    )
+    header: bool = Field(default=True, description="Enable running header")
+    footer: bool = Field(default=True, description="Enable running footer")
 
     # Allow custom extra fields for custom template needs
     model_config = {
@@ -178,20 +193,31 @@ class DocumentConfig(BaseModel):
         if isinstance(v, AutonumStyle):
             return v
         if isinstance(v, str):
-            v_lower = v.lower().strip()
+            candidate = str(v).lower().strip()
             for item in AutonumStyle:
-                if item.value == v_lower:
+                if item.value == candidate:
                     return item
         return AutonumStyle.DECIMAL
 
     @field_validator("document_toc", mode="before")
     @classmethod
     def parse_document_document_toc(cls, v: Any) -> TocScope:
+        if v is None:
+            return TocScope(enabled=True, max_depth=None)
         return parse_toc_scope(v, "document.document_toc")
+
+    @field_validator("part_toc", mode="before")
+    @classmethod
+    def parse_document_part_toc(cls, v: Any) -> TocScope:
+        if v is None:
+            return TocScope(enabled=True, max_depth=None)
+        return parse_toc_scope(v, "document.part_toc")
 
     @field_validator("chapter_toc", mode="before")
     @classmethod
     def parse_document_chapter_toc(cls, v: Any) -> TocScope:
+        if v is None:
+            return TocScope(enabled=True, max_depth=None)
         return parse_toc_scope(v, "document.chapter_toc")
 
     @model_validator(mode="before")
@@ -229,39 +255,28 @@ class DocumentConfig(BaseModel):
 
 class ChapterItem(BaseModel):
     """
-    Represents a chapter, sub-chapter, or overarching Part.
-    Supports recursive nesting via 'chapters'.
+    Represents a single chapter (content markdown file).
     """
     file: Optional[str] = Field(default=None, description="Path to markdown file")
-    title: Optional[str] = Field(default=None, description="Chapter or Part title")
-    summary: Optional[str] = Field(default=None, description="Chapter or Part summary")
-    part: Optional[str] = Field(default=None, description="If set, declares this item as a Part/Block header")
-    # Ein Kapitel beginnt oben auf einer Seite - das ist die Erwartung an ein
-    # gesetztes Dokument, nicht die Ausnahme. Wer Fliesstext ueber Kapitel
-    # hinweg will (kurze Abschnitte, Merkblaetter), setzt "none"; wer das
-    # Kapitel staerker absetzen will, "divider".
+    title: Optional[str] = Field(default=None, description="Chapter title")
+    subtitle: Optional[str] = Field(default=None, description="Chapter subtitle")
+    summary: Optional[str] = Field(default=None, description="Chapter summary")
     break_before: BreakBefore = Field(
         default=BreakBefore.PAGE,
         description="How this chapter is set off: 'page', 'divider' or 'none'",
     )
-    # Das kleine Verzeichnis auf der Trennseite. Standard: keins.
-    chapter_toc: Optional[TocScope] = Field(
-        default=None,
-        description="Local TOC on the chapter divider page: 'none', 'full' or a depth",
-    )
-    # Der Beitrag zum grossen Verzeichnis vorn im Dokument. Standard: voll.
-    # None heisst "nicht gesetzt" und erbt vom Part bzw. Elternkapitel - deshalb
-    # Optional statt eines Defaults, sonst waere "geerbt" von "ausdruecklich
-    # voll" nicht zu unterscheiden.
     document_toc: Optional[TocScope] = Field(
         default=None,
         description="Contribution to the document TOC: 'none', 'full' or a depth; inherited downwards",
+    )
+    chapter_toc: Optional[TocScope] = Field(
+        default=None,
+        description="Local TOC on the chapter divider page: 'none', 'full' or a depth",
     )
     autonum_style: Optional[Union[AutonumStyle, str]] = Field(default=None, description="Override numbering style for this chapter")
     autonum_from_level: Optional[int] = Field(default=None, ge=1, description="Start heading level for autonumbering; inherited downwards")
     autonum_prefix: Optional[str] = Field(default=None, description="Optional prefix for generated numbers; inherited downwards")
     autonum_reset: Optional[bool] = Field(default=None, description="Whether to reset counter at chapter start; inherited downwards")
-    chapters: List[ChapterItem] = Field(default_factory=list, description="Nested child chapters")
 
     model_config = {
         "extra": "allow"
@@ -285,8 +300,6 @@ class ChapterItem(BaseModel):
     @field_validator("document_toc", mode="before")
     @classmethod
     def parse_document_toc(cls, v: Any) -> Optional[TocScope]:
-        # None heisst "nicht gesetzt" - erst die Pipeline entscheidet daraus
-        # geerbt oder voll. Das ist kein Wert, den jemand hinschreibt.
         if v is None:
             return None
         return parse_toc_scope(v, "chapters.document_toc")
@@ -294,14 +307,6 @@ class ChapterItem(BaseModel):
     @field_validator("break_before", mode="before")
     @classmethod
     def parse_break_before(cls, v: Any) -> BreakBefore:
-        """
-        Unbekannte Werte brechen ab, statt auf den Standard zurueckzufallen.
-
-        Ein stiller Rueckfall waere hier besonders teuer: aus einem vertippten
-        "divder" wuerde klaglos ein normaler Seitenumbruch, das Dokument baute
-        durch, und die fehlende Trennseite faende man erst beim Durchblaettern
-        des fertigen PDFs - ohne jeden Hinweis worauf es ankam.
-        """
         if isinstance(v, BreakBefore):
             return v
         if isinstance(v, str):
@@ -316,13 +321,115 @@ class ChapterItem(BaseModel):
 
     @property
     def is_part(self) -> bool:
-        """Returns True if this node acts as an overarching Part/Block."""
-        return self.part is not None or (self.file is None and self.title is not None and bool(self.chapters))
+        return False
 
     @property
     def display_title(self) -> str:
-        """Returns the title or part name."""
-        return self.part or self.title or ""
+        return self.title or ""
+
+
+class PartItem(BaseModel):
+    """
+    Represents an overarching Part / Section containing a flat list of chapters.
+    """
+    title: Optional[str] = Field(default=None, description="Part title")
+    part: Optional[str] = Field(default=None, description="Alternative key for part title")
+    subtitle: Optional[str] = Field(default=None, description="Part subtitle")
+    summary: Optional[str] = Field(default=None, description="Part summary for divider page")
+    break_before: Optional[BreakBefore] = Field(
+        default=None,
+        description="How this part is set off: 'divider', 'page' or 'none' (default: 'divider')",
+    )
+    document_toc: Optional[TocScope] = Field(
+        default=None,
+        description="Contribution of this part to the document TOC; 'none' hides the part heading while including chapters",
+    )
+    part_toc: Optional[TocScope] = Field(
+        default=None,
+        description="Local TOC on the part divider page: 'none', 'full' or a depth",
+    )
+    chapter_toc: Optional[TocScope] = Field(
+        default=None,
+        description="Default chapter TOC for chapters in this part; inherited downwards",
+    )
+    autonum_style: Optional[Union[AutonumStyle, str]] = Field(default=None, description="Numbering style for this part; inherited downwards")
+    autonum_from_level: Optional[int] = Field(default=None, ge=1, description="Start heading level for autonumbering; inherited downwards")
+    autonum_prefix: Optional[str] = Field(default=None, description="Optional prefix for generated numbers; inherited downwards")
+    autonum_reset: Optional[bool] = Field(default=None, description="Whether to reset counter; inherited downwards")
+    chapters: List[ChapterItem] = Field(default_factory=list, description="List of chapters in this part")
+
+    model_config = {
+        "extra": "allow"
+    }
+
+    @model_validator(mode="before")
+    @classmethod
+    def validate_part_structure(cls, data: Any) -> Any:
+        if isinstance(data, dict):
+            if "autonum" in data and "autonum_style" not in data:
+                data["autonum_style"] = data.pop("autonum")
+            if not data.get("part") and not data.get("title"):
+                raise ValueError(
+                    "Jeder Part in 'parts' muss einen Namen tragen (Schlüssel 'title' oder 'part'). "
+                    "Ein unbenannter Block ohne Titel ist nicht zulässig."
+                )
+            if "chapters" not in data or not data["chapters"]:
+                raise ValueError(
+                    f"Der Part '{data.get('title') or data.get('part')}' muss mindestens ein Kapitel unter 'chapters' enthalten."
+                )
+        return data
+
+    @field_validator("document_toc", mode="before")
+    @classmethod
+    def parse_document_toc(cls, v: Any) -> Optional[TocScope]:
+        if v is None:
+            return None
+        return parse_toc_scope(v, "parts.document_toc")
+
+    @field_validator("part_toc", mode="before")
+    @classmethod
+    def parse_part_toc(cls, v: Any) -> Optional[TocScope]:
+        if v is None:
+            return None
+        return parse_toc_scope(v, "parts.part_toc")
+
+    @field_validator("chapter_toc", mode="before")
+    @classmethod
+    def parse_chapter_toc(cls, v: Any) -> Optional[TocScope]:
+        if v is None:
+            return None
+        return parse_toc_scope(v, "parts.chapter_toc")
+
+    @field_validator("break_before", mode="before")
+    @classmethod
+    def parse_break_before(cls, v: Any) -> Optional[BreakBefore]:
+        if v is None:
+            return None
+        if isinstance(v, BreakBefore):
+            return v
+        if isinstance(v, str):
+            candidate = v.lower().strip()
+            for item in BreakBefore:
+                if item.value == candidate:
+                    return item
+        allowed = ", ".join(f"'{item.value}'" for item in BreakBefore)
+        raise ValueError(
+            f"parts.break_before kennt nur {allowed} (war: {v!r})."
+        )
+
+    @property
+    def effective_break_before(self) -> BreakBefore:
+        if self.break_before is not None:
+            return self.break_before
+        return BreakBefore.DIVIDER
+
+    @property
+    def is_part(self) -> bool:
+        return True
+
+    @property
+    def display_title(self) -> str:
+        return self.title or self.part or ""
 
 
 class MarkpublishConfig(BaseModel):
@@ -330,9 +437,45 @@ class MarkpublishConfig(BaseModel):
     document: DocumentConfig
     theme: str = Field(default="default", description="Selected theme/template name")
     templates_dir: Optional[str] = Field(default=None, description="Optional custom path to shared templates folder")
-    chapters: List[ChapterItem] = Field(default_factory=list, description="List of chapters and parts")
+    parts: List[PartItem] = Field(default_factory=list, description="List of document parts")
 
     model_config = {
         "extra": "allow"
     }
+
+    @model_validator(mode="before")
+    @classmethod
+    def normalize_parts_and_chapters(cls, data: Any) -> Any:
+        if not isinstance(data, dict):
+            return data
+
+        # Wenn 'chapters' auf Root-Ebene angegeben ist (Legacy-Migration)
+        if "chapters" in data and ("parts" not in data or not data["parts"]):
+            raw_chapters = data.get("chapters", [])
+            parts_list: List[Dict[str, Any]] = []
+            current_main_chapters: List[Any] = []
+
+            for item in raw_chapters:
+                if isinstance(item, dict) and ("part" in item or "title" in item and "chapters" in item and not item.get("file")):
+                    if current_main_chapters:
+                        parts_list.append({"title": "Hauptteil", "break_before": "none", "document_toc": "none", "chapters": current_main_chapters})
+                        current_main_chapters = []
+                    parts_list.append(item)
+                else:
+                    current_main_chapters.append(item)
+
+            if current_main_chapters:
+                parts_list.append({"title": "Hauptteil", "break_before": "none", "document_toc": "none", "chapters": current_main_chapters})
+
+            data["parts"] = parts_list
+
+        return data
+
+    @property
+    def chapters(self) -> List[ChapterItem]:
+        """Flache Liste aller Kapitel ueber alle Parts hinweg."""
+        all_ch: List[ChapterItem] = []
+        for p in self.parts:
+            all_ch.extend(p.chapters)
+        return all_ch
 

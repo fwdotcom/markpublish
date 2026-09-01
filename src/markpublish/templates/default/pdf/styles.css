@@ -352,6 +352,15 @@ strong, b {
   border: none;
 }
 
+.part-subtitle {
+  font-size: 13pt;
+  font-weight: 500;
+  color: #475569;
+  line-height: 1.35;
+  margin-top: -2mm;
+  margin-bottom: 5mm;
+}
+
 .part-summary {
   font-size: 11pt;
   color: #334155;
@@ -378,8 +387,18 @@ strong, b {
   font-size: 20pt;
   font-weight: 700;
   color: #0f172a;
+  line-height: 1.25;
   margin: 0 0 4mm 0;
   border: none;
+}
+
+.chapter-divider-subtitle {
+  font-size: 12pt;
+  font-weight: 500;
+  color: #475569;
+  line-height: 1.35;
+  margin-top: -2mm;
+  margin-bottom: 4mm;
 }
 
 .chapter-divider-summary {
@@ -395,6 +414,10 @@ strong, b {
   border-radius: 3pt;
   padding: 4mm 6mm;
   margin-top: 6mm;
+}
+
+.local-toc .toc-item + .toc-item-h1 {
+  margin-top: var(--toc-line);
 }
 
 .local-toc-title {
@@ -431,6 +454,11 @@ strong, b {
   padding-left: 5mm;
 }
 
+/* Kinder eines Parts ruecken nicht ein - sie stehen in der Flucht der Hauptkapitel */
+.toc-item-part > .toc-list {
+  padding-left: 0;
+}
+
 /* Jeder Eintrag belegt exakt eine Rasterzeile. Die Hierarchie wird ueber
    Schriftschnitt, Farbe und Einzug gezeigt, nicht ueber den Abstand - vier
    verschiedene Zeilenabstaende uebereinander wirken unruhig, ohne dass die
@@ -445,14 +473,31 @@ strong, b {
    vorhergehenden durch genau eine leere Rasterzeile ab. Das Raster bleibt
    dadurch intakt, die Gliederung wird trotzdem auf einen Blick lesbar. Vor
    dem ersten Eintrag steht keine Luft. */
-.toc-page > .toc-list > .toc-item + .toc-item {
+.toc-page > .toc-list > .toc-item + .toc-item,
+.toc-item-part > .toc-list > .toc-item + .toc-item {
   margin-top: var(--toc-line);
 }
 
 .toc-item-part {
   font-weight: 600;
   color: #0f172a;
-  border-bottom: 0.5pt solid #e2e8f0;
+}
+
+.toc-part-link {
+  font-size: 10.5pt;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: var(--toc-line);
+  margin-bottom: var(--toc-line);
+}
+
+.toc-part-link .toc-leader {
+  display: none;
+}
+
+.toc-part-link::after {
+  display: none !important;
+  content: none !important;
 }
 
 .toc-item-h1 {

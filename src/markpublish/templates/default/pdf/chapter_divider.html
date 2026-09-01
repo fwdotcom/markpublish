@@ -4,6 +4,9 @@
       <div class="chapter-tag">{{ labels.chapter }} {{ chapter.number_prefix }}</div>
     {% endif %}
     <h1 class="chapter-divider-title">{{ chapter.display_title }}</h1>
+    {% if chapter.subtitle %}
+      <div class="chapter-divider-subtitle">{{ chapter.subtitle }}</div>
+    {% endif %}
     {% if chapter.summary %}
       <div class="chapter-divider-summary">{{ chapter.summary }}</div>
     {% endif %}

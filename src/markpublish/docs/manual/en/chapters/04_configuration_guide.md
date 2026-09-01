@@ -67,29 +67,39 @@ chapters:
         title: "Backend Services"
       - file: "chapters/02_2_frontend.md"
         title: "Frontend Client"
-        break_before: "none"   # Runs on without a break
 ```
 
-`markpublish` numbers the sub-chapters consistently as `2.1` and `2.2`. Nesting is recursive — there is no fixed limit on the depth.
+## Document Structure in 2 Tiers: Parts and Chapters
 
-Unless told otherwise, every chapter starts at the top of a new page, a sub-chapter too. How far a chapter is set off is governed throughout by `break_before:` (`page`, `divider`, `none`); the values are described in Appendix A.
+`markpublish` strictly separates document organisation (YAML) from content structure (Markdown):
 
-## Overarching sections (parts / blocks)
-
-For main sections or appendix blocks spanning several chapters, use the `part:` keyword:
+1. **Tier 1 — Parts (`parts:`):** Organises the document into major logical sections (e.g. Main Body, Appendices, Volumes). Every part must have a name (`title:` or `part:`).
+2. **Tier 2 — Chapters (`chapters:`):** The actual content files (*.md) belonging to each part.
+3. **Internal Structure (`##`, `###`):** Formatted directly in Markdown.
 
 ```yaml
-chapters:
-  - part: "Appendices"
+parts:
+  - title: "Main"              # Main section
+    break_before: "none"       # No part divider page for the main part
+    document_toc: "none"       # 'Main' is not listed in TOC; chapters appear directly
+    chapters:
+      - file: "chapters/01_intro.md"
+        title: "Introduction"
+      - file: "chapters/02_usage.md"
+        title: "Usage"
+
+  - title: "Appendices"        # Section with divider page & TOC rubric
     summary: "Supplementary tables and references."
-    break_before: "divider"    # Large divider page for the whole appendix
-    autonum: "none"            # No leading number
-    document_toc: 1            # Appendices enter the TOC by title only
+    break_before: "divider"
+    autonum_from_level: 2
+    document_toc: 2
     chapters:
       - file: "chapters/appendix_a.md"
         title: "Appendix A: Reference"
+        autonum_prefix: "A."
       - file: "chapters/appendix_b.md"
         title: "Appendix B: Glossary"
+        autonum_prefix: "B."
 ```
 
-A part carries no text of its own: it groups the chapters below it and gets a divider page. The part title (*"Appendices"* here) is carried into the running header of those pages.
+A named part groups its chapters, optionally receives a divider page, and appears as a structural category in the table of contents (unless omitted via `document_toc: "none"`). All chapters align to the same primary baseline.

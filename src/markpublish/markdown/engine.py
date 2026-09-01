@@ -12,7 +12,6 @@ import markdown
 
 from markpublish.config.models import (
     AutonumStyle,
-    AutonumType,
     BreakBefore,
     ChapterItem,
     MarkpublishConfig,
@@ -116,22 +115,28 @@ class ContentItem:
         display_title: str,
         slug: str,
         is_part: bool = False,
+        subtitle: Optional[str] = None,
         summary: Optional[str] = None,
         break_before: BreakBefore = BreakBefore.PAGE,
         number_prefix: Optional[str] = None,
         html_content: str = "",
         chapter_toc: Any = False,
+        part_toc: Any = False,
+        pagenum_reset: bool = False,
         local_toc_items: Optional[List[TOCNode]] = None,
     ):
         self.title = title
         self.display_title = display_title
         self.slug = slug
         self.is_part = is_part
+        self.subtitle = subtitle
         self.summary = summary
         self.break_before = break_before
         self.number_prefix = number_prefix
         self.html_content = html_content
         self.chapter_toc = chapter_toc
+        self.part_toc = part_toc
+        self.pagenum_reset = pagenum_reset
         self.local_toc_items = local_toc_items or []
         self.children: List[ContentItem] = []
 
@@ -205,83 +210,108 @@ class MarkdownPipeline:
 
     def process_document(self) -> Tuple[List[ContentItem], List[TOCNode]]:
         """
-        Parses all chapters and parts, builds content items and global TOC tree.
+        Parses all parts and chapters, builds content items and global TOC tree.
         """
         content_items: List[ContentItem] = []
-        all_toc_nodes: List[TOCNode] = []
+        global_toc_tree: List[TOCNode] = []
 
-        # Die Vorgabe aus dem document-Block steht am Anfang jeder Vererbungs-
-        # kette. 'none' laesst das Verzeichnis ohnehin weg; jeder andere Wert
-        # gibt die Tiefe vor, von der Kapitel und Parts abweichen duerfen.
         document_toc_root = self.config.document.document_toc
+        part_toc_root = self.config.document.part_toc
+        chapter_toc_root = self.config.document.chapter_toc
+        autonum_style_root = self.config.document.autonum_style
 
-        for item_cfg in self.config.chapters:
-            if item_cfg.is_part:
-                # Part container
-                part_title = item_cfg.part or item_cfg.title or "Part"
-                part_slug = self.numbering_ctx.unique_slug(part_title)
+        for part_cfg in self.config.parts:
+            part_toc_children: List[TOCNode] = []
+            part_title = part_cfg.display_title
+            part_slug = self.numbering_ctx.unique_slug(part_title)
 
+            effective_part_toc = (
+                part_cfg.part_toc
+                if part_cfg.part_toc is not None
+                else part_toc_root
+            )
+            effective_part_pagenum_reset = (
+                part_cfg.pagenum_reset
+                if part_cfg.pagenum_reset is not None
+                else self.config.document.pagenum_reset
+            )
+            part_item: Optional[ContentItem] = None
+            if part_cfg.effective_break_before != BreakBefore.NONE:
                 part_item = ContentItem(
                     title=part_title,
                     display_title=part_title,
                     slug=part_slug,
                     is_part=True,
-                    summary=item_cfg.summary,
-                    break_before=item_cfg.break_before,
+                    subtitle=part_cfg.subtitle,
+                    summary=part_cfg.summary,
+                    break_before=part_cfg.effective_break_before,
                     number_prefix=None,
                     html_content="",
+                    part_toc=effective_part_toc if (effective_part_toc and effective_part_toc.enabled) else None,
+                    pagenum_reset=effective_part_pagenum_reset,
                 )
+                content_items.append(part_item)
 
-                part_toc_node = TOCNode(
+            part_in_document_toc = True
+            if part_cfg.document_toc is not None:
+                if not part_cfg.document_toc.enabled:
+                    part_in_document_toc = False
+                    inherited_document_toc = document_toc_root
+                else:
+                    inherited_document_toc = part_cfg.document_toc
+            else:
+                inherited_document_toc = document_toc_root
+
+            inherited_chapter_toc = (
+                part_cfg.chapter_toc
+                if part_cfg.chapter_toc is not None
+                else chapter_toc_root
+            )
+            inherited_autonum = _resolve_autonum_style(part_cfg.autonum_style) or autonum_style_root
+            inherited_autonum_from_level = part_cfg.autonum_from_level
+            inherited_autonum_prefix = part_cfg.autonum_prefix
+            inherited_autonum_reset = part_cfg.autonum_reset
+            inherited_pagenum_reset = effective_part_pagenum_reset
+
+            for chapter_cfg in part_cfg.chapters:
+                chapter_item, chapter_toc_nodes = self._process_chapter(
+                    chapter_cfg,
+                    base_level=1,
+                    inherited_document_toc=inherited_document_toc,
+                    inherited_chapter_toc=inherited_chapter_toc,
+                    inherited_autonum=inherited_autonum,
+                    inherited_autonum_from_level=inherited_autonum_from_level,
+                    inherited_autonum_prefix=inherited_autonum_prefix,
+                    inherited_autonum_reset=inherited_autonum_reset,
+                    inherited_pagenum_reset=inherited_pagenum_reset,
+                )
+                content_items.append(chapter_item)
+                if part_in_document_toc:
+                    part_toc_children.extend(chapter_toc_nodes)
+                else:
+                    global_toc_tree.extend(build_toc_tree(chapter_toc_nodes))
+
+            if part_item and effective_part_toc and effective_part_toc.enabled:
+                if effective_part_toc.max_depth is None:
+                    part_item.local_toc_items = list(part_toc_children)
+                else:
+                    part_item.local_toc_items = [
+                        n for n in part_toc_children if n.level <= effective_part_toc.max_depth
+                    ]
+
+            if part_in_document_toc and _document_toc_enabled(inherited_document_toc):
+                part_tree = build_toc_tree(part_toc_children)
+                part_node = TOCNode(
                     title=part_title,
                     slug=part_slug,
                     level=1,
                     number=None,
                     is_part=True,
-                    summary=item_cfg.summary,
+                    summary=part_cfg.summary,
                 )
-                all_toc_nodes.append(part_toc_node)
+                part_node.children = part_tree
+                global_toc_tree.append(part_node)
 
-                # Process child chapters in part
-                for child_cfg in item_cfg.chapters:
-                    child_item, child_toc_nodes = self._process_chapter(
-                        child_cfg,
-                        base_level=2,
-                        inherited_document_toc=(
-                            item_cfg.document_toc
-                            if item_cfg.document_toc is not None
-                            else document_toc_root
-                        ),
-                        inherited_autonum=_resolve_autonum_style(item_cfg.autonum_style),
-                        inherited_autonum_from_level=item_cfg.autonum_from_level,
-                        inherited_autonum_prefix=item_cfg.autonum_prefix,
-                        inherited_autonum_reset=item_cfg.autonum_reset,
-                    )
-                    part_item.children.append(child_item)
-
-                    # In dieselbe flache Liste wie alle anderen Kapitel, statt
-                    # von Hand an den Part-Knoten gehaengt: build_toc_tree
-                    # verschachtelt anschliessend nach Ebene. Haengte man sie
-                    # direkt an, laegen im Inhaltsverzeichnis saemtliche
-                    # Zwischenueberschriften des Anhangs auf einer Hoehe mit den
-                    # Kapiteltiteln - der Part-Knoten steht auf Ebene 1, seine
-                    # Kapitel auf Ebene 2, die Verschachtelung ergibt sich also
-                    # von selbst.
-                    all_toc_nodes.extend(child_toc_nodes)
-
-                content_items.append(part_item)
-
-            else:
-                # Regular top-level chapter
-                chapter_item, chapter_toc_nodes = self._process_chapter(
-                    item_cfg,
-                    base_level=1,
-                    inherited_document_toc=document_toc_root,
-                )
-                content_items.append(chapter_item)
-                all_toc_nodes.extend(chapter_toc_nodes)
-
-        global_toc_tree = build_toc_tree(all_toc_nodes)
         return content_items, global_toc_tree
 
     def _process_chapter(
@@ -289,37 +319,38 @@ class MarkdownPipeline:
         chapter_cfg: ChapterItem,
         base_level: int = 1,
         inherited_document_toc: Optional[TocScope] = None,
-        inherited_autonum: Optional[AutonumType] = None,
+        inherited_chapter_toc: Optional[TocScope] = None,
+        inherited_autonum: Optional[AutonumStyle] = None,
         inherited_autonum_from_level: Optional[int] = None,
         inherited_autonum_prefix: Optional[str] = None,
         inherited_autonum_reset: Optional[bool] = None,
+        inherited_pagenum_reset: bool = False,
     ) -> Tuple[ContentItem, List[TOCNode]]:
         raw_md = ""
         file_base_dir = self.base_dir
 
         # 1. Read file and extract frontmatter
         title = chapter_cfg.title
+        subtitle = chapter_cfg.subtitle
         summary = chapter_cfg.summary
         break_before = chapter_cfg.break_before
 
-        # Nicht gesetzt heisst: die Vorgabe aus dem document-Block gilt. Anders
-        # als document_toc wird der Wert nicht vom Elternkapitel geerbt - er
-        # beschreibt eine Trennseite, und die hat jedes Kapitel fuer sich.
         chapter_toc = (
             chapter_cfg.chapter_toc
             if chapter_cfg.chapter_toc is not None
-            else self.config.document.chapter_toc
+            else inherited_chapter_toc
         )
 
-        # Ein Part gibt seinen document_toc an alle Kapitel darunter weiter, ein
-        # Kapitel an seine Unterkapitel. So genuegt eine Zeile am Anhang-Part, um
-        # den gesamten Anhang im Dokumentverzeichnis flach zu halten. Ein
-        # Kapitel, das selbst etwas sagt, schlaegt das Geerbte - auch zurueck auf
-        # 'full', wofuer es das Schluesselwort ueberhaupt gibt.
         effective_document_toc = (
             chapter_cfg.document_toc
             if chapter_cfg.document_toc is not None
             else inherited_document_toc
+        )
+
+        effective_pagenum_reset = (
+            chapter_cfg.pagenum_reset
+            if chapter_cfg.pagenum_reset is not None
+            else inherited_pagenum_reset
         )
 
         if chapter_cfg.file:
@@ -331,15 +362,15 @@ class MarkdownPipeline:
                     raw_md = post.content
                     if "title" in post.metadata and not title:
                         title = str(post.metadata["title"])
+                    if "subtitle" in post.metadata and not subtitle:
+                        subtitle = str(post.metadata["subtitle"])
                     if "summary" in post.metadata and not summary:
                         summary = str(post.metadata["summary"])
                     if "break_before" in post.metadata:
                         break_before = BreakBefore(str(post.metadata["break_before"]).lower().strip())
+                    if "pagenum_reset" in post.metadata:
+                        effective_pagenum_reset = bool(post.metadata["pagenum_reset"])
 
-        # Nummerierung: was das Kapitel selbst sagt, sonst das Geerbte. Ein
-        # Part mit autonum_style: "none" nimmt damit seinen gesamten Anhang aus der
-        # Zaehlung - ohne Vererbung bliebe die Angabe am Part wirkungslos, weil
-        # die Ueberschriften in den Kapiteldateien stehen, nicht im Part.
         autonum_override = _resolve_autonum_style(chapter_cfg.autonum_style) or inherited_autonum
 
         effective_from_level = (
@@ -396,13 +427,6 @@ class MarkdownPipeline:
         number_prefix = toc_nodes[0].number if toc_nodes else None
 
         # Filter local TOC items if enabled.
-        # Tiefe wird innerhalb des Kapitels gezaehlt: die Kapitelueberschrift
-        # ist Tiefe 1, ihre h2 Tiefe 2 usw. `toc: 2` liefert also die h2-Ebene.
-        # n.level ist dagegen absolut (enthaelt base_level_offset), deshalb die
-        # Umrechnung ueber chapter_level -- so bedeutet `toc: 2` dasselbe, egal
-        # wie tief das Kapitel selbst haengt.
-        # Tiefe 1 bleibt draussen: die eigene Ueberschrift steht auf der
-        # Trennseite bereits als Titel darueber.
         local_toc_items: List[TOCNode] = []
         if chapter_toc:
             chapter_level = base_level
@@ -419,41 +443,24 @@ class MarkdownPipeline:
             display_title=display_title,
             slug=slug,
             is_part=False,
+            subtitle=subtitle,
             summary=summary,
             break_before=break_before,
             number_prefix=number_prefix,
             html_content=processed_html,
             chapter_toc=chapter_toc,
+            pagenum_reset=effective_pagenum_reset,
             local_toc_items=local_toc_items,
         )
 
-        # Beitrag zum Dokumentverzeichnis kuerzen. Gefiltert wird nur ueber die
-        # eigenen Ueberschriften - die Kinder haben ihren eigenen document_toc
-        # bereits angewandt, jeweils relativ zu sich selbst. Wuerde man ueber die
-        # zusammengelegte Liste filtern, fiele mit `document_toc: 1` auch jedes
-        # Unterkapitel weg, statt nur dessen Zwischenueberschriften.
+        # Beitrag zum Dokumentverzeichnis kuerzen
         if effective_document_toc is None or effective_document_toc.max_depth is None:
-            # Nicht gesetzt oder 'full' - beides heisst: jede Ebene.
             global_toc_nodes = list(toc_nodes) if _document_toc_enabled(effective_document_toc) else []
         elif not effective_document_toc.enabled:
             global_toc_nodes = []
         else:
             max_level = base_level + effective_document_toc.max_depth - 1
             global_toc_nodes = [n for n in toc_nodes if n.level <= max_level]
-
-        # Process recursive child chapters
-        for sub_child in chapter_cfg.chapters:
-            sub_item, sub_tocs = self._process_chapter(
-                sub_child,
-                base_level=base_level + 1,
-                inherited_document_toc=effective_document_toc,
-                inherited_autonum=autonum_override,
-                inherited_autonum_from_level=effective_from_level,
-                inherited_autonum_prefix=effective_prefix,
-                inherited_autonum_reset=effective_reset,
-            )
-            item.children.append(sub_item)
-            global_toc_nodes.extend(sub_tocs)
 
         return item, global_toc_nodes
 

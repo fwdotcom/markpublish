@@ -59,10 +59,13 @@ def test_load_config_from_dict():
     assert config.document.copyright == "© 2026 Frank Winter"
     assert config.document.date == datetime.date.today().strftime("%d.%m.%Y")
     assert config.document.autonum_style == AutonumType.DECIMAL
+    assert len(config.parts) == 2
     assert len(config.chapters) == 2
 
-    # Check chapter 1
-    c1 = config.chapters[0]
+    # Check chapter 1 in main part
+    main_part = config.parts[0]
+    assert len(main_part.chapters) == 1
+    c1 = main_part.chapters[0]
     assert c1.title == "Chapter 1"
     assert c1.break_before is BreakBefore.DIVIDER
     assert isinstance(c1.chapter_toc, TocScope)
@@ -70,7 +73,7 @@ def test_load_config_from_dict():
     assert c1.chapter_toc.max_depth == 2
 
     # Check part
-    p = config.chapters[1]
+    p = config.parts[1]
     assert p.is_part is True
     assert p.part == "Appendices"
     assert p.autonum_style == AutonumType.NONE
@@ -112,4 +115,58 @@ chapters:
     assert config.document.date == "2026-08-31"
     assert config.document.cover is False
     assert config.theme == "custom"
+
+
+def test_parts_must_have_name():
+    """Ein Part ohne title/part wirft einen Validierungsfehler."""
+    import pytest
+    from pydantic import ValidationError
+
+    raw_invalid = {
+        "document": {"title": "Test"},
+        "parts": [
+            {
+                "chapters": [{"file": "01.md"}]
+            }
+        ]
+    }
+    with pytest.raises(ValidationError, match="Jeder Part in 'parts' muss einen Namen tragen"):
+        load_config(raw_invalid)
+
+    raw_valid = {
+        "document": {"title": "Test"},
+        "parts": [
+            {
+                "title": "Hauptteil",
+                "chapters": [{"file": "01.md"}]
+            }
+        ]
+    }
+    config = load_config(raw_valid)
+    assert len(config.parts) == 1
+    assert config.parts[0].title == "Hauptteil"
+
+
+def test_pagenum_reset_configuration():
+    """Prueft, dass pagenum_reset auf Part- und Kapitel-Ebene korrekt geladen wird."""
+    raw = {
+        "document": {"title": "Test"},
+        "parts": [
+            {
+                "title": "Hauptteil",
+                "chapters": [{"file": "01.md"}]
+            },
+            {
+                "title": "Anhänge",
+                "pagenum_reset": True,
+                "chapters": [
+                    {"file": "app.md", "pagenum_reset": False}
+                ]
+            }
+        ]
+    }
+    config = load_config(raw)
+    assert config.parts[0].pagenum_reset is None
+    assert config.parts[1].pagenum_reset is True
+    assert config.parts[1].chapters[0].pagenum_reset is False
 

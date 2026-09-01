@@ -13,31 +13,54 @@ A complete overview of every configuration option in `markpublish.yaml`.
 | `status` | String | `null` | Document status (e.g. "Draft", "Released") |
 | `copyright` | String | `null` | Copyright notice (e.g. "© 2026 Frank Winter") |
 | `date` | String | `"auto"` | A date, or `"auto"` for today |
-| `version` | String | `null` | Version identifier. Without it the field disappears from the cover page; when set, it appears in the footer to the left of the date |
-| `language` | String | system language | ISO language code (`de`, `en`, …). Governs template labels, callout titles and date format |
+| `version` | String | `null` | Version identifier |
+| `language` | String | system language | ISO language code (`de`, `en`, …) |
 | `cover` | Bool | `true` | Enable the cover page |
-| `document_toc` | String/Int | `full` | The large TOC: `none`, `full` or a depth. Default for the chapters |
-| `autonum_style` | String | `"decimal"` | `"decimal"`, `"roman"`, `"legal"`, `"none"`. Root for `chapters.autonum_style` |
-| `chapter_toc` | String/Int | `none` | The small TOCs: `none`, `full` or a depth. Default for the chapters |
-| `header` | Bool | `true` | Enable the running header (its layout lives in the theme) |
-| `footer` | Bool | `true` | Enable the running footer (its layout lives in the theme) |
+| `document_toc` | String/Int | `full` | Default for the document TOC |
+| `part_toc` | String/Int | `full` | Default for part divider TOCs |
+| `chapter_toc` | String/Int | `full` | Default for chapter divider TOCs |
+| `autonum_style` | String | `"decimal"` | Default numbering style (`decimal`, `roman`, `legal`, `none`) |
+| `autonum_from_level` | Int | `1` | Default start heading level for numbering |
+| `autonum_prefix` | String | `null` | Default prefix for numbers |
+| `autonum_reset` | Bool | `false` | Default reset flag |
+| `pagenum_reset` | Bool | `false` | Reset page number counter |
+| `header` | Bool | `true` | Enable running header |
+| `footer` | Bool | `true` | Enable running footer |
 
-## Chapter and part properties (`chapters`)
+## Part properties (`parts`)
+
+| Key | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `title` / `part` | String | *required* | Part title (e.g. `"Appendices"`, `"Main"`) |
+| `subtitle` | String | `null` | Subtitle for the part divider page |
+| `summary` | String | `null` | Abstract for the part divider page |
+| `break_before` | String | `"divider"` | `"divider"`, `"page"` or `"none"` |
+| `document_toc` | String/Int | `full` | Part contribution to the document TOC |
+| `part_toc` | String/Int | `full` | Local TOC on the part divider page |
+| `chapter_toc` | String/Int | `full` | Default chapter TOC for chapters in this part |
+| `autonum_style` | String | `"decimal"` | Numbering style for this part |
+| `autonum_from_level` | Int | `1` | Start heading level for numbering |
+| `autonum_prefix` | String | `null` | Optional prefix for generated numbers (e.g. `"A."`) |
+| `autonum_reset` | Bool | `false` | Reset counter at part/chapter start |
+| `pagenum_reset` | Bool | `false` | Reset page numbering back to 1 at part start |
+| `chapters` | List | `[]` | Flat list of chapters in this part |
+
+## Chapter properties (`chapters`)
 
 | Key | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
 | `file` | String | `null` | Path to the Markdown file |
 | `title` | String | `null` | Overrides the title taken from the file |
+| `subtitle` | String | `null` | Subtitle for the chapter divider page |
 | `summary` | String | `null` | Abstract for the divider page |
-| `part` | String | `null` | Declares an overarching part |
-| `break_before` | String | `page` | How the chapter is set off: `page`, `divider` or `none`. PDF only — the bundled HTML theme has neither pages nor divider pages |
-| `chapter_toc` | String/Int | `none` | The small TOC on this chapter's divider page. PDF only as well |
-| `document_toc` | String/Int | `full` | This chapter's contribution to the large TOC at the front. Inherited downwards |
-| `autonum_style` | String | `null` | Numbering style for this branch (`decimal`, `roman`, `legal`, `none`). Inherited downwards |
-| `autonum_from_level` | Int | `1` | Start heading level for numbering (`1` = `h1`, `2` = `h2`, ...). Inherited downwards |
-| `autonum_prefix` | String | `null` | Optional prefix for generated numbers (e.g. `"A."` ➔ `A.1`, `A.2`). Inherited downwards |
-| `autonum_reset` | Bool | `false` | Reset counter at chapter start (defaults to `true` when `autonum_from_level > 1`) |
-| `chapters` | List | `[]` | Nested child chapters |
+| `break_before` | String | `page` | How the chapter is set off: `page`, `divider` or `none` |
+| `document_toc` | String/Int | `full` | Chapter contribution to the front TOC |
+| `chapter_toc` | String/Int | `full` | Local TOC on the chapter divider page |
+| `autonum_style` | String | `"decimal"` | Numbering style for this chapter |
+| `autonum_from_level` | Int | `1` | Start heading level for numbering |
+| `autonum_prefix` | String | `null` | Optional prefix for generated numbers (e.g. `"A."` ➔ `A.1`, `A.2`) |
+| `autonum_reset` | Bool | `false` | Reset counter at chapter start |
+| `pagenum_reset` | Bool | `false` | Reset page numbering back to 1 at chapter start |
 
 ### `break_before` — how a chapter is set off
 
@@ -119,14 +142,16 @@ An unknown value aborts the build. Booleans are rejected too: a `true` would not
 The document counter is left untouched. An unnumbered stretch consumes no number:
 
 ```yaml
-chapters:
-  - file: "chapters/01.md"          # 1
+parts:
+  - chapters:
+      - file: "chapters/01.md"          # 1
   - part: "Appendices"
     autonum_style: "none"           # appendices: no numbers
     chapters:
       - file: "chapters/a.md"
       - file: "chapters/b.md"
-  - file: "chapters/02.md"          # 2, not 4
+  - chapters:
+      - file: "chapters/02.md"          # 2, not 4
 ```
 
 ### Numbering from Sub-Headings (`autonum_from_level` & `autonum_prefix`)
@@ -138,6 +163,7 @@ For extensive appendices or specialized sections whose main chapter title should
 - `autonum_prefix: "A."` prepends a custom prefix to generated numbers (`A.1`, `A.2`, `A.2.1`).
 
 ```yaml
+parts:
   - part: "Appendices"
     autonum_from_level: 2           # inherits autonum_style from document
     chapters:
