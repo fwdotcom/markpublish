@@ -9,7 +9,7 @@ import re
 import unicodedata
 from typing import Any, Dict, List, Optional, Tuple
 
-from markpublish.config.models import AutonumType
+from markpublish.config.models import AutonumStyle
 
 #: Der Attributteil erlaubt '>' innerhalb von Anfuehrungszeichen -- ein
 #: <h2 title="a > b"> wuerde ein simples [^>]* sonst mitten im Attribut kappen.
@@ -54,18 +54,18 @@ def int_to_roman(num: int) -> str:
     return roman_num or "I"
 
 
-def format_number(counters: List[int], autonum_type: AutonumType) -> Optional[str]:
-    """Formats list of counter levels according to autonum_type."""
-    if autonum_type == AutonumType.NONE or not counters:
+def format_number(counters: List[int], autonum_style: AutonumStyle) -> Optional[str]:
+    """Formats list of counter levels according to autonum_style."""
+    if autonum_style == AutonumStyle.NONE or not counters:
         return None
 
-    if autonum_type == AutonumType.ROMAN:
+    if autonum_style == AutonumStyle.ROMAN:
         first = int_to_roman(counters[0])
         if len(counters) == 1:
             return first
         return f"{first}." + ".".join(str(c) for c in counters[1:])
 
-    if autonum_type == AutonumType.LEGAL:
+    if autonum_style == AutonumStyle.LEGAL:
         return ".".join(str(c) for c in counters) + "."
 
     # Default DECIMAL (1, 1.1, 1.1.1)
@@ -107,8 +107,8 @@ class TOCNode:
 class NumberingContext:
     """Maintains state for hierarchical heading numbering across documents."""
 
-    def __init__(self, default_autonum_type: AutonumType = AutonumType.DECIMAL):
-        self.default_autonum_type = default_autonum_type
+    def __init__(self, default_autonum_style: AutonumStyle = AutonumStyle.DECIMAL):
+        self.default_autonum_style = default_autonum_style
         self.counters: List[int] = []
         self.used_slugs: set = set()
 
@@ -129,12 +129,12 @@ class NumberingContext:
     def advance_counter(
         self,
         level: int,
-        autonum_type: Optional[AutonumType] = None,
+        autonum_style: Optional[AutonumStyle] = None,
         from_level: int = 1,
         prefix: Optional[str] = None,
     ) -> Optional[str]:
-        type_to_use = autonum_type or self.default_autonum_type
-        if type_to_use == AutonumType.NONE:
+        type_to_use = autonum_style or self.default_autonum_style
+        if type_to_use == AutonumStyle.NONE:
             return None
 
         # Levels below start level receive no number
@@ -160,7 +160,7 @@ class NumberingContext:
 def process_html_headings_and_toc(
     html_content: str,
     numbering_ctx: NumberingContext,
-    autonum_override: Optional[AutonumType] = None,
+    autonum_override: Optional[AutonumStyle] = None,
     base_level_offset: int = 0,
     autonum_from_level: int = 1,
     autonum_prefix: Optional[str] = None,

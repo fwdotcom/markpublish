@@ -8,7 +8,7 @@ Viele Dokumentationswerkzeuge erfordern entweder komplexe LaTeX-Setups oder besc
 
 ### Kernvorteile auf einen Blick:
 - **Modulare Kapitel**: Jedes Kapitel wird als separate Markdown-Datei gepflegt.
-- **Hierarchische Struktur**: Beliebig tief schachtelbare Unterkapitel und übergeordnete Abschnitte (*Parts*).
+- **Zweistufige Gliederung**: Übergeordnete Abschnitte (*Parts*) über den Kapiteln; die Tiefe innerhalb eines Kapitels kommt aus dessen Überschriften.
 - **Deklarative Steuerung**: Ein zentrales Manifest (`markpublish.yaml`) steuert Inhalt, Metadaten und Layout.
 - **W3C CSS Paged Media**: Exakte Kontrolle über `@page`-Ränder, mehrzeilige Kopf- und Fußzeilen, Seitenzahlen und Trennseiten.
 - **Erweiterbare Pipeline**: Saubere Trennung zwischen Parser, Renderer und Template-Ebenen.

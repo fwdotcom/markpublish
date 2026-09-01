@@ -37,7 +37,8 @@ PX_PER_MM = 96 / 25.4
 EDGE_MM = 12.0
 GAP_MM = 12.0
 
-YAML = """
+YAML = """\
+
 document:
   title: "Kopfzeilen Test"
 {subtitle}
@@ -53,11 +54,15 @@ document:
 
 theme: "default"
 
-chapters:
-  - file: "chapters/01.md"
-    title: "Erstes Kapitel"
-  - file: "chapters/02.md"
-    title: "Zweites Kapitel"
+parts:
+  - title: "Hauptteil"
+    break_before: "none"
+    document_toc: "none"
+    chapters:
+      - file: "chapters/01.md"
+        title: "Erstes Kapitel"
+      - file: "chapters/02.md"
+        title: "Zweites Kapitel"
 """
 
 

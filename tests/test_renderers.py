@@ -23,7 +23,8 @@ def test_full_pipeline_html_and_pdf(tmp_path: Path):
     (chapters_dir / "01.md").write_text("# Einleitung\n\nDas ist die Einleitung.", encoding="utf-8")
     (chapters_dir / "02.md").write_text("# Hauptteil\n\n## Detail\n\nInhalt hier.", encoding="utf-8")
 
-    yaml_content = """
+    yaml_content = """\
+
 document:
   title: "End-to-End Test Document"
   subtitle: "Integration Test"
@@ -38,15 +39,19 @@ document:
 
 theme: "default"
 
-chapters:
-  - file: "chapters/01.md"
-    title: "Einleitung"
-    break_before: "divider"
-    chapter_toc: "none"
-  - file: "chapters/02.md"
-    title: "Hauptteil"
-    break_before: "divider"
-    chapter_toc: 2
+parts:
+  - title: "Hauptteil"
+    break_before: "none"
+    document_toc: "none"
+    chapters:
+      - file: "chapters/01.md"
+        title: "Einleitung"
+        break_before: "divider"
+        chapter_toc: "none"
+      - file: "chapters/02.md"
+        title: "Hauptteil"
+        break_before: "divider"
+        chapter_toc: 2
 """
     config_file = tmp_path / "markpublish.yaml"
     config_file.write_text(yaml_content, encoding="utf-8")
@@ -93,7 +98,8 @@ chapters:
 # Deckblatt: leere Felder erscheinen nicht
 # --------------------------------------------------------------------------
 
-COVER_YAML = """
+COVER_YAML = """\
+
 document:
   title: "Deckblatt Test"
 {version}
@@ -105,9 +111,13 @@ document:
 
 theme: "default"
 
-chapters:
-  - file: "chapters/01.md"
-    title: "Kapitel"
+parts:
+  - title: "Hauptteil"
+    break_before: "none"
+    document_toc: "none"
+    chapters:
+      - file: "chapters/01.md"
+        title: "Kapitel"
 """
 
 
@@ -157,7 +167,8 @@ def test_cover_omits_the_version_field_when_unset(tmp_path: Path):
 # Trennseiten und Kapitel-TOC: nur im PDF
 # --------------------------------------------------------------------------
 
-DIVIDER_YAML = """
+DIVIDER_YAML = """\
+
 document:
   title: "Trennseiten Test"
   author: "Test"
@@ -168,12 +179,16 @@ document:
 
 theme: "default"
 
-chapters:
-  - file: "chapters/01.md"
-    title: "Erstes Kapitel"
-    summary: "Zusammenfassung des Kapitels."
-    break_before: "divider"
-    chapter_toc: 2
+parts:
+  - title: "Hauptteil"
+    break_before: "none"
+    document_toc: "none"
+    chapters:
+      - file: "chapters/01.md"
+        title: "Erstes Kapitel"
+        summary: "Zusammenfassung des Kapitels."
+        break_before: "divider"
+        chapter_toc: 2
   - part: "Anhaenge"
     summary: "Zusammenfassung des Blocks."
     break_before: "divider"

@@ -94,7 +94,8 @@ def test_alert_titles_fall_back_to_the_program_texts():
 # Durchschlagen bis in die gerenderte Ausgabe
 # --------------------------------------------------------------------------
 
-YAML = """
+YAML = """\
+
 document:
   title: "Language Test"
   author: "Test"
@@ -103,11 +104,15 @@ document:
   cover: true
   document_toc: "full"
 {extra}
-chapters:
-  - file: "chapters/01.md"
-    title: "First"
-    break_before: "divider"
-    chapter_toc: 2
+parts:
+  - title: "Hauptteil"
+    break_before: "none"
+    document_toc: "none"
+    chapters:
+      - file: "chapters/01.md"
+        title: "First"
+        break_before: "divider"
+        chapter_toc: 2
 """
 
 

@@ -22,3 +22,7 @@ htmlcov/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Interne Arbeitsunterlagen - Architekturnotizen und Code-Reviews. Sie bleiben
+# lokal liegen und gehoeren nicht in die Veroeffentlichung.
+docs/

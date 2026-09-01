@@ -419,9 +419,16 @@ document:
 
 theme: "default"
 
-chapters:
-  - file: "next-steps.md"
-    title: "Next steps"
+# Chapters always live under a part -- that is the two-level structure of a
+# markpublish document. One part is enough here; break_before: "none" keeps it
+# from claiming a divider page of its own.
+parts:
+  - title: "Main"
+    break_before: "none"
+    document_toc: "none"
+    chapters:
+      - file: "next-steps.md"
+        title: "Next steps"
 """
     yaml_file = target_dir / "markpublish.yaml"
     if not yaml_file.exists():
@@ -454,16 +461,21 @@ installed, so it cannot drift out of date.
 
 ## Add a chapter
 
-Write a Markdown file, then list it under `chapters:` in `markpublish.yaml`.
-Paths are relative to the config file:
+Write a Markdown file, then list it under a part's `chapters:` in
+`markpublish.yaml`. Paths are relative to the config file:
 
 ```yaml
-chapters:
-  - file: "next-steps.md"
-    title: "Next steps"
-  - file: "chapters/01_introduction.md"
-    title: "Introduction"
+parts:
+  - title: "Main"
+    break_before: "none"
+    chapters:
+      - file: "next-steps.md"
+        title: "Next steps"
+      - file: "chapters/01_introduction.md"
+        title: "Introduction"
 ```
+
+A document is always two levels: parts divide it, chapters carry the content.
 
 ## Change the look
 

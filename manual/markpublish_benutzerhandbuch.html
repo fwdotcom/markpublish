@@ -834,7 +834,7 @@ Anhang B: Fehlerbehebung &amp; FAQ
 <h3 id="kernvorteile-auf-einen-blick"><span class="heading-number">1.1.1</span> Kernvorteile auf einen Blick:</h3>
 <ul>
 <li><strong>Modulare Kapitel</strong>: Jedes Kapitel wird als separate Markdown-Datei gepflegt.</li>
-<li><strong>Hierarchische Struktur</strong>: Beliebig tief schachtelbare Unterkapitel und übergeordnete Abschnitte (<em>Parts</em>).</li>
+<li><strong>Zweistufige Gliederung</strong>: Übergeordnete Abschnitte (<em>Parts</em>) über den Kapiteln; die Tiefe innerhalb eines Kapitels kommt aus dessen Überschriften.</li>
 <li><strong>Deklarative Steuerung</strong>: Ein zentrales Manifest (<code>markpublish.yaml</code>) steuert Inhalt, Metadaten und Layout.</li>
 <li><strong>W3C CSS Paged Media</strong>: Exakte Kontrolle über <code>@page</code>-Ränder, mehrzeilige Kopf- und Fußzeilen, Seitenzahlen und Trennseiten.</li>
 <li><strong>Erweiterbare Pipeline</strong>: Saubere Trennung zwischen Parser, Renderer und Template-Ebenen.</li>
@@ -865,7 +865,7 @@ Anhang B: Fehlerbehebung &amp; FAQ
 <div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>markpublish
 </code></pre></div>
 <p>Für Entwickler oder zur Installation aus dem Quellcode:</p>
-<div class="highlight"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/frankwinter/markpublish.git
+<div class="highlight"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/fwdotcom/markpublish.git
 <span class="nb">cd</span><span class="w"> </span>markpublish
 pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">".[dev]"</span>
 </code></pre></div>
@@ -1158,13 +1158,19 @@ Dateien nach Overrides gesucht wurde und welche existieren.</p>
 <p>Beliebige zusätzliche Schlüssel (z. B. <code>status: "Entwurf"</code>, <code>department: "IT-Architektur"</code>) können frei definiert werden und stehen in allen Jinja2-Templates über <code>document.&lt;feldname&gt;</code> zur Verfügung.</p>
 <h2 id="kapitel-definieren"><span class="heading-number">4.2</span> Kapitel definieren</h2>
 <p>Ein einfaches Kapitel wird mit <code>file:</code>, optionalem <code>title:</code> und <code>summary:</code> angegeben:</p>
-<div class="highlight"><pre><span></span><code><span class="nt">chapters</span><span class="p">:</span>
-<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">file</span><span class="p">:</span><span class="w"> </span><span class="s">"chapters/01_intro.md"</span>
-<span class="w">    </span><span class="nt">title</span><span class="p">:</span><span class="w"> </span><span class="s">"Einleitung"</span>
-<span class="w">    </span><span class="nt">summary</span><span class="p">:</span><span class="w"> </span><span class="s">"Zielsetzung</span><span class="nv"> </span><span class="s">des</span><span class="nv"> </span><span class="s">Leitfadens."</span>
-<span class="w">    </span><span class="nt">break_before</span><span class="p">:</span><span class="w"> </span><span class="s">"divider"</span><span class="w">    </span><span class="c1"># Eigene Trennseite vor dem Kapitel</span>
-<span class="w">    </span><span class="nt">chapter_toc</span><span class="p">:</span><span class="w"> </span><span class="s">"none"</span><span class="w">        </span><span class="c1"># Kein kapitelweises Mini-TOC</span>
+<div class="highlight"><pre><span></span><code><span class="nt">parts</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">title</span><span class="p">:</span><span class="w"> </span><span class="s">"Hauptteil"</span>
+<span class="w">    </span><span class="nt">break_before</span><span class="p">:</span><span class="w"> </span><span class="s">"none"</span>
+<span class="w">    </span><span class="nt">chapters</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">file</span><span class="p">:</span><span class="w"> </span><span class="s">"chapters/01_intro.md"</span>
+<span class="w">        </span><span class="nt">title</span><span class="p">:</span><span class="w"> </span><span class="s">"Einleitung"</span>
+<span class="w">        </span><span class="nt">summary</span><span class="p">:</span><span class="w"> </span><span class="s">"Zielsetzung</span><span class="nv"> </span><span class="s">des</span><span class="nv"> </span><span class="s">Leitfadens."</span>
+<span class="w">        </span><span class="nt">break_before</span><span class="p">:</span><span class="w"> </span><span class="s">"divider"</span><span class="w">    </span><span class="c1"># Eigene Trennseite vor dem Kapitel</span>
+<span class="w">        </span><span class="nt">chapter_toc</span><span class="p">:</span><span class="w"> </span><span class="s">"none"</span><span class="w">        </span><span class="c1"># Kein kapitelweises Mini-TOC</span>
 </code></pre></div>
+<p>Ein Kapitel steht immer unter einem Part — <code>chapters:</code> auf oberster Ebene weist
+<code>markpublish</code> mit einem Hinweis auf den richtigen Aufbau zurück. Der nächste
+Abschnitt erklärt, warum.</p>
 <p>Alle Pfade sind relativ zur <code>markpublish.yaml</code>, nicht zum Arbeitsverzeichnis der Shell.</p>
 <h2 id="dokumentaufbau-in-2-stufen-parts-und-kapitel"><span class="heading-number">4.3</span> Dokumentaufbau in 2 Stufen: Parts und Kapitel</h2>
 <p><code>markpublish</code> organisiert Dokumente in einer klaren 2-stufigen Struktur:</p>
@@ -2006,8 +2012,7 @@ Trennseite immer umbricht. Eine Angabe, die man notieren kann und die nichts
 bewirkt, ist eine Fehlerquelle ohne Gegenwert.</p>
 <p><code>page</code> ist die Erwartung an ein gesetztes Dokument. Wer kurze Abschnitte
 durchlaufen lassen will — Merkblätter, Referenzkarten, eng gesetzte Anhänge —
-setzt am einzelnen Kapitel <code>break_before: "none"</code>; die Vorgabe lässt sich auch
-im Frontmatter der Markdown-Datei überschreiben.</p>
+setzt am einzelnen Kapitel <code>break_before: "none"</code>.</p>
 <p>Bei <code>divider</code> fallen der Umbruch des Kapitels und der der Trennseite auf
 dieselbe Stelle und verschmelzen zu einem — es entsteht kein Leerblatt. Vor dem
 ersten Kapitel greift die Regel nicht.</p>

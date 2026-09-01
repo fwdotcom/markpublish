@@ -17,9 +17,13 @@ document:
 
 theme: "default"
 
-chapters:
-  - file: "01_config.md"
-    title: "markpublish.yaml"
+parts:
+  - title: "Reference card"
+    break_before: "none"
+    document_toc: "none"
+    chapters:
+      - file: "01_config.md"
+        title: "markpublish.yaml"
 
-  - file: "02_templates.md"
-    title: "Templates and themes"
+      - file: "02_templates.md"
+        title: "Templates and themes"

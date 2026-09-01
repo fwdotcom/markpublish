@@ -42,13 +42,19 @@ Any extra key (`status: "Draft"`, `department: "IT Architecture"`, …) may be d
 A plain chapter is given as `file:`, with optional `title:` and `summary:`:
 
 ```yaml
-chapters:
-  - file: "chapters/01_intro.md"
-    title: "Introduction"
-    summary: "What this guide sets out to do."
-    break_before: "divider"    # Its own divider page ahead of the chapter
-    chapter_toc: "none"        # No per-chapter mini TOC
+parts:
+  - title: "Main"
+    break_before: "none"
+    chapters:
+      - file: "chapters/01_intro.md"
+        title: "Introduction"
+        summary: "What this guide sets out to do."
+        break_before: "divider"    # Its own divider page ahead of the chapter
+        chapter_toc: "none"        # No per-chapter mini TOC
 ```
+
+A chapter always sits under a part — a `chapters:` at the top level is rejected
+with a pointer to the right shape. The next section explains why.
 
 All paths are relative to `markpublish.yaml`, not to the shell's working directory.
 

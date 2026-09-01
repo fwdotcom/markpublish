@@ -5,7 +5,7 @@ Tests for configuration parsing and data models.
 import datetime
 
 from markpublish.config.loader import format_current_date, load_config
-from markpublish.config.models import AutonumType, BreakBefore, TocScope
+from markpublish.config.models import AutonumStyle, BreakBefore, TocScope
 
 
 def test_format_current_date():
@@ -30,12 +30,19 @@ def test_load_config_from_dict():
             "autonum_style": "decimal",
         },
         "theme": "default",
-        "chapters": [
+        "parts": [
             {
-                "file": "chapters/01.md",
-                "title": "Chapter 1",
-                "break_before": "divider",
-                "chapter_toc": 2,
+                "title": "Main",
+                "break_before": "none",
+                "document_toc": "none",
+                "chapters": [
+                    {
+                        "file": "chapters/01.md",
+                        "title": "Chapter 1",
+                        "break_before": "divider",
+                        "chapter_toc": 2,
+                    },
+                ],
             },
             {
                 "part": "Appendices",
@@ -58,7 +65,7 @@ def test_load_config_from_dict():
     assert config.document.status == "Freigegeben"
     assert config.document.copyright == "© 2026 Frank Winter"
     assert config.document.date == datetime.date.today().strftime("%d.%m.%Y")
-    assert config.document.autonum_style == AutonumType.DECIMAL
+    assert config.document.autonum_style == AutonumStyle.DECIMAL
     assert len(config.parts) == 2
     assert len(config.chapters) == 2
 
@@ -76,39 +83,25 @@ def test_load_config_from_dict():
     p = config.parts[1]
     assert p.is_part is True
     assert p.part == "Appendices"
-    assert p.autonum_style == AutonumType.NONE
+    assert p.autonum_style == AutonumStyle.NONE
     assert len(p.chapters) == 1
     assert p.chapters[0].title == "App A"
 
 
-def test_legacy_autonum_keys_compatibility():
-    """Stellt sicher, dass alte Konfigurationen mit autonum_type und autonum weiter funktionieren."""
-    raw = {
-        "document": {
-            "title": "Legacy Test",
-            "autonum_type": "roman",
-        },
-        "chapters": [
-            {
-                "file": "01.md",
-                "autonum": "none",
-            }
-        ],
-    }
-    config = load_config(raw)
-    assert config.document.autonum_style == AutonumType.ROMAN
-    assert config.chapters[0].autonum_style == AutonumType.NONE
-
-
 def test_load_config_from_yaml_string():
-    yaml_text = """
+    yaml_text = """\
+
 document:
   title: "YAML String Test"
   date: "2026-08-31"
   cover: false
 theme: "custom"
-chapters:
-  - file: "01.md"
+parts:
+  - title: "Hauptteil"
+    break_before: "none"
+    document_toc: "none"
+    chapters:
+      - file: "01.md"
 """
     config = load_config(yaml_text)
     assert config.document.title == "YAML String Test"
@@ -169,4 +162,5 @@ def test_pagenum_reset_configuration():
     assert config.parts[0].pagenum_reset is None
     assert config.parts[1].pagenum_reset is True
     assert config.parts[1].chapters[0].pagenum_reset is False
+
 

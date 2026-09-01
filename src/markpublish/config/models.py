@@ -5,7 +5,7 @@ Pydantic data models for markpublish configuration.
 from __future__ import annotations
 
 from enum import Enum
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, List, Optional, Union
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
@@ -18,9 +18,6 @@ class AutonumStyle(str, Enum):
     LEGAL = "legal"        # 1., 1.1., 1.1.1.
     NONE = "none"          # No automatic numbering
 
-
-# Alias fuer Abwaertskompatibilitaet
-AutonumType = AutonumStyle
 
 
 class BreakBefore(str, Enum):
@@ -240,9 +237,6 @@ class DocumentConfig(BaseModel):
         if not isinstance(data, dict):
             return data
 
-        if "autonum_type" in data and "autonum_style" not in data:
-            data["autonum_style"] = data.pop("autonum_type")
-
         for key in ("i18n", "labels"):
             if key in data:
                 raise ValueError(
@@ -286,14 +280,6 @@ class ChapterItem(BaseModel):
     model_config = {
         "extra": "allow"
     }
-
-    @model_validator(mode="before")
-    @classmethod
-    def map_legacy_autonum(cls, data: Any) -> Any:
-        if isinstance(data, dict):
-            if "autonum" in data and "autonum_style" not in data:
-                data["autonum_style"] = data.pop("autonum")
-        return data
 
     @field_validator("chapter_toc", mode="before")
     @classmethod
@@ -372,8 +358,6 @@ class PartItem(BaseModel):
     @classmethod
     def validate_part_structure(cls, data: Any) -> Any:
         if isinstance(data, dict):
-            if "autonum" in data and "autonum_style" not in data:
-                data["autonum_style"] = data.pop("autonum")
             if not data.get("part") and not data.get("title"):
                 raise ValueError(
                     "Jeder Part in 'parts' muss einen Namen tragen (Schlüssel 'title' oder 'part'). "
@@ -451,31 +435,29 @@ class MarkpublishConfig(BaseModel):
 
     @model_validator(mode="before")
     @classmethod
-    def normalize_parts_and_chapters(cls, data: Any) -> Any:
-        if not isinstance(data, dict):
+    def reject_chapters_at_root(cls, data: Any) -> Any:
+        """
+        Der Aufbau hat zwei Stufen: 'parts', darunter 'chapters'.
+
+        Ein 'chapters' auf oberster Ebene ist die naheliegende Vermutung, wenn
+        ein Dokument nur aus Kapiteln besteht - und ohne diesen Riegel die
+        teuerste: 'extra: allow' schluckt den Schluessel wortlos, 'parts'
+        bliebe leer, und heraus kaeme ein Dokument aus Deckblatt und sonst
+        nichts. Ein Abbruch mit dem richtigen Aufbau daneben kostet eine
+        Minute, ein leeres PDF findet man erst im Druck.
+        """
+        if not isinstance(data, dict) or "chapters" not in data:
             return data
 
-        # Wenn 'chapters' auf Root-Ebene angegeben ist (Legacy-Migration)
-        if "chapters" in data and ("parts" not in data or not data["parts"]):
-            raw_chapters = data.get("chapters", [])
-            parts_list: List[Dict[str, Any]] = []
-            current_main_chapters: List[Any] = []
-
-            for item in raw_chapters:
-                if isinstance(item, dict) and ("part" in item or "title" in item and "chapters" in item and not item.get("file")):
-                    if current_main_chapters:
-                        parts_list.append({"title": "Hauptteil", "break_before": "none", "document_toc": "none", "chapters": current_main_chapters})
-                        current_main_chapters = []
-                    parts_list.append(item)
-                else:
-                    current_main_chapters.append(item)
-
-            if current_main_chapters:
-                parts_list.append({"title": "Hauptteil", "break_before": "none", "document_toc": "none", "chapters": current_main_chapters})
-
-            data["parts"] = parts_list
-
-        return data
+        raise ValueError(
+            "chapters gibt es auf oberster Ebene nicht - Kapitel stehen immer "
+            "unter einem Part:\n"
+            "  parts:\n"
+            '    - title: "Hauptteil"\n'
+            "      chapters:\n"
+            '        - file: "kapitel/01.md"\n'
+            'Ein Part ohne eigene Trennseite bekommt break_before: "none".'
+        )
 
     @property
     def chapters(self) -> List[ChapterItem]:

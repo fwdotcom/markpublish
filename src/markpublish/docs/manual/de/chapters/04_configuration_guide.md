@@ -42,13 +42,20 @@ Beliebige zusätzliche Schlüssel (z. B. `status: "Entwurf"`, `department: "IT-A
 Ein einfaches Kapitel wird mit `file:`, optionalem `title:` und `summary:` angegeben:
 
 ```yaml
-chapters:
-  - file: "chapters/01_intro.md"
-    title: "Einleitung"
-    summary: "Zielsetzung des Leitfadens."
-    break_before: "divider"    # Eigene Trennseite vor dem Kapitel
-    chapter_toc: "none"        # Kein kapitelweises Mini-TOC
+parts:
+  - title: "Hauptteil"
+    break_before: "none"
+    chapters:
+      - file: "chapters/01_intro.md"
+        title: "Einleitung"
+        summary: "Zielsetzung des Leitfadens."
+        break_before: "divider"    # Eigene Trennseite vor dem Kapitel
+        chapter_toc: "none"        # Kein kapitelweises Mini-TOC
 ```
+
+Ein Kapitel steht immer unter einem Part — `chapters:` auf oberster Ebene weist
+`markpublish` mit einem Hinweis auf den richtigen Aufbau zurück. Der nächste
+Abschnitt erklärt, warum.
 
 Alle Pfade sind relativ zur `markpublish.yaml`, nicht zum Arbeitsverzeichnis der Shell.
 

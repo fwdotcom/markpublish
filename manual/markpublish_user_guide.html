@@ -834,7 +834,7 @@ Appendix B: Troubleshooting &amp; FAQ
 <h3 id="key-benefits-at-a-glance"><span class="heading-number">1.1.1</span> Key benefits at a glance:</h3>
 <ul>
 <li><strong>Modular chapters</strong>: every chapter lives in its own Markdown file.</li>
-<li><strong>Hierarchical structure</strong>: sub-chapters nest to any depth, with overarching sections (<em>parts</em>) above them.</li>
+<li><strong>Two-level structure</strong>: overarching sections (<em>parts</em>) above the chapters; depth within a chapter comes from its own headings.</li>
 <li><strong>Declarative control</strong>: one manifest (<code>markpublish.yaml</code>) governs content, metadata and layout.</li>
 <li><strong>W3C CSS Paged Media</strong>: exact control over <code>@page</code> margins, multi-line running headers and footers, page numbers and divider pages.</li>
 <li><strong>Extensible pipeline</strong>: a clean separation between parser, renderer and template layers.</li>
@@ -865,7 +865,7 @@ Appendix B: Troubleshooting &amp; FAQ
 <div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>markpublish
 </code></pre></div>
 <p>For development, or to install from source:</p>
-<div class="highlight"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/frankwinter/markpublish.git
+<div class="highlight"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/fwdotcom/markpublish.git
 <span class="nb">cd</span><span class="w"> </span>markpublish
 pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">".[dev]"</span>
 </code></pre></div>
@@ -1122,13 +1122,18 @@ deviates from the default at all?</em></p>
 <p>Any extra key (<code>status: "Draft"</code>, <code>department: "IT Architecture"</code>, …) may be defined freely and is available in every Jinja2 template as <code>document.&lt;name&gt;</code>.</p>
 <h2 id="defining-a-chapter"><span class="heading-number">4.2</span> Defining a chapter</h2>
 <p>A plain chapter is given as <code>file:</code>, with optional <code>title:</code> and <code>summary:</code>:</p>
-<div class="highlight"><pre><span></span><code><span class="nt">chapters</span><span class="p">:</span>
-<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">file</span><span class="p">:</span><span class="w"> </span><span class="s">"chapters/01_intro.md"</span>
-<span class="w">    </span><span class="nt">title</span><span class="p">:</span><span class="w"> </span><span class="s">"Introduction"</span>
-<span class="w">    </span><span class="nt">summary</span><span class="p">:</span><span class="w"> </span><span class="s">"What</span><span class="nv"> </span><span class="s">this</span><span class="nv"> </span><span class="s">guide</span><span class="nv"> </span><span class="s">sets</span><span class="nv"> </span><span class="s">out</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">do."</span>
-<span class="w">    </span><span class="nt">break_before</span><span class="p">:</span><span class="w"> </span><span class="s">"divider"</span><span class="w">    </span><span class="c1"># Its own divider page ahead of the chapter</span>
-<span class="w">    </span><span class="nt">chapter_toc</span><span class="p">:</span><span class="w"> </span><span class="s">"none"</span><span class="w">        </span><span class="c1"># No per-chapter mini TOC</span>
+<div class="highlight"><pre><span></span><code><span class="nt">parts</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">title</span><span class="p">:</span><span class="w"> </span><span class="s">"Main"</span>
+<span class="w">    </span><span class="nt">break_before</span><span class="p">:</span><span class="w"> </span><span class="s">"none"</span>
+<span class="w">    </span><span class="nt">chapters</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">file</span><span class="p">:</span><span class="w"> </span><span class="s">"chapters/01_intro.md"</span>
+<span class="w">        </span><span class="nt">title</span><span class="p">:</span><span class="w"> </span><span class="s">"Introduction"</span>
+<span class="w">        </span><span class="nt">summary</span><span class="p">:</span><span class="w"> </span><span class="s">"What</span><span class="nv"> </span><span class="s">this</span><span class="nv"> </span><span class="s">guide</span><span class="nv"> </span><span class="s">sets</span><span class="nv"> </span><span class="s">out</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">do."</span>
+<span class="w">        </span><span class="nt">break_before</span><span class="p">:</span><span class="w"> </span><span class="s">"divider"</span><span class="w">    </span><span class="c1"># Its own divider page ahead of the chapter</span>
+<span class="w">        </span><span class="nt">chapter_toc</span><span class="p">:</span><span class="w"> </span><span class="s">"none"</span><span class="w">        </span><span class="c1"># No per-chapter mini TOC</span>
 </code></pre></div>
+<p>A chapter always sits under a part — a <code>chapters:</code> at the top level is rejected
+with a pointer to the right shape. The next section explains why.</p>
 <p>All paths are relative to <code>markpublish.yaml</code>, not to the shell&rsquo;s working directory.</p>
 <h2 id="document-structure-in-2-tiers-parts-and-chapters"><span class="heading-number">4.3</span> Document Structure in 2 Tiers: Parts and Chapters</h2>
 <p><code>markpublish</code> organises documents in a clean 2-tier structure:</p>
@@ -1923,7 +1928,7 @@ default label.</p>
 </tbody>
 </table>
 <p>That it is <em>one</em> key has a reason: the three values are one axis, not three questions. As two booleans you could write down &ldquo;divider page, but no page break&rdquo; — a state that does not exist, because a divider page always breaks. A setting you can write down and that does nothing is a source of error with no upside.</p>
-<p><code>page</code> is what a typeset document is expected to do. If you want short sections to run on — leaflets, reference cards, tightly set appendices — put <code>break_before: "none"</code> on the individual chapter; the setting can also be overridden in the front matter of the Markdown file.</p>
+<p><code>page</code> is what a typeset document is expected to do. If you want short sections to run on — leaflets, reference cards, tightly set appendices — put <code>break_before: "none"</code> on the individual chapter.</p>
 <p>With <code>divider</code>, the chapter&rsquo;s own break and the divider page&rsquo;s break fall in the same place and merge into one — no blank sheet appears. Before the first chapter the rule does not apply.</p>
 <p>An unknown value aborts the build instead of quietly falling back to <code>page</code>: a mistyped <code>divder</code> would otherwise become an ordinary page break without complaint, and you would find the missing divider page only when leafing through the finished PDF.</p>
 <h3 id="chapter-toc-and-document-toc-two-tables-of-contents-one-vocabulary"><span class="heading-number">A.3.2</span> <code>chapter_toc</code> and <code>document_toc</code> — two tables of contents, one vocabulary</h3>

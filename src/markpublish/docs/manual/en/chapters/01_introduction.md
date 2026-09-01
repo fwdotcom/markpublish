@@ -8,7 +8,7 @@ Most documentation tools either demand a complex LaTeX setup or stop at plain HT
 
 ### Key benefits at a glance:
 - **Modular chapters**: every chapter lives in its own Markdown file.
-- **Hierarchical structure**: sub-chapters nest to any depth, with overarching sections (*parts*) above them.
+- **Two-level structure**: overarching sections (*parts*) above the chapters; depth within a chapter comes from its own headings.
 - **Declarative control**: one manifest (`markpublish.yaml`) governs content, metadata and layout.
 - **W3C CSS Paged Media**: exact control over `@page` margins, multi-line running headers and footers, page numbers and divider pages.
 - **Extensible pipeline**: a clean separation between parser, renderer and template layers.

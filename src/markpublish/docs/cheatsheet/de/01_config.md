@@ -6,9 +6,14 @@
 
    Beide Uebersetzungen tragen denselben Block, bemessen an der laengeren:
    deutscher Satz braucht fuer dieselbe Aussage rund ein Sechstel mehr Platz.
-   Wer hier lockerer setzt, verliert die zweite Seite - in einer Sprache. */
-.chapter-body table { margin: 0.4em 0; font-size: 8.5pt; }
-.chapter-body th, .chapter-body td { padding: 0.9mm 2.2mm; }
+   Wer hier lockerer setzt, verliert die zweite Seite - in einer Sprache.
+
+   8pt in den Tabellen ist die Untergrenze. Waechst das Schema weiter, ist
+   nicht die Schrift das Stellrad, sondern der Inhalt: die vollstaendige
+   Referenz steht in Anhang A des Handbuchs, hier nur, was man staendig
+   nachschlaegt. */
+.chapter-body table { margin: 0.4em 0; font-size: 8pt; }
+.chapter-body th, .chapter-body td { padding: 0.7mm 2.0mm; }
 .chapter-body h1 { margin-top: 0; margin-bottom: 0.3em; }
 .chapter-body h2 { margin-top: 0.75em; margin-bottom: 0.15em; }
 .chapter-body p { margin: 0.35em 0; }
@@ -17,8 +22,8 @@
 
 # markpublish.yaml
 
-Drei Schlüssel auf oberster Ebene: `document`, `theme`, `chapters`. Alle Pfade
-sind relativ zu dieser Datei. Bauen: `markpublish build [datei] -t pdf|html|all`.
+Oberste Ebene: `document`, `theme`, `parts`, optional `templates_dir`. Pfade
+relativ zu dieser Datei. Bauen: `markpublish build [datei] -t pdf|html|all`.
 
 ## document
 
@@ -32,28 +37,30 @@ Metadaten und globale Layout-Schalter. Pflicht ist allein `title`.
 | `language` | Systemsprache | Wählt die Beschriftungen, sonst `en` |
 | `cover` / `header` / `footer` | `true` | Deckblatt, Kopf- und Fußzeile |
 | `document_toc` | `full` | Großes Verzeichnis: `none`, `full` oder Tiefe |
-| `chapter_toc` | `none` | Kleine Trennseiten-Verzeichnisse, gleiche Formen |
+| `part_toc` / `chapter_toc` | `full` | Trennseiten-Verzeichnisse, gleiche Formen |
 | `autonum_style` | `decimal` | `decimal`, `roman`, `legal`, `none` |
+| `autonum_from_level` | `1` | Ab welcher Überschriftenebene gezählt wird |
+| `autonum_reset` / `pagenum_reset` | `false` | Zähler bzw. Seitenzahl neu beginnen |
 
-Außerdem: `summary` (Abstract auf dem Deckblatt), `status`, `copyright`
-(Fußzeile). Unbekannte Schlüssel gehen als `{{ document.mein_schluessel }}` ans
-Theme.
+Außerdem `summary` (Deckblatt), `status`, `copyright` (Fußzeile). Unbekannte
+Schlüssel gehen als `{{ document.mein_schluessel }}` ans Theme.
 
-## chapters
+## parts und chapters
 
-Kapitel, Unterkapitel und Parts; rekursiv verschachtelbar.
+Genau zwei Stufen: `parts:` gliedert, `chapters:` trägt den Inhalt. Kapitel
+schachteln **nicht** weiter — Tiefe entsteht aus den Überschriften der Datei.
 
-| Schlüssel | Standard | Bedeutung |
+| Schlüssel | Gilt für | Bedeutung |
 | :--- | :--- | :--- |
-| `file` | – | Pfad zu einer Markdown-Datei |
-| `title` | – | Ersetzt die Überschrift in TOC und Kopfzeile |
-| `part` | – | Macht den Eintrag zum Part statt zum Kapitel |
-| `break_before` | `page` | `page`, `divider` (eigene Trennseite) oder `none` |
-| `chapter_toc` | `none` | Kleines Verzeichnis auf der Trennseite |
-| `document_toc` | `full` | Anteil dieses Kapitels am Verzeichnis vorn |
-| `chapters` | `[]` | Verschachtelte Unterkapitel |
+| `title` / `part` | Part | Name des Parts, Pflicht |
+| `chapters` | Part | Flache Liste der Kapitel, mindestens eines |
+| `file` | Kapitel | Pfad zur Markdown-Datei |
+| `title` / `subtitle` / `summary` | beide | Überschreiben, was in der Datei steht |
+| `break_before` | beide | `page`, `divider` (Trennseite) oder `none` |
+| `document_toc` | beide | Anteil am Verzeichnis vorn |
+| `part_toc` / `chapter_toc` | Part / Kapitel | Verzeichnis auf der Trennseite |
+| `autonum_*`, `pagenum_reset` | beide | Wie unter `document`, hier lokal |
 
-Beide TOC-Schlüssel nehmen `none`, `full` oder eine Tiefe, gezählt ab der
-eigenen Überschrift. `document_toc: 1` listet das Kapitel ohne seine
-Unterüberschriften; am Part gesetzt, flacht es alle Anhänge auf einmal ab.
-`document_toc`, `autonum` und `autonum_from_level` (z. B. `2` für Zählung ab `##` mit optionalem `autonum_prefix`) vererben nach unten, `chapter_toc` fällt auf `document.chapter_toc` zurück.
+`document_toc: 1` listet ein Kapitel ohne seine Unterüberschriften; am Part
+gesetzt, flacht es alle Anhänge auf einmal ab. `autonum_*` und `document_toc`
+vererben von `document` über den Part zum Kapitel — der tiefere Wert gewinnt.

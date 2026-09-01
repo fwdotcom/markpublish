@@ -7,7 +7,6 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Dict, List, Mapping, Optional, Tuple
 
-import frontmatter
 import markdown
 
 from markpublish.config.models import (
@@ -206,7 +205,7 @@ class MarkdownPipeline:
         # aussen herein statt hier gebaut zu werden - die Pipeline laeuft pro
         # Zielformat.
         self.engine = MarkdownEngine(language=config.document.language, labels=labels)
-        self.numbering_ctx = NumberingContext(default_autonum_type=config.document.autonum_style)
+        self.numbering_ctx = NumberingContext(default_autonum_style=config.document.autonum_style)
 
     def process_document(self) -> Tuple[List[ContentItem], List[TOCNode]]:
         """
@@ -329,7 +328,7 @@ class MarkdownPipeline:
         raw_md = ""
         file_base_dir = self.base_dir
 
-        # 1. Read file and extract frontmatter
+        # 1. Read the chapter file
         title = chapter_cfg.title
         subtitle = chapter_cfg.subtitle
         summary = chapter_cfg.summary
@@ -357,19 +356,7 @@ class MarkdownPipeline:
             file_path = (self.base_dir / chapter_cfg.file).resolve()
             if file_path.is_file():
                 file_base_dir = file_path.parent
-                with open(file_path, "r", encoding="utf-8") as f:
-                    post = frontmatter.load(f)
-                    raw_md = post.content
-                    if "title" in post.metadata and not title:
-                        title = str(post.metadata["title"])
-                    if "subtitle" in post.metadata and not subtitle:
-                        subtitle = str(post.metadata["subtitle"])
-                    if "summary" in post.metadata and not summary:
-                        summary = str(post.metadata["summary"])
-                    if "break_before" in post.metadata:
-                        break_before = BreakBefore(str(post.metadata["break_before"]).lower().strip())
-                    if "pagenum_reset" in post.metadata:
-                        effective_pagenum_reset = bool(post.metadata["pagenum_reset"])
+                raw_md = file_path.read_text(encoding="utf-8")
 
         autonum_override = _resolve_autonum_style(chapter_cfg.autonum_style) or inherited_autonum
 

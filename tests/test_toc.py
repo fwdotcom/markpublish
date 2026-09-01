@@ -5,7 +5,7 @@ Tests for TOC extraction and autonumbering.
 from pathlib import Path
 
 from markpublish.config.loader import load_config
-from markpublish.config.models import AutonumType
+from markpublish.config.models import AutonumStyle
 from markpublish.markdown.engine import MarkdownPipeline
 from markpublish.markdown.toc import (
     NumberingContext,
@@ -22,7 +22,7 @@ def test_roman_numerals():
 
 
 def test_autonumbering_decimal():
-    ctx = NumberingContext(default_autonum_type=AutonumType.DECIMAL)
+    ctx = NumberingContext(default_autonum_style=AutonumStyle.DECIMAL)
 
     html = """
 <h1>First Chapter</h1>
@@ -48,7 +48,7 @@ def test_autonumbering_decimal():
 
 
 def test_autonumbering_none():
-    ctx = NumberingContext(default_autonum_type=AutonumType.NONE)
+    ctx = NumberingContext(default_autonum_style=AutonumStyle.NONE)
     html = "<h1>Unnumbered Chapter</h1>"
     processed, nodes = process_html_headings_and_toc(html, ctx)
     assert '<span class="heading-number">' not in processed
@@ -82,9 +82,20 @@ def test_document_toc_limits_what_a_chapter_adds_to_the_global_toc(tmp_path: Pat
     _write(
         tmp_path,
         "markpublish.yaml",
-        'document:\n  title: "T"\nchapters:\n'
-        '  - file: "deep.md"\n    title: "Voll"\n'
-        '  - file: "deep.md"\n    title: "Gekuerzt"\n    document_toc: 2\n',
+        """\
+document:
+  title: "T"
+parts:
+  - title: "Hauptteil"
+    break_before: "none"
+    document_toc: "none"
+    chapters:
+      - file: "deep.md"
+        title: "Voll"
+      - file: "deep.md"
+        title: "Gekuerzt"
+        document_toc: 2
+""",
     )
 
     config = load_config(tmp_path / "markpublish.yaml")
@@ -107,10 +118,18 @@ def test_document_toc_on_a_part_reaches_every_chapter_below_it(tmp_path: Path):
     _write(
         tmp_path,
         "markpublish.yaml",
-        'document:\n  title: "T"\nchapters:\n'
-        '  - part: "Anhaenge"\n    document_toc: 1\n    chapters:\n'
-        '      - file: "deep.md"\n        title: "Anhang A"\n'
-        '      - file: "deep.md"\n        title: "Anhang B"\n',
+        """\
+document:
+  title: "T"
+parts:
+  - part: "Anhaenge"
+    document_toc: 1
+    chapters:
+      - file: "deep.md"
+        title: "Anhang A"
+      - file: "deep.md"
+        title: "Anhang B"
+""",
     )
 
     config = load_config(tmp_path / "markpublish.yaml")
@@ -132,8 +151,18 @@ def test_document_toc_one_includes_only_chapter_title(tmp_path: Path):
     _write(
         tmp_path,
         "markpublish.yaml",
-        'document:\n  title: "T"\nchapters:\n'
-        '  - file: "deep.md"\n    title: "Oben"\n    document_toc: 1\n',
+        """\
+document:
+  title: "T"
+parts:
+  - title: "Hauptteil"
+    break_before: "none"
+    document_toc: "none"
+    chapters:
+      - file: "deep.md"
+        title: "Oben"
+        document_toc: 1
+""",
     )
 
     config = load_config(tmp_path / "markpublish.yaml")
@@ -149,7 +178,17 @@ def test_document_toc_defaults_to_the_full_depth(tmp_path: Path):
     _write(
         tmp_path,
         "markpublish.yaml",
-        'document:\n  title: "T"\nchapters:\n  - file: "deep.md"\n    title: "Voll"\n',
+        """\
+document:
+  title: "T"
+parts:
+  - title: "Hauptteil"
+    break_before: "none"
+    document_toc: "none"
+    chapters:
+      - file: "deep.md"
+        title: "Voll"
+""",
     )
 
     config = load_config(tmp_path / "markpublish.yaml")
@@ -168,9 +207,20 @@ def test_document_toc_none_keeps_a_chapter_out_of_the_document_toc(tmp_path: Pat
     _write(
         tmp_path,
         "markpublish.yaml",
-        'document:\n  title: "T"\nchapters:\n'
-        '  - file: "deep.md"\n    title: "Sichtbar"\n'
-        '  - file: "deep.md"\n    title: "Versteckt"\n    document_toc: "none"\n',
+        """\
+document:
+  title: "T"
+parts:
+  - title: "Hauptteil"
+    break_before: "none"
+    document_toc: "none"
+    chapters:
+      - file: "deep.md"
+        title: "Sichtbar"
+      - file: "deep.md"
+        title: "Versteckt"
+        document_toc: "none"
+""",
     )
 
     config = load_config(tmp_path / "markpublish.yaml")
@@ -192,10 +242,19 @@ def test_document_toc_full_overrides_what_a_part_handed_down(tmp_path: Path):
     _write(
         tmp_path,
         "markpublish.yaml",
-        'document:\n  title: "T"\nchapters:\n'
-        '  - part: "Anhaenge"\n    document_toc: 1\n    chapters:\n'
-        '      - file: "deep.md"\n        title: "Flach"\n'
-        '      - file: "deep.md"\n        title: "Vollstaendig"\n        document_toc: "full"\n',
+        """\
+document:
+  title: "T"
+parts:
+  - part: "Anhaenge"
+    document_toc: 1
+    chapters:
+      - file: "deep.md"
+        title: "Flach"
+      - file: "deep.md"
+        title: "Vollstaendig"
+        document_toc: "full"
+""",
     )
 
     config = load_config(tmp_path / "markpublish.yaml")
@@ -217,9 +276,21 @@ def test_chapter_toc_full_lists_every_level_below_the_chapter(tmp_path: Path):
     _write(
         tmp_path,
         "markpublish.yaml",
-        'document:\n  title: "T"\nchapters:\n'
-        '  - file: "deep.md"\n    title: "Voll"\n    chapter_toc: "full"\n'
-        '  - file: "deep.md"\n    title: "Flach"\n    chapter_toc: 2\n',
+        """\
+document:
+  title: "T"
+parts:
+  - title: "Hauptteil"
+    break_before: "none"
+    document_toc: "none"
+    chapters:
+      - file: "deep.md"
+        title: "Voll"
+        chapter_toc: "full"
+      - file: "deep.md"
+        title: "Flach"
+        chapter_toc: 2
+""",
     )
 
     config = load_config(tmp_path / "markpublish.yaml")
@@ -231,7 +302,7 @@ def test_chapter_toc_full_lists_every_level_below_the_chapter(tmp_path: Path):
 
 def test_document_chapter_toc_is_the_root_for_chapters(tmp_path: Path):
     """
-    `document.chapter_toc` steht zu `chapters.chapter_toc` wie `autonum_type` zu
+    `document.chapter_toc` steht zu `chapters.chapter_toc` wie `autonum_style` zu
     `autonum`: die Vorgabe oben, der Einzelfall unten. Ohne sie wiederholt ein
     Dokument mit zehn Kapiteln zehnmal dieselbe Zeile.
     """
@@ -239,10 +310,24 @@ def test_document_chapter_toc_is_the_root_for_chapters(tmp_path: Path):
     _write(
         tmp_path,
         "markpublish.yaml",
-        'document:\n  title: "T"\n  chapter_toc: 2\nchapters:\n'
-        '  - file: "deep.md"\n    title: "Erbt"\n'
-        '  - file: "deep.md"\n    title: "Voll"\n    chapter_toc: "full"\n'
-        '  - file: "deep.md"\n    title: "Keins"\n    chapter_toc: "none"\n',
+        """\
+document:
+  title: "T"
+  chapter_toc: 2
+parts:
+  - title: "Hauptteil"
+    break_before: "none"
+    document_toc: "none"
+    chapters:
+      - file: "deep.md"
+        title: "Erbt"
+      - file: "deep.md"
+        title: "Voll"
+        chapter_toc: "full"
+      - file: "deep.md"
+        title: "Keins"
+        chapter_toc: "none"
+""",
     )
 
     config = load_config(tmp_path / "markpublish.yaml")
@@ -259,7 +344,17 @@ def test_document_chapter_toc_defaults_to_full(tmp_path: Path):
     _write(
         tmp_path,
         "markpublish.yaml",
-        'document:\n  title: "T"\nchapters:\n  - file: "deep.md"\n    title: "K"\n',
+        """\
+document:
+  title: "T"
+parts:
+  - title: "Hauptteil"
+    break_before: "none"
+    document_toc: "none"
+    chapters:
+      - file: "deep.md"
+        title: "K"
+""",
     )
 
     config = load_config(tmp_path / "markpublish.yaml")
@@ -274,7 +369,18 @@ def test_document_chapter_toc_can_be_disabled(tmp_path: Path):
     _write(
         tmp_path,
         "markpublish.yaml",
-        'document:\n  title: "T"\n  chapter_toc: "none"\nchapters:\n  - file: "deep.md"\n    title: "K"\n',
+        """\
+document:
+  title: "T"
+  chapter_toc: "none"
+parts:
+  - title: "Hauptteil"
+    break_before: "none"
+    document_toc: "none"
+    chapters:
+      - file: "deep.md"
+        title: "K"
+""",
     )
 
     config = load_config(tmp_path / "markpublish.yaml")
@@ -295,19 +401,37 @@ def _tree_numbers(nodes, out=None):
 def test_autonum_none_on_a_part_reaches_every_chapter_below_it(tmp_path: Path):
     """
     Die Angabe steht am Part, die Ueberschriften stehen in den Kapiteldateien -
-    ohne Vererbung waere `autonum: "none"` am Anhang-Part wirkungslos und die
+    ohne Vererbung waere `autonum_style: "none"` am Anhang-Part wirkungslos und die
     Anhaenge zaehlten den Kapitelzaehler weiter.
     """
     _write(tmp_path, "deep.md", DEEP_MD)
     _write(
         tmp_path,
         "markpublish.yaml",
-        'document:\n  title: "T"\nchapters:\n'
-        '  - file: "deep.md"\n    title: "Eins"\n'
-        '  - part: "Anhaenge"\n    autonum: "none"\n    chapters:\n'
-        '      - file: "deep.md"\n        title: "Anhang A"\n'
-        '      - file: "deep.md"\n        title: "Anhang B"\n'
-        '  - file: "deep.md"\n    title: "Danach"\n',
+        """\
+document:
+  title: "T"
+parts:
+  - title: "Hauptteil"
+    break_before: "none"
+    document_toc: "none"
+    chapters:
+      - file: "deep.md"
+        title: "Eins"
+  - part: "Anhaenge"
+    autonum_style: "none"
+    chapters:
+      - file: "deep.md"
+        title: "Anhang A"
+      - file: "deep.md"
+        title: "Anhang B"
+  - title: "Hauptteil"
+    break_before: "none"
+    document_toc: "none"
+    chapters:
+      - file: "deep.md"
+        title: "Danach"
+""",
     )
 
     config = load_config(tmp_path / "markpublish.yaml")
@@ -336,10 +460,22 @@ def test_autonum_none_leaves_the_counter_untouched(tmp_path: Path):
     _write(
         tmp_path,
         "markpublish.yaml",
-        'document:\n  title: "T"\nchapters:\n'
-        '  - file: "deep.md"\n    title: "Eins"\n'
-        '  - file: "deep.md"\n    title: "Ohne"\n    autonum: "none"\n'
-        '  - file: "deep.md"\n    title: "Zwei"\n',
+        """\
+document:
+  title: "T"
+parts:
+  - title: "Hauptteil"
+    break_before: "none"
+    document_toc: "none"
+    chapters:
+      - file: "deep.md"
+        title: "Eins"
+      - file: "deep.md"
+        title: "Ohne"
+        autonum_style: "none"
+      - file: "deep.md"
+        title: "Zwei"
+""",
     )
 
     config = load_config(tmp_path / "markpublish.yaml")
@@ -360,10 +496,17 @@ def test_chapters_under_a_part_nest_by_level_in_the_toc(tmp_path: Path):
     _write(
         tmp_path,
         "markpublish.yaml",
-        'document:\n  title: "T"\nchapters:\n'
-        '  - part: "Anhaenge"\n    chapters:\n'
-        '      - file: "deep.md"\n        title: "Anhang A"\n'
-        '      - file: "deep.md"\n        title: "Anhang B"\n',
+        """\
+document:
+  title: "T"
+parts:
+  - part: "Anhaenge"
+    chapters:
+      - file: "deep.md"
+        title: "Anhang A"
+      - file: "deep.md"
+        title: "Anhang B"
+""",
     )
 
     config = load_config(tmp_path / "markpublish.yaml")
@@ -392,9 +535,21 @@ def test_document_toc_depth_is_the_root_for_chapters(tmp_path: Path):
     _write(
         tmp_path,
         "markpublish.yaml",
-        'document:\n  title: "T"\n  document_toc: 2\nchapters:\n'
-        '  - file: "deep.md"\n    title: "Erbt"\n'
-        '  - file: "deep.md"\n    title: "Voll"\n    document_toc: "full"\n',
+        """\
+document:
+  title: "T"
+  document_toc: 2
+parts:
+  - title: "Hauptteil"
+    break_before: "none"
+    document_toc: "none"
+    chapters:
+      - file: "deep.md"
+        title: "Erbt"
+      - file: "deep.md"
+        title: "Voll"
+        document_toc: "full"
+""",
     )
 
     config = load_config(tmp_path / "markpublish.yaml")
@@ -416,8 +571,18 @@ def test_document_toc_none_switches_the_table_off(tmp_path: Path):
     _write(
         tmp_path,
         "markpublish.yaml",
-        'document:\n  title: "T"\n  document_toc: "none"\nchapters:\n'
-        '  - file: "deep.md"\n    title: "K"\n',
+        """\
+document:
+  title: "T"
+  document_toc: "none"
+parts:
+  - title: "Hauptteil"
+    break_before: "none"
+    document_toc: "none"
+    chapters:
+      - file: "deep.md"
+        title: "K"
+""",
     )
 
     config = load_config(tmp_path / "markpublish.yaml")
@@ -433,7 +598,17 @@ def test_document_toc_defaults_to_full(tmp_path: Path):
     _write(
         tmp_path,
         "markpublish.yaml",
-        'document:\n  title: "T"\nchapters:\n  - file: "deep.md"\n    title: "K"\n',
+        """\
+document:
+  title: "T"
+parts:
+  - title: "Hauptteil"
+    break_before: "none"
+    document_toc: "none"
+    chapters:
+      - file: "deep.md"
+        title: "K"
+""",
     )
 
     config = load_config(tmp_path / "markpublish.yaml")
@@ -451,8 +626,19 @@ def test_autonum_from_level_skips_h1_and_numbers_h2_from_one(tmp_path: Path):
     _write(
         tmp_path,
         "markpublish.yaml",
-        'document:\n  title: "T"\nchapters:\n'
-        '  - file: "appendix.md"\n    title: "Anhang A"\n    autonum: "decimal"\n    autonum_from_level: 2\n',
+        """\
+document:
+  title: "T"
+parts:
+  - title: "Hauptteil"
+    break_before: "none"
+    document_toc: "none"
+    chapters:
+      - file: "appendix.md"
+        title: "Anhang A"
+        autonum_style: "decimal"
+        autonum_from_level: 2
+""",
     )
 
     config = load_config(tmp_path / "markpublish.yaml")
@@ -478,8 +664,20 @@ def test_autonum_prefix_prepends_string_to_numbers(tmp_path: Path):
     _write(
         tmp_path,
         "markpublish.yaml",
-        'document:\n  title: "T"\nchapters:\n'
-        '  - file: "appendix.md"\n    title: "Anhang A"\n    autonum: "decimal"\n    autonum_from_level: 2\n    autonum_prefix: "A."\n',
+        """\
+document:
+  title: "T"
+parts:
+  - title: "Hauptteil"
+    break_before: "none"
+    document_toc: "none"
+    chapters:
+      - file: "appendix.md"
+        title: "Anhang A"
+        autonum_style: "decimal"
+        autonum_from_level: 2
+        autonum_prefix: "A."
+""",
     )
 
     config = load_config(tmp_path / "markpublish.yaml")
@@ -500,10 +698,21 @@ def test_autonum_resets_counter_per_chapter_when_from_level_greater_than_one(tmp
     _write(
         tmp_path,
         "markpublish.yaml",
-        'document:\n  title: "T"\nchapters:\n'
-        '  - part: "Anhaenge"\n    autonum: "decimal"\n    autonum_from_level: 2\n    chapters:\n'
-        '      - file: "app_a.md"\n        title: "Anhang A"\n        autonum_prefix: "A."\n'
-        '      - file: "app_b.md"\n        title: "Anhang B"\n        autonum_prefix: "B."\n',
+        """\
+document:
+  title: "T"
+parts:
+  - part: "Anhaenge"
+    autonum_style: "decimal"
+    autonum_from_level: 2
+    chapters:
+      - file: "app_a.md"
+        title: "Anhang A"
+        autonum_prefix: "A."
+      - file: "app_b.md"
+        title: "Anhang B"
+        autonum_prefix: "B."
+""",
     )
 
     config = load_config(tmp_path / "markpublish.yaml")

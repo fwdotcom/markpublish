@@ -80,8 +80,7 @@ bewirkt, ist eine Fehlerquelle ohne Gegenwert.
 
 `page` ist die Erwartung an ein gesetztes Dokument. Wer kurze Abschnitte
 durchlaufen lassen will — Merkblätter, Referenzkarten, eng gesetzte Anhänge —
-setzt am einzelnen Kapitel `break_before: "none"`; die Vorgabe lässt sich auch
-im Frontmatter der Markdown-Datei überschreiben.
+setzt am einzelnen Kapitel `break_before: "none"`.
 
 Bei `divider` fallen der Umbruch des Kapitels und der der Trennseite auf
 dieselbe Stelle und verschmelzen zu einem — es entsteht kein Leerblatt. Vor dem

@@ -74,7 +74,7 @@ One key with three values, not two independent switches:
 
 That it is *one* key has a reason: the three values are one axis, not three questions. As two booleans you could write down "divider page, but no page break" — a state that does not exist, because a divider page always breaks. A setting you can write down and that does nothing is a source of error with no upside.
 
-`page` is what a typeset document is expected to do. If you want short sections to run on — leaflets, reference cards, tightly set appendices — put `break_before: "none"` on the individual chapter; the setting can also be overridden in the front matter of the Markdown file.
+`page` is what a typeset document is expected to do. If you want short sections to run on — leaflets, reference cards, tightly set appendices — put `break_before: "none"` on the individual chapter.
 
 With `divider`, the chapter's own break and the divider page's break fall in the same place and merge into one — no blank sheet appears. Before the first chapter the rule does not apply.
 

@@ -28,12 +28,23 @@
 
 ## Showcase / Sample Output
 
-The entire official user guide was written in Markdown and rendered directly with `markpublish`. You can inspect the compiled, publication-ready PDF documents:
+The entire official user guide was written in Markdown and rendered directly with `markpublish` — two languages, both target formats, all four built by `python build_manuals.py`:
 
-- 🇩🇪 **[markpublish Benutzerhandbuch (PDF)](https://github.com/fwdotcom/markpublish/blob/main/manual/markpublish_benutzerhandbuch.pdf)**
-- 🇬🇧 **[markpublish User Guide (PDF)](https://github.com/fwdotcom/markpublish/blob/main/manual/markpublish_user_guide.pdf)**
+| Document | PDF | HTML |
+| :--- | :--- | :--- |
+| 🇩🇪 markpublish Benutzerhandbuch | **[view](https://github.com/fwdotcom/markpublish/blob/main/manual/markpublish_benutzerhandbuch.pdf)** | [download](https://raw.githubusercontent.com/fwdotcom/markpublish/main/manual/markpublish_benutzerhandbuch.html) |
+| 🇬🇧 markpublish User Guide | **[view](https://github.com/fwdotcom/markpublish/blob/main/manual/markpublish_user_guide.pdf)** | [download](https://raw.githubusercontent.com/fwdotcom/markpublish/main/manual/markpublish_user_guide.html) |
 
-These demonstrate all built-in capabilities in practice: cover layout, multi-level global TOC, running multi-line headers & footers, GitHub callout admonitions, Pygments syntax highlighting, task lists, and chapter hierarchy.
+The PDFs open straight in the browser. The HTML files are **single, self-contained
+documents** — fonts and images are embedded as data URIs, so one file is the whole
+publication, with nothing to unpack and no assets folder beside it. GitHub serves
+them as plain text rather than rendering them, so save the file and open it locally.
+
+Together they demonstrate the built-in capabilities in practice: cover layout,
+multi-level global TOC, running multi-line headers and footers, GitHub callout
+admonitions, Pygments syntax highlighting, task lists, and the part/chapter
+hierarchy — and in the HTML case a sidebar TOC and a responsive layout instead of
+the print furniture.
 
 ---
 

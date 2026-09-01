@@ -35,7 +35,8 @@ TOC_LINE_MM = 6.0
 #: bereits auf Ebene 2.
 TOP_LEVEL_CLASSES = {"toc-item-h1", "toc-item-part"}
 
-YAML = """
+YAML = """\
+
 document:
   title: "Raster Test"
   author: "Test"
@@ -46,11 +47,15 @@ document:
 
 theme: "default"
 
-chapters:
-  - file: "chapters/01.md"
-    title: "Erstes Kapitel"
-  - file: "chapters/02.md"
-    title: "Zweites Kapitel"
+parts:
+  - title: "Hauptteil"
+    break_before: "none"
+    document_toc: "none"
+    chapters:
+      - file: "chapters/01.md"
+        title: "Erstes Kapitel"
+      - file: "chapters/02.md"
+        title: "Zweites Kapitel"
   - part: "Anhaenge"
     chapters:
       - file: "chapters/03.md"
@@ -387,8 +392,20 @@ def test_chapters_start_on_a_new_page_by_default(tmp_path: Path):
 
     pages = _render_pages(
         tmp_path,
-        'document:\n  title: "T"\n  cover: false\n  document_toc: "none"\nchapters:\n'
-        '  - file: "a.md"\n  - file: "b.md"\n  - file: "c.md"\n',
+        """\
+document:
+  title: "T"
+  cover: false
+  document_toc: "none"
+parts:
+  - title: "Hauptteil"
+    break_before: "none"
+    document_toc: "none"
+    chapters:
+      - file: "a.md"
+      - file: "b.md"
+      - file: "c.md"
+""",
     )
 
     assert len(pages) == 3
@@ -404,8 +421,20 @@ def test_break_before_none_lets_chapters_run_on(tmp_path: Path):
 
     pages = _render_pages(
         tmp_path,
-        'document:\n  title: "T"\n  cover: false\n  document_toc: "none"\nchapters:\n'
-        '  - file: "a.md"\n  - file: "b.md"\n    break_before: "none"\n',
+        """\
+document:
+  title: "T"
+  cover: false
+  document_toc: "none"
+parts:
+  - title: "Hauptteil"
+    break_before: "none"
+    document_toc: "none"
+    chapters:
+      - file: "a.md"
+      - file: "b.md"
+        break_before: "none"
+""",
     )
 
     assert len(pages) == 1
@@ -423,8 +452,20 @@ def test_a_divider_page_does_not_add_a_blank_page(tmp_path: Path):
 
     pages = _render_pages(
         tmp_path,
-        'document:\n  title: "T"\n  cover: false\n  document_toc: "none"\nchapters:\n'
-        '  - file: "a.md"\n    title: "A"\n    break_before: "divider"\n',
+        """\
+document:
+  title: "T"
+  cover: false
+  document_toc: "none"
+parts:
+  - title: "Hauptteil"
+    break_before: "none"
+    document_toc: "none"
+    chapters:
+      - file: "a.md"
+        title: "A"
+        break_before: "divider"
+""",
     )
 
     assert len(pages) == 2, "Trennseite und Kapitelseite - dazwischen nichts"

@@ -202,7 +202,8 @@ def test_describe_labels_names_each_layer(tmp_path: Path):
 # Durchschlagen bis in die Ausgabe
 # --------------------------------------------------------------------------
 
-YAML = """
+YAML = """\
+
 document:
   title: "Cascade Test"
   author: "Test"
@@ -214,11 +215,15 @@ document:
 theme: "{theme}"
 templates_dir: "./templates"
 
-chapters:
-  - file: "chapters/01.md"
-    title: "First"
-    break_before: "divider"
-    chapter_toc: 2
+parts:
+  - title: "Hauptteil"
+    break_before: "none"
+    document_toc: "none"
+    chapters:
+      - file: "chapters/01.md"
+        title: "First"
+        break_before: "divider"
+        chapter_toc: 2
 """
 
 
