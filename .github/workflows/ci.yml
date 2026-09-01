@@ -30,10 +30,60 @@ jobs:
 
       - name: Install system dependencies (macOS)
         if: runner.os == 'macOS'
-        run: brew install pango
+        run: |
+          brew install pango
+          # Auf Apple Silicon liegt Homebrew unter /opt/homebrew, und der
+          # dynamische Loader durchsucht diesen Pfad nicht von sich aus.
+          # WeasyPrint findet libgobject sonst nicht - obwohl es installiert
+          # ist. Der Fehler sieht aus wie eine fehlende Abhaengigkeit, ist
+          # aber eine fehlende Suchpfad-Angabe.
+          echo "DYLD_FALLBACK_LIBRARY_PATH=$(brew --prefix)/lib" >> "$GITHUB_ENV"
+
+      # Windows bringt kein GTK mit, und WeasyPrint braucht die nativen
+      # Pango-Bibliotheken.
+      #
+      # location: C:\ installiert nach C:\msys64 - genau dorthin, wo
+      # GTK_CANDIDATE_PATHS in renderers/pdf.py sucht. Das ist Absicht: so
+      # laeuft nicht nur WeasyPrint, sondern die Windows-GTK-Erkennung von
+      # markpublish wird tatsaechlich durchlaufen, statt mit einem gesetzten
+      # GTK_PATH uebersprungen zu werden. Sie ist der einzige Codepfad, den
+      # kein anderes Betriebssystem beruehrt.
+      #
+      # path-type: inherit haengt MSYS2 an den vorhandenen PATH an, statt ihn
+      # zu ersetzen - sonst faende der naechste Schritt das von setup-python
+      # installierte Python nicht mehr.
+      - name: Install system dependencies (Windows)
+        if: runner.os == 'Windows'
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: false
+          path-type: inherit
+          location: "C:\\"
+          install: mingw-w64-x86_64-pango
 
       - name: Install package and dependencies
         run: pip install -e ".[dev]"
+
+      # Ohne diesen Schritt aeussert sich eine fehlende GTK-Laufzeit als elf
+      # scheinbar unzusammenhaengende Testfehler. Hier steht stattdessen in
+      # einer Zeile, was fehlt - und der Lauf bricht ab, bevor pytest die
+      # Ursache unter Folgefehlern begraebt.
+      - name: Verify the PDF toolchain is available
+        # bash statt der Standard-Shell: derselbe Schritt laeuft auf allen drei
+        # Betriebssystemen, und pwsh kennt kein Here-Document.
+        shell: bash
+        run: |
+          python - <<'PY'
+          import sys
+
+          from markpublish.renderers.pdf import _load_weasyprint
+
+          html_cls, error = _load_weasyprint()
+          if html_cls is None:
+              sys.exit(f"GTK/Pango runtime not usable:\n{error}")
+          print("WeasyPrint ready.")
+          PY
 
       - name: Run linter (ruff)
         run: ruff check src tests build_manuals.py

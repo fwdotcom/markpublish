@@ -8,7 +8,7 @@ Thank you for your interest in improving **markpublish**!
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/frankwinter/markpublish.git
+   git clone https://github.com/fwdotcom/markpublish.git
    cd markpublish
    ```
 

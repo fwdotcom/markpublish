@@ -20,7 +20,7 @@ pip install markpublish
 Für Entwickler oder zur Installation aus dem Quellcode:
 
 ```bash
-git clone https://github.com/frankwinter/markpublish.git
+git clone https://github.com/fwdotcom/markpublish.git
 cd markpublish
 pip install -e ".[dev]"
 ```

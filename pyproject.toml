@@ -58,11 +58,11 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/frankwinter/markpublish"
-Documentation = "https://github.com/frankwinter/markpublish#readme"
-Repository = "https://github.com/frankwinter/markpublish.git"
-Issues = "https://github.com/frankwinter/markpublish/issues"
-Changelog = "https://github.com/frankwinter/markpublish/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/fwdotcom/markpublish"
+Documentation = "https://github.com/fwdotcom/markpublish#readme"
+Repository = "https://github.com/fwdotcom/markpublish.git"
+Issues = "https://github.com/fwdotcom/markpublish/issues"
+Changelog = "https://github.com/fwdotcom/markpublish/blob/main/CHANGELOG.md"
 
 [project.scripts]
 markpublish = "markpublish.cli:app"
