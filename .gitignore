@@ -34,6 +34,8 @@ htmlcov/
 # Output directories & artifacts
 output/
 dist_output/
+manual/markpublish_benutzerhandbuch.html
+manual/markpublish_benutzerhandbuch.pdf
 !src/markpublish/templates/**/*.html
 
 # IDE & Editor files

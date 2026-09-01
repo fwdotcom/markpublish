@@ -169,6 +169,21 @@ def _parse_targets(target: str) -> List[str]:
     raise typer.Exit(code=1)
 
 
+def _is_output_directory(output: Path) -> bool:
+    """
+    Entscheidet, ob --output als Verzeichnis zu behandeln ist.
+
+    Ein nicht existentes Ziel ohne Dateiendung gilt als Verzeichnis. Sonst
+    waere `--output dist` vom Existenzzustand abhaengig und wuerde leicht als
+    Dateiname statt Zielordner interpretiert.
+    """
+    if output.exists():
+        return output.is_dir()
+    if str(output).endswith(("/", "\\")):
+        return True
+    return output.suffix == ""
+
+
 def _render_document(
     config,
     base_dir: Path,
@@ -228,7 +243,7 @@ def _render_document(
             # Determine output file path
             doc_slug = slugify(config.document.title, separator="_")
             if output:
-                if output.is_dir() or str(output).endswith(("/", "\\")):
+                if _is_output_directory(output):
                     out_file = output / f"{doc_slug}.{tgt}"
                 elif len(targets_to_build) > 1 and output.suffix != f".{tgt}":
                     out_file = output.parent / f"{output.stem}.{tgt}"
@@ -274,7 +289,7 @@ def build_cmd(
         None,
         "--output",
         "-o",
-        help="Custom output file or directory path.",
+        help="Custom output file or directory path (a non-existing path without extension is treated as directory).",
     ),
     templates_dir: Optional[Path] = typer.Option(
         None,

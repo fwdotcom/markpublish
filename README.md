@@ -165,20 +165,19 @@ so the common case is one line at the top instead of one per chapter.
 
 ## Template System
 
-Templates are organized by target format:
+Templates are organized by theme first, then by target format:
 ```
 templates/
-├── pdf/
-│   └── default/
-│       ├── layout.html          # Jinja2 layout
-│       ├── styles.css           # CSS Paged Media (@page, @top-left, @bottom-right)
-│       ├── cover.html           # Cover page
-│       ├── part_divider.html    # Part separator page
-│       ├── chapter_divider.html # Chapter separator page & local TOC (PDF only)
-│       └── toc.html             # Global TOC
-└── html/
-    └── default/
-        └── ...
+└── default/
+  ├── pdf/
+  │   ├── layout.html          # Jinja2 layout
+  │   ├── styles.css           # CSS Paged Media (@page, @top-left, @bottom-right)
+  │   ├── cover.html           # Cover page
+  │   ├── part_divider.html    # Part separator page
+  │   ├── chapter_divider.html # Chapter separator page & local TOC (PDF only)
+  │   └── toc.html             # Global TOC
+  └── html/
+    └── ...
 ```
 
 ### Template Resolution Order:

@@ -38,6 +38,23 @@ def test_cli_init_and_build(tmp_path: Path):
     assert (project_dir / "cli_test_doc.pdf").is_file()
 
 
+def test_cli_build_treats_non_existing_output_without_suffix_as_directory(tmp_path: Path):
+    project_dir = tmp_path / "my_project"
+
+    init_res = runner.invoke(app, ["init", str(project_dir), "--title", "Output Dir Test"])
+    assert init_res.exit_code == 0
+
+    out_dir = tmp_path / "dist"
+    build_res = runner.invoke(
+        app,
+        ["build", str(project_dir / "markpublish.yaml"), "--target", "pdf", "--output", str(out_dir)],
+    )
+    assert build_res.exit_code == 0, build_res.stdout
+
+    assert out_dir.is_dir(), "--output ohne Endung soll als Zielverzeichnis gelten"
+    assert (out_dir / "output_dir_test.pdf").is_file()
+
+
 def test_cli_init_stays_minimal(tmp_path: Path):
     """
     Der Stumpf ist bewusst zwei Dateien - kein chapters/-Verzeichnis, keine
