@@ -42,25 +42,27 @@ jobs:
       # Windows bringt kein GTK mit, und WeasyPrint braucht die nativen
       # Pango-Bibliotheken.
       #
-      # location: C:\ installiert nach C:\msys64 - genau dorthin, wo
-      # GTK_CANDIDATE_PATHS in renderers/pdf.py sucht. Das ist Absicht: so
-      # laeuft nicht nur WeasyPrint, sondern die Windows-GTK-Erkennung von
-      # markpublish wird tatsaechlich durchlaufen, statt mit einem gesetzten
-      # GTK_PATH uebersprungen zu werden. Sie ist der einzige Codepfad, den
+      # Das Runner-Image liefert MSYS2 bereits unter C:\msys64 aus - ein
+      # eigenes setup-msys2 scheitert daran ("already exists, cannot
+      # continue"). Nachgezogen wird deshalb nur das fehlende Paket.
+      #
+      # C:\msys64\mingw64\bin ist einer der Pfade aus GTK_CANDIDATE_PATHS in
+      # renderers/pdf.py. Weder PATH noch GTK_PATH werden angefasst: so laeuft
+      # nicht bloss WeasyPrint, sondern die Windows-GTK-Erkennung von
+      # markpublish wird tatsaechlich durchlaufen - der einzige Codepfad, den
       # kein anderes Betriebssystem beruehrt.
       #
-      # path-type: inherit haengt MSYS2 an den vorhandenen PATH an, statt ihn
-      # zu ersetzen - sonst faende der naechste Schritt das von setup-python
-      # installierte Python nicht mehr.
+      # -Sy vorweg, weil die Paketdatenbank im Image aelter sein kann als die
+      # Spiegelserver; ohne Aktualisierung laeuft der Download ins Leere. Die
+      # Verkettung mit && sorgt dafuer, dass ein Fehler im ersten Aufruf den
+      # zweiten verhindert - cmd wertet sonst nur die letzte Zeile aus.
       - name: Install system dependencies (Windows)
         if: runner.os == 'Windows'
-        uses: msys2/setup-msys2@v2
-        with:
-          msystem: MINGW64
-          update: false
-          path-type: inherit
-          location: "C:\\"
-          install: mingw-w64-x86_64-pango
+        shell: cmd
+        run: >
+          C:\msys64\usr\bin\pacman.exe -Sy --noconfirm &&
+          C:\msys64\usr\bin\pacman.exe -S --noconfirm --needed
+          --disable-download-timeout mingw-w64-x86_64-pango
 
       - name: Install package and dependencies
         run: pip install -e ".[dev]"
