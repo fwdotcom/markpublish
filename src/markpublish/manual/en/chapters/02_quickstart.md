@@ -49,9 +49,13 @@ There is no sample content beyond that, because everything `init` writes is mate
 ```bash
 markpublish cheatsheet         # two-page reference card
 markpublish manual             # this guide
+markpublish manual --lang de   # manual in German
+markpublish manual --lang en   # manual in English
 ```
 
 Both are rendered from sources shipped inside the package, so they always match the version you have installed. A successful run also confirms that the rendering toolchain works — on Windows, that WeasyPrint found its GTK runtime.
+
+The `--lang` parameter selects the manual source language, not just the interface labels.
 
 ## Building the document
 
