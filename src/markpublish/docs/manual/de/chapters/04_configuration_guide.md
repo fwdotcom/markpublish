@@ -20,7 +20,7 @@ document:
   # Globale Schalter
   cover: true                  # Deckblatt an/aus
   document_toc: 2              # Großes Verzeichnis, zwei Ebenen tief
-  autonum_type: "decimal"      # "decimal", "roman", "legal", "none"
+  autonum_style: "decimal"     # "decimal", "roman", "legal", "none"
   chapter_toc: 2               # Vorgabe für die Kapitel-Trennseiten
   header: true                 # Laufende Kopfzeile
   footer: true                 # Laufende Fußzeile

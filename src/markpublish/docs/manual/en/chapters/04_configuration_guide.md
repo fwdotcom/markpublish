@@ -20,8 +20,8 @@ document:
   # Global switches
   cover: true                  # Cover page on/off
   document_toc: 2              # Large TOC, two levels deep
-  autonum_type: "decimal"      # "decimal", "roman", "legal", "none"
-  chapter_toc: 2               # default for the chapter divider pages
+  autonum_style: "decimal"     # "decimal", "roman", "legal", "none"
+  chapter_toc: 2               # Default for the chapter divider pages
   header: true                 # Running header
   footer: true                 # Running footer
 ```

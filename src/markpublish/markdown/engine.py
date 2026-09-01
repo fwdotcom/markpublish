@@ -11,6 +11,7 @@ import frontmatter
 import markdown
 
 from markpublish.config.models import (
+    AutonumStyle,
     AutonumType,
     BreakBefore,
     ChapterItem,
@@ -145,17 +146,20 @@ class ContentItem:
         return self.break_before != BreakBefore.NONE
 
 
-def _resolve_autonum(value: Any) -> Optional[AutonumType]:
-    """Bringt eine autonum-Angabe auf den Enum-Wert; None heisst 'nicht gesetzt'."""
-    if not value:
+def _resolve_autonum_style(value: Any) -> Optional[AutonumStyle]:
+    """Bringt eine autonum_style-Angabe auf den Enum-Wert; None heisst 'nicht gesetzt'."""
+    if value is None:
         return None
-    if isinstance(value, AutonumType):
+    if isinstance(value, AutonumStyle):
         return value
-    wanted = str(value).lower().strip()
-    for candidate in AutonumType:
-        if candidate.value == wanted:
-            return candidate
+    val_str = str(value).lower().strip()
+    for item in AutonumStyle:
+        if item.value == val_str:
+            return item
     return None
+
+
+_resolve_autonum = _resolve_autonum_style
 
 
 def _document_toc_enabled(scope: Optional[TocScope]) -> bool:
@@ -197,7 +201,7 @@ class MarkdownPipeline:
         # aussen herein statt hier gebaut zu werden - die Pipeline laeuft pro
         # Zielformat.
         self.engine = MarkdownEngine(language=config.document.language, labels=labels)
-        self.numbering_ctx = NumberingContext(default_autonum_type=config.document.autonum_type)
+        self.numbering_ctx = NumberingContext(default_autonum_type=config.document.autonum_style)
 
     def process_document(self) -> Tuple[List[ContentItem], List[TOCNode]]:
         """
@@ -248,7 +252,10 @@ class MarkdownPipeline:
                             if item_cfg.document_toc is not None
                             else document_toc_root
                         ),
-                        inherited_autonum=_resolve_autonum(item_cfg.autonum),
+                        inherited_autonum=_resolve_autonum_style(item_cfg.autonum_style),
+                        inherited_autonum_from_level=item_cfg.autonum_from_level,
+                        inherited_autonum_prefix=item_cfg.autonum_prefix,
+                        inherited_autonum_reset=item_cfg.autonum_reset,
                     )
                     part_item.children.append(child_item)
 
@@ -283,6 +290,9 @@ class MarkdownPipeline:
         base_level: int = 1,
         inherited_document_toc: Optional[TocScope] = None,
         inherited_autonum: Optional[AutonumType] = None,
+        inherited_autonum_from_level: Optional[int] = None,
+        inherited_autonum_prefix: Optional[str] = None,
+        inherited_autonum_reset: Optional[bool] = None,
     ) -> Tuple[ContentItem, List[TOCNode]]:
         raw_md = ""
         file_base_dir = self.base_dir
@@ -327,10 +337,43 @@ class MarkdownPipeline:
                         break_before = BreakBefore(str(post.metadata["break_before"]).lower().strip())
 
         # Nummerierung: was das Kapitel selbst sagt, sonst das Geerbte. Ein
-        # Part mit autonum: "none" nimmt damit seinen gesamten Anhang aus der
+        # Part mit autonum_style: "none" nimmt damit seinen gesamten Anhang aus der
         # Zaehlung - ohne Vererbung bliebe die Angabe am Part wirkungslos, weil
         # die Ueberschriften in den Kapiteldateien stehen, nicht im Part.
-        autonum_override = _resolve_autonum(chapter_cfg.autonum) or inherited_autonum
+        autonum_override = _resolve_autonum_style(chapter_cfg.autonum_style) or inherited_autonum
+
+        effective_from_level = (
+            chapter_cfg.autonum_from_level
+            if chapter_cfg.autonum_from_level is not None
+            else (
+                inherited_autonum_from_level
+                if inherited_autonum_from_level is not None
+                else self.config.document.autonum_from_level
+            )
+        )
+        effective_prefix = (
+            chapter_cfg.autonum_prefix
+            if chapter_cfg.autonum_prefix is not None
+            else (
+                inherited_autonum_prefix
+                if inherited_autonum_prefix is not None
+                else self.config.document.autonum_prefix
+            )
+        )
+        effective_reset = (
+            chapter_cfg.autonum_reset
+            if chapter_cfg.autonum_reset is not None
+            else (
+                inherited_autonum_reset
+                if inherited_autonum_reset is not None
+                else (True if effective_from_level > 1 else self.config.document.autonum_reset)
+            )
+        )
+
+        # Wenn Reset gewuenscht (oder from_level > 1, z. B. bei Anhaengen):
+        # Der Zaehler startet fuer dieses Kapitel isoliert wieder bei 0.
+        if effective_reset:
+            self.numbering_ctx.reset_counters()
 
         # Convert markdown to HTML
         raw_html = self.engine.convert(raw_md) if raw_md else ""
@@ -344,6 +387,8 @@ class MarkdownPipeline:
             self.numbering_ctx,
             autonum_override=autonum_override,
             base_level_offset=base_level - 1,
+            autonum_from_level=effective_from_level,
+            autonum_prefix=effective_prefix,
         )
 
         display_title = title or (toc_nodes[0].title if toc_nodes else "Chapter")
@@ -403,6 +448,9 @@ class MarkdownPipeline:
                 base_level=base_level + 1,
                 inherited_document_toc=effective_document_toc,
                 inherited_autonum=autonum_override,
+                inherited_autonum_from_level=effective_from_level,
+                inherited_autonum_prefix=effective_prefix,
+                inherited_autonum_reset=effective_reset,
             )
             item.children.append(sub_item)
             global_toc_nodes.extend(sub_tocs)

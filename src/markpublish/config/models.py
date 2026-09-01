@@ -12,11 +12,15 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 from markpublish.i18n import default_document_language
 
 
-class AutonumType(str, Enum):
+class AutonumStyle(str, Enum):
     DECIMAL = "decimal"    # 1, 1.1, 1.1.1
     ROMAN = "roman"        # I, I.1, I.1.1
     LEGAL = "legal"        # 1., 1.1., 1.1.1.
     NONE = "none"          # No automatic numbering
+
+
+# Alias fuer Abwaertskompatibilitaet
+AutonumType = AutonumStyle
 
 
 class BreakBefore(str, Enum):
@@ -148,9 +152,12 @@ class DocumentConfig(BaseModel):
         default_factory=lambda: TocScope(enabled=True),
         description="Document TOC: 'none', 'full' or a depth; root for the chapters' document_toc",
     )
-    autonum_type: AutonumType = Field(default=AutonumType.DECIMAL, description="Numbering style")
+    autonum_style: AutonumStyle = Field(default=AutonumStyle.DECIMAL, description="Numbering style ('decimal', 'roman', 'legal', 'none')")
+    autonum_from_level: int = Field(default=1, ge=1, description="Start heading level for autonumbering (default: 1)")
+    autonum_prefix: Optional[str] = Field(default=None, description="Optional prefix for generated numbers")
+    autonum_reset: bool = Field(default=False, description="Reset numbering counter per chapter")
     # Vorgabe fuer das kleine Verzeichnis auf den Kapitel-Trennseiten. Steht zu
-    # `chapters.chapter_toc` wie `autonum_type` zu `chapters.autonum`: hier die
+    # `chapters.chapter_toc` wie `autonum_style` zu `chapters.autonum_style`: hier die
     # Wurzel, dort der Einzelfall. Ohne sie wiederholt ein Dokument mit zehn
     # Kapiteln zehnmal dieselbe Zeile.
     chapter_toc: TocScope = Field(
@@ -165,17 +172,17 @@ class DocumentConfig(BaseModel):
         "extra": "allow"
     }
 
-    @field_validator("autonum_type", mode="before")
+    @field_validator("autonum_style", mode="before")
     @classmethod
-    def parse_autonum_type(cls, v: Any) -> AutonumType:
-        if isinstance(v, AutonumType):
+    def parse_autonum_style(cls, v: Any) -> AutonumStyle:
+        if isinstance(v, AutonumStyle):
             return v
         if isinstance(v, str):
             v_lower = v.lower().strip()
-            for item in AutonumType:
+            for item in AutonumStyle:
                 if item.value == v_lower:
                     return item
-        return AutonumType.DECIMAL
+        return AutonumStyle.DECIMAL
 
     @field_validator("document_toc", mode="before")
     @classmethod
@@ -202,6 +209,9 @@ class DocumentConfig(BaseModel):
         """
         if not isinstance(data, dict):
             return data
+
+        if "autonum_type" in data and "autonum_style" not in data:
+            data["autonum_style"] = data.pop("autonum_type")
 
         for key in ("i18n", "labels"):
             if key in data:
@@ -234,10 +244,7 @@ class ChapterItem(BaseModel):
         default=BreakBefore.PAGE,
         description="How this chapter is set off: 'page', 'divider' or 'none'",
     )
-    # Das kleine Verzeichnis auf der Trennseite dieses Kapitels. None heisst
-    # "nicht gesetzt" und faellt auf document.chapter_toc zurueck. Anders als
-    # document_toc wird der Wert nicht von Kapitel zu Unterkapitel gereicht: er
-    # beschreibt eine Trennseite, und die hat jedes Kapitel fuer sich.
+    # Das kleine Verzeichnis auf der Trennseite. Standard: keins.
     chapter_toc: Optional[TocScope] = Field(
         default=None,
         description="Local TOC on the chapter divider page: 'none', 'full' or a depth",
@@ -250,12 +257,23 @@ class ChapterItem(BaseModel):
         default=None,
         description="Contribution to the document TOC: 'none', 'full' or a depth; inherited downwards",
     )
-    autonum: Optional[Union[AutonumType, str]] = Field(default=None, description="Override numbering type for this chapter")
+    autonum_style: Optional[Union[AutonumStyle, str]] = Field(default=None, description="Override numbering style for this chapter")
+    autonum_from_level: Optional[int] = Field(default=None, ge=1, description="Start heading level for autonumbering; inherited downwards")
+    autonum_prefix: Optional[str] = Field(default=None, description="Optional prefix for generated numbers; inherited downwards")
+    autonum_reset: Optional[bool] = Field(default=None, description="Whether to reset counter at chapter start; inherited downwards")
     chapters: List[ChapterItem] = Field(default_factory=list, description="Nested child chapters")
 
     model_config = {
         "extra": "allow"
     }
+
+    @model_validator(mode="before")
+    @classmethod
+    def map_legacy_autonum(cls, data: Any) -> Any:
+        if isinstance(data, dict):
+            if "autonum" in data and "autonum_style" not in data:
+                data["autonum_style"] = data.pop("autonum")
+        return data
 
     @field_validator("chapter_toc", mode="before")
     @classmethod

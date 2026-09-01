@@ -17,7 +17,7 @@ document:
   cover: true
   document_toc: 2
   chapter_toc: 2
-  autonum_type: "decimal"
+  autonum_style: "decimal"
 
   header: true
   footer: true
@@ -60,12 +60,14 @@ chapters:
   - part: "Anhänge"
     summary: "Vollständige Spezifikations-Tabellen, Troubleshooting und Best Practices."
     break_before: "divider"
-    autonum: "none"
-    document_toc: 1
+    autonum_from_level: 2
+    document_toc: 2
     chapters:
       - file: "chapters/07_appendix_yaml_spec.md"
         title: "Anhang A: YAML-Schema-Referenz"
+        autonum_prefix: "A."
 
       - file: "chapters/08_appendix_troubleshooting.md"
         title: "Anhang B: Fehlerbehebung & FAQ"
+        autonum_prefix: "B."
 

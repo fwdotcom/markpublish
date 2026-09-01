@@ -33,7 +33,7 @@ Metadaten und globale Layout-Schalter. Pflicht ist allein `title`.
 | `cover` / `header` / `footer` | `true` | Deckblatt, Kopf- und Fußzeile |
 | `document_toc` | `full` | Großes Verzeichnis: `none`, `full` oder Tiefe |
 | `chapter_toc` | `none` | Kleine Trennseiten-Verzeichnisse, gleiche Formen |
-| `autonum_type` | `decimal` | `decimal`, `roman`, `legal`, `none` |
+| `autonum_style` | `decimal` | `decimal`, `roman`, `legal`, `none` |
 
 Außerdem: `summary` (Abstract auf dem Deckblatt), `status`, `copyright`
 (Fußzeile). Unbekannte Schlüssel gehen als `{{ document.mein_schluessel }}` ans
@@ -56,5 +56,4 @@ Kapitel, Unterkapitel und Parts; rekursiv verschachtelbar.
 Beide TOC-Schlüssel nehmen `none`, `full` oder eine Tiefe, gezählt ab der
 eigenen Überschrift. `document_toc: 1` listet das Kapitel ohne seine
 Unterüberschriften; am Part gesetzt, flacht es alle Anhänge auf einmal ab.
-`document_toc` und `autonum` vererben nach unten, `chapter_toc` fällt auf
-`document.chapter_toc` zurück.
+`document_toc`, `autonum` und `autonum_from_level` (z. B. `2` für Zählung ab `##` mit optionalem `autonum_prefix`) vererben nach unten, `chapter_toc` fällt auf `document.chapter_toc` zurück.

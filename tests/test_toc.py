@@ -428,3 +428,79 @@ def test_document_toc_defaults_to_full(tmp_path: Path):
     _, tree = MarkdownPipeline(config, base_dir=tmp_path, labels={}).process_document()
 
     assert [lvl for lvl, _ in _tree_titles(tree)] == [1, 2, 3]
+
+
+def test_autonum_from_level_skips_h1_and_numbers_h2_from_one(tmp_path: Path):
+    """
+    autonum_from_level: 2 laesst die h1 unnummeriert und startet bei h2 mit 1, 2, ...
+    Ebene 3 (h3) wird relativ als 1.1 nummeriert.
+    """
+    _write(tmp_path, "appendix.md", DEEP_MD)
+    _write(
+        tmp_path,
+        "markpublish.yaml",
+        'document:\n  title: "T"\nchapters:\n'
+        '  - file: "appendix.md"\n    title: "Anhang A"\n    autonum: "decimal"\n    autonum_from_level: 2\n',
+    )
+
+    config = load_config(tmp_path / "markpublish.yaml")
+    items, tree = MarkdownPipeline(config, base_dir=tmp_path, labels={}).process_document()
+
+    assert items[0].number_prefix is None, "h1 (Anhang A) erhaelt keine Nummer"
+    assert '<span class="heading-number">1</span> Ebene zwei' in items[0].html_content
+    assert '<span class="heading-number">1.1</span> Ebene drei' in items[0].html_content
+
+    # Auch im Baum / TOC korrekt nummeriert
+    tocs = _tree_titles(tree)
+    assert tocs[0][1] == "Kapitel"
+    assert tree[0].number is None
+    assert tree[0].children[0].number == "1"
+    assert tree[0].children[0].children[0].number == "1.1"
+
+
+def test_autonum_prefix_prepends_string_to_numbers(tmp_path: Path):
+    """
+    autonum_prefix: "A." fuegt das Praefix vor die generierte Nummer ein (z. B. A.1, A.1.1).
+    """
+    _write(tmp_path, "appendix.md", DEEP_MD)
+    _write(
+        tmp_path,
+        "markpublish.yaml",
+        'document:\n  title: "T"\nchapters:\n'
+        '  - file: "appendix.md"\n    title: "Anhang A"\n    autonum: "decimal"\n    autonum_from_level: 2\n    autonum_prefix: "A."\n',
+    )
+
+    config = load_config(tmp_path / "markpublish.yaml")
+    items, tree = MarkdownPipeline(config, base_dir=tmp_path, labels={}).process_document()
+
+    assert '<span class="heading-number">A.1</span> Ebene zwei' in items[0].html_content
+    assert '<span class="heading-number">A.1.1</span> Ebene drei' in items[0].html_content
+    assert tree[0].children[0].number == "A.1"
+    assert tree[0].children[0].children[0].number == "A.1.1"
+
+
+def test_autonum_resets_counter_per_chapter_when_from_level_greater_than_one(tmp_path: Path):
+    """
+    Mehrere Anhaenge mit from_level: 2 starten jeweils isoliert wieder bei 1 (bzw. A.1, B.1).
+    """
+    _write(tmp_path, "app_a.md", DEEP_MD)
+    _write(tmp_path, "app_b.md", DEEP_MD)
+    _write(
+        tmp_path,
+        "markpublish.yaml",
+        'document:\n  title: "T"\nchapters:\n'
+        '  - part: "Anhaenge"\n    autonum: "decimal"\n    autonum_from_level: 2\n    chapters:\n'
+        '      - file: "app_a.md"\n        title: "Anhang A"\n        autonum_prefix: "A."\n'
+        '      - file: "app_b.md"\n        title: "Anhang B"\n        autonum_prefix: "B."\n',
+    )
+
+    config = load_config(tmp_path / "markpublish.yaml")
+    items, _ = MarkdownPipeline(config, base_dir=tmp_path, labels={}).process_document()
+
+    part = items[0]
+    app_a = part.children[0]
+    app_b = part.children[1]
+
+    assert '<span class="heading-number">A.1</span> Ebene zwei' in app_a.html_content
+    assert '<span class="heading-number">B.1</span> Ebene zwei' in app_b.html_content
+

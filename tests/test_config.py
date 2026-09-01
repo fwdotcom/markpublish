@@ -27,7 +27,7 @@ def test_load_config_from_dict():
             "language": "de",
             "cover": True,
             "document_toc": "full",
-            "autonum_type": "decimal",
+            "autonum_style": "decimal",
         },
         "theme": "default",
         "chapters": [
@@ -41,7 +41,7 @@ def test_load_config_from_dict():
                 "part": "Appendices",
                 "summary": "Appendix section",
                 "break_before": "divider",
-                "autonum": "none",
+                "autonum_style": "none",
                 "chapters": [
                     {
                         "file": "chapters/app_a.md",
@@ -58,7 +58,7 @@ def test_load_config_from_dict():
     assert config.document.status == "Freigegeben"
     assert config.document.copyright == "© 2026 Frank Winter"
     assert config.document.date == datetime.date.today().strftime("%d.%m.%Y")
-    assert config.document.autonum_type == AutonumType.DECIMAL
+    assert config.document.autonum_style == AutonumType.DECIMAL
     assert len(config.chapters) == 2
 
     # Check chapter 1
@@ -73,9 +73,28 @@ def test_load_config_from_dict():
     p = config.chapters[1]
     assert p.is_part is True
     assert p.part == "Appendices"
-    assert p.autonum == "none"
+    assert p.autonum_style == AutonumType.NONE
     assert len(p.chapters) == 1
     assert p.chapters[0].title == "App A"
+
+
+def test_legacy_autonum_keys_compatibility():
+    """Stellt sicher, dass alte Konfigurationen mit autonum_type und autonum weiter funktionieren."""
+    raw = {
+        "document": {
+            "title": "Legacy Test",
+            "autonum_type": "roman",
+        },
+        "chapters": [
+            {
+                "file": "01.md",
+                "autonum": "none",
+            }
+        ],
+    }
+    config = load_config(raw)
+    assert config.document.autonum_style == AutonumType.ROMAN
+    assert config.chapters[0].autonum_style == AutonumType.NONE
 
 
 def test_load_config_from_yaml_string():

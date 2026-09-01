@@ -111,7 +111,7 @@ document:
   # Layout Toggles
   cover: true                    # Enable cover page
   document_toc: 2                # Large TOC, two levels deep
-  autonum_type: "decimal"        # "decimal" (1, 1.1), "roman", "legal", "none"
+  autonum_style: "decimal"       # "decimal" (1, 1.1), "roman", "legal", "none"
   chapter_toc: 2                 # Default for the chapters' divider-page TOC
   header: true                   # Enable running header (laid out in the theme)
   footer: true                   # Enable running footer (laid out in the theme)
@@ -167,11 +167,7 @@ they set the default, on a chapter they override it. Both take `none`, `full` or
 a depth counted from the chapter's own heading, so `document_toc: 1` contributes
 the chapter title and nothing below it.
 
-`document_toc` and `autonum` are inherited downwards, which is why one line on
-the `Appendices` part flattens every appendix at once -- and why `autonum:
-"none"` there leaves the whole appendix unnumbered without consuming a chapter
-number. `chapter_toc` is not chained; it falls back to `document.chapter_toc`,
-so the common case is one line at the top instead of one per chapter.
+`document_toc`, `autonum`, and `autonum_from_level` (e.g. `2` to number sub-headings while leaving chapter titles unnumbered, with optional `autonum_prefix`) are inherited downwards, which is why one line on the `Appendices` part configures every appendix at once -- and resets counters per chapter. `chapter_toc` is not chained; it falls back to `document.chapter_toc`, so the common case is one line at the top instead of one per chapter.
 
 ---
 

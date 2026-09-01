@@ -17,7 +17,7 @@ Vollständige Übersicht aller Konfigurationsoptionen in `markpublish.yaml`.
 | `language` | String | Systemsprache | ISO-Sprachcode (`de`, `en`, ...). Steuert Template-Beschriftungen, Callout-Titel und Datumsformat |
 | `cover` | Bool | `true` | Deckblatt aktivieren/deaktivieren |
 | `document_toc` | String/Int | `full` | Das große Verzeichnis: `none`, `full` oder eine Tiefe. Vorgabe für die Kapitel |
-| `autonum_type` | String | `"decimal"` | `"decimal"`, `"roman"`, `"legal"`, `"none"`. Wurzel für `chapters.autonum` |
+| `autonum_style` | String | `"decimal"` | `"decimal"`, `"roman"`, `"legal"`, `"none"`. Wurzel für `chapters.autonum_style` |
 | `chapter_toc` | String/Int | `none` | Die kleinen Verzeichnisse: `none`, `full` oder eine Tiefe. Vorgabe für die Kapitel |
 | `header` | Bool | `true` | Laufende Kopfzeile aktivieren (Aufbau im Theme) |
 | `footer` | Bool | `true` | Laufende Fußzeile aktivieren (Aufbau im Theme) |
@@ -33,7 +33,10 @@ Vollständige Übersicht aller Konfigurationsoptionen in `markpublish.yaml`.
 | `break_before` | String | `page` | Wie das Kapitel abgesetzt wird: `page`, `divider` oder `none`. Nur PDF — das mitgelieferte HTML-Theme kennt weder Seiten noch Trennseiten |
 | `chapter_toc` | String/Int | `none` | Das kleine Verzeichnis auf der Trennseite des Kapitels. Also ebenfalls nur PDF |
 | `document_toc` | String/Int | `full` | Der Beitrag zum großen Verzeichnis vorn im Dokument. Wird nach unten vererbt |
-| `autonum` | String | `null` | Nummerierungsstil für diesen Zweig. Wird nach unten vererbt |
+| `autonum_style` | String | `null` | Nummerierungsstil für diesen Zweig (`decimal`, `roman`, `legal`, `none`). Wird nach unten vererbt |
+| `autonum_from_level` | Int | `1` | Ab welcher Überschriften-Ebene nummeriert wird (`1` = `h1`, `2` = `h2`, ...). Wird nach unten vererbt |
+| `autonum_prefix` | String | `null` | Optionales Präfix für Ziffern (z. B. `"A."` ➔ `A.1`, `A.2`). Wird nach unten vererbt |
+| `autonum_reset` | Bool | `false` | Zähler zu Kapitelbeginn auf 0 zurücksetzen (Standard `true` bei `autonum_from_level > 1`) |
 | `chapters` | Liste | `[]` | Verschachtelte Unterkapitel |
 
 ### `break_before` — wie ein Kapitel abgesetzt wird
@@ -136,12 +139,12 @@ einem `true` sähe man die Tiefe nicht an — genau dafür gibt es `full`.
 
 ## Nummerierung
 
-`document.autonum_type` legt den Stil für das ganze Dokument fest; `autonum` an
+`document.autonum_style` legt den Stil für das ganze Dokument fest; `autonum_style` an
 einem Kapitel oder Part weicht davon ab und **gibt den Wert nach unten weiter**.
 Ohne diese Vererbung bliebe die Angabe am Part wirkungslos: die Überschriften
 stehen in den Kapiteldateien, nicht im Part.
 
-`autonum: "none"` heißt: in diesem Zweig trägt **nichts** eine Nummer — weder die
+`autonum_style: "none"` heißt: in diesem Zweig trägt **nichts** eine Nummer — weder die
 Kapitelüberschrift noch die Ebenen darunter. Es gibt also auch keinen Neustart
 bei 1, denn innerhalb des Zweigs läuft keine Zählung, die neu beginnen könnte.
 
@@ -152,9 +155,30 @@ verbraucht keine Nummer:
 chapters:
   - file: "chapters/01.md"          # 1
   - part: "Anhänge"
-    autonum: "none"                 # Anhänge: keine Nummern
+    autonum_style: "none"           # Anhänge: keine Nummern
     chapters:
       - file: "chapters/a.md"
       - file: "chapters/b.md"
   - file: "chapters/02.md"          # 2, nicht 4
+```
+
+### Nummerierung ab Unterebenen (`autonum_from_level` & `autonum_prefix`)
+
+Für lange Anhänge oder spezialisierte Abschnitte, deren Haupttitel keine Ziffer tragen soll (z. B. *„Anhang A: Referenz“*), deren Unterabschnitte aber durchnummeriert werden sollen:
+
+- `autonum_from_level: 2` lässt die `h1`-Überschrift unnummeriert und beginnt die Zählung erst ab `h2` (`1`, `2`, ...) bzw. `h3` (`1.1`, `1.2`).
+- Bei `autonum_from_level > 1` wird der Zähler für jedes Kapitel automatisch isoliert zurückgesetzt.
+- `autonum_prefix: "A."` stellt den generierten Nummern ein Präfix voran (`A.1`, `A.2`, `A.2.1`).
+
+```yaml
+  - part: "Anhänge"
+    autonum_from_level: 2           # erbt autonum_style aus document
+    chapters:
+      - file: "chapters/appendix_a.md"
+        title: "Anhang A: Referenz"
+        autonum_prefix: "A."        # A.1, A.2, A.2.1
+
+      - file: "chapters/appendix_b.md"
+        title: "Anhang B: FAQ"
+        autonum_prefix: "B."        # B.1, B.2, B.2.1
 ```

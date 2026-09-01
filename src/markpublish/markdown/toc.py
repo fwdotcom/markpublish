@@ -112,6 +112,10 @@ class NumberingContext:
         self.counters: List[int] = []
         self.used_slugs: set = set()
 
+    def reset_counters(self) -> None:
+        """Resets the numbering counters back to 0."""
+        self.counters = []
+
     def unique_slug(self, text: str) -> str:
         base_slug = slugify(text)
         slug = base_slug
@@ -122,19 +126,35 @@ class NumberingContext:
         self.used_slugs.add(slug)
         return slug
 
-    def advance_counter(self, level: int, autonum_type: Optional[AutonumType] = None) -> Optional[str]:
+    def advance_counter(
+        self,
+        level: int,
+        autonum_type: Optional[AutonumType] = None,
+        from_level: int = 1,
+        prefix: Optional[str] = None,
+    ) -> Optional[str]:
         type_to_use = autonum_type or self.default_autonum_type
         if type_to_use == AutonumType.NONE:
             return None
 
+        # Levels below start level receive no number
+        if level < from_level:
+            return None
+
+        # Level relative to from_level (1-indexed)
+        rel_level = level - from_level + 1
+
         # Adjust counter list length to match heading level (1-indexed)
-        while len(self.counters) < level:
+        while len(self.counters) < rel_level:
             self.counters.append(0)
-        while len(self.counters) > level:
+        while len(self.counters) > rel_level:
             self.counters.pop()
 
-        self.counters[level - 1] += 1
-        return format_number(self.counters, type_to_use)
+        self.counters[rel_level - 1] += 1
+        num_str = format_number(self.counters, type_to_use)
+        if num_str and prefix:
+            num_str = f"{prefix}{num_str}"
+        return num_str
 
 
 def process_html_headings_and_toc(
@@ -142,6 +162,8 @@ def process_html_headings_and_toc(
     numbering_ctx: NumberingContext,
     autonum_override: Optional[AutonumType] = None,
     base_level_offset: int = 0,
+    autonum_from_level: int = 1,
+    autonum_prefix: Optional[str] = None,
 ) -> Tuple[str, List[TOCNode]]:
     """
     Parses HTML content, injects unique IDs/slugs and numbering into headings,
@@ -175,7 +197,13 @@ def process_html_headings_and_toc(
             slug = numbering_ctx.unique_slug(plain_text)
             attrs = f'{attrs} id="{slug}"'.strip()
 
-        number_str = numbering_ctx.advance_counter(effective_level, autonum_override)
+        # Tiefe wird innerhalb des Kapitels gezaehlt: orig_level 1 = #, 2 = ## usw.
+        number_str = numbering_ctx.advance_counter(
+            orig_level,
+            autonum_override,
+            from_level=autonum_from_level,
+            prefix=autonum_prefix,
+        )
 
         node = TOCNode(
             title=plain_text,

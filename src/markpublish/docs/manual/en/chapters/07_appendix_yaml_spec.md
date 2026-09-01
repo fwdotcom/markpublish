@@ -17,7 +17,7 @@ A complete overview of every configuration option in `markpublish.yaml`.
 | `language` | String | system language | ISO language code (`de`, `en`, …). Governs template labels, callout titles and date format |
 | `cover` | Bool | `true` | Enable the cover page |
 | `document_toc` | String/Int | `full` | The large TOC: `none`, `full` or a depth. Default for the chapters |
-| `autonum_type` | String | `"decimal"` | `"decimal"`, `"roman"`, `"legal"`, `"none"`. Root for `chapters.autonum` |
+| `autonum_style` | String | `"decimal"` | `"decimal"`, `"roman"`, `"legal"`, `"none"`. Root for `chapters.autonum_style` |
 | `chapter_toc` | String/Int | `none` | The small TOCs: `none`, `full` or a depth. Default for the chapters |
 | `header` | Bool | `true` | Enable the running header (its layout lives in the theme) |
 | `footer` | Bool | `true` | Enable the running footer (its layout lives in the theme) |
@@ -33,8 +33,11 @@ A complete overview of every configuration option in `markpublish.yaml`.
 | `break_before` | String | `page` | How the chapter is set off: `page`, `divider` or `none`. PDF only — the bundled HTML theme has neither pages nor divider pages |
 | `chapter_toc` | String/Int | `none` | The small TOC on this chapter's divider page. PDF only as well |
 | `document_toc` | String/Int | `full` | This chapter's contribution to the large TOC at the front. Inherited downwards |
-| `autonum` | String | `null` | Numbering style for this branch. Inherited downwards |
-| `chapters` | List | `[]` | Nested sub-chapters |
+| `autonum_style` | String | `null` | Numbering style for this branch (`decimal`, `roman`, `legal`, `none`). Inherited downwards |
+| `autonum_from_level` | Int | `1` | Start heading level for numbering (`1` = `h1`, `2` = `h2`, ...). Inherited downwards |
+| `autonum_prefix` | String | `null` | Optional prefix for generated numbers (e.g. `"A."` ➔ `A.1`, `A.2`). Inherited downwards |
+| `autonum_reset` | Bool | `false` | Reset counter at chapter start (defaults to `true` when `autonum_from_level > 1`) |
+| `chapters` | List | `[]` | Nested child chapters |
 
 ### `break_before` — how a chapter is set off
 
@@ -109,9 +112,9 @@ An unknown value aborts the build. Booleans are rejected too: a `true` would not
 
 ## Numbering
 
-`document.autonum_type` sets the style for the whole document; `autonum` on a chapter or part departs from it and **passes the value down**. Without that inheritance the setting on a part would do nothing: the headings live in the chapter files, not in the part.
+`document.autonum_style` sets the style for the whole document; `autonum_style` on a chapter or part departs from it and **passes the value down**. Without that inheritance the setting on a part would do nothing: the headings live in the chapter files, not in the part.
 
-`autonum: "none"` means **nothing** in that branch carries a number — neither the chapter heading nor the levels below it. There is therefore no restart at 1 either: no count is running inside the branch that could begin again.
+`autonum_style: "none"` means **nothing** in that branch carries a number — neither the chapter heading nor the levels below it. There is therefore no restart at 1 either: no count is running inside the branch that could begin again.
 
 The document counter is left untouched. An unnumbered stretch consumes no number:
 
@@ -119,9 +122,30 @@ The document counter is left untouched. An unnumbered stretch consumes no number
 chapters:
   - file: "chapters/01.md"          # 1
   - part: "Appendices"
-    autonum: "none"                 # appendices: no numbers
+    autonum_style: "none"           # appendices: no numbers
     chapters:
       - file: "chapters/a.md"
       - file: "chapters/b.md"
   - file: "chapters/02.md"          # 2, not 4
+```
+
+### Numbering from Sub-Headings (`autonum_from_level` & `autonum_prefix`)
+
+For extensive appendices or specialized sections whose main chapter title should remain unnumbered (e.g. *“Appendix A: Reference”*), but whose sub-sections need hierarchical numbering:
+
+- `autonum_from_level: 2` leaves the `h1` chapter heading unnumbered and starts numbering at `h2` (`1`, `2`, ...) and `h3` (`1.1`, `1.2`).
+- When `autonum_from_level > 1`, each chapter automatically resets its counter to start afresh.
+- `autonum_prefix: "A."` prepends a custom prefix to generated numbers (`A.1`, `A.2`, `A.2.1`).
+
+```yaml
+  - part: "Appendices"
+    autonum_from_level: 2           # inherits autonum_style from document
+    chapters:
+      - file: "chapters/appendix_a.md"
+        title: "Appendix A: Reference"
+        autonum_prefix: "A."        # A.1, A.2, A.2.1
+
+      - file: "chapters/appendix_b.md"
+        title: "Appendix B: FAQ"
+        autonum_prefix: "B."        # B.1, B.2, B.2.1
 ```

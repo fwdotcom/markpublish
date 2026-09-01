@@ -33,7 +33,7 @@ Metadata and the global layout switches. Only `title` is required.
 | `cover` / `header` / `footer` | `true` | Cover page, running header and footer |
 | `document_toc` | `full` | Large TOC: `none`, `full` or a depth |
 | `chapter_toc` | `none` | Small divider-page TOCs: same three forms |
-| `autonum_type` | `decimal` | `decimal`, `roman`, `legal`, `none` |
+| `autonum_style` | `decimal` | `decimal`, `roman`, `legal`, `none` |
 
 Also available: `summary` (abstract on the cover), `status`, `copyright`
 (footer). Unknown keys are handed to the theme as `{{ document.your_key }}`.
@@ -54,5 +54,4 @@ Chapters, sub-chapters and parts. Nesting is recursive.
 
 Both TOC keys take `none`, `full` or a depth, counted from the chapter's own
 heading. `document_toc: 1` lists the chapter but none of its sub-headings; set
-it on a part to flatten every appendix at once. `document_toc` and `autonum` are
-inherited downwards, `chapter_toc` falls back to `document.chapter_toc`.
+it on a part to flatten every appendix at once. `document_toc`, `autonum`, and `autonum_from_level` (e.g. `2` for numbering sub-headings with optional `autonum_prefix`) are inherited downwards, `chapter_toc` falls back to `document.chapter_toc`.
