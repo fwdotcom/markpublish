@@ -17,12 +17,12 @@ document:
   cover: true
   document_toc: 2
   chapter_toc: 2
-  autonum_style: "decimal"
+  part_toc: 2
 
   header: true
   footer: true
 
-theme: "default"
+#theme: "default"
 
 parts:
   - title: "Main"
@@ -64,9 +64,8 @@ parts:
   - title: "Appendices"
     summary: "Complete specification tables, troubleshooting and best practices."
     break_before: "divider"
-    part_toc: 2
     autonum_from_level: 2
-    document_toc: 2
+    
     chapters:
       - file: "chapters/07_appendix_yaml_spec.md"
         title: "Appendix A: YAML Schema Reference"

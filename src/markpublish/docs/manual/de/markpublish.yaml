@@ -18,12 +18,11 @@ document:
   document_toc: 2
   chapter_toc: 2
   part_toc: 2
-  autonum_style: "decimal"
 
   header: true
   footer: true
 
-theme: "default"
+#theme: "default"
 
 parts:
   - title: "Hauptteil"
@@ -66,6 +65,7 @@ parts:
     summary: "Vollständige Spezifikations-Tabellen, Troubleshooting und Best Practices."
     break_before: "divider"
     autonum_from_level: 2
+    
     chapters:
       - file: "chapters/07_appendix_yaml_spec.md"
         title: "Anhang A: YAML-Schema-Referenz"
