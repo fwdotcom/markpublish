@@ -14,7 +14,7 @@ authors = [
 keywords = ["markdown", "pdf", "html", "weasyprint", "publishing", "converter", "cli"]
 
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Environment :: Console",
     "Intended Audience :: Developers",
     "Intended Audience :: Information Technology",
@@ -55,6 +55,8 @@ dev = [
     # und TOC-Seitenzahlen pruefen den Inhalt, nicht nur die Dateigroesse.
     "pypdfium2>=4.0.0",
     "ruff>=0.6.0",
+    # tomllib kam erst mit 3.11; tests/test_packaging.py liest pyproject.toml.
+    "tomli>=2.0.0; python_version < '3.11'",
 ]
 
 [project.urls]

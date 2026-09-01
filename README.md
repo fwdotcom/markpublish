@@ -30,8 +30,8 @@
 
 The entire official user guide was written in Markdown and rendered directly with `markpublish`. You can inspect the compiled, publication-ready PDF documents:
 
-- 🇩🇪 **[markpublish Benutzerhandbuch (PDF)](manual/markpublish_benutzerhandbuch.pdf)**
-- 🇬🇧 **[markpublish User Guide (PDF)](manual/markpublish_user_guide.pdf)**
+- 🇩🇪 **[markpublish Benutzerhandbuch (PDF)](https://github.com/fwdotcom/markpublish/blob/main/manual/markpublish_benutzerhandbuch.pdf)**
+- 🇬🇧 **[markpublish User Guide (PDF)](https://github.com/fwdotcom/markpublish/blob/main/manual/markpublish_user_guide.pdf)**
 
 These demonstrate all built-in capabilities in practice: cover layout, multi-level global TOC, running multi-line headers & footers, GitHub callout admonitions, Pygments syntax highlighting, task lists, and chapter hierarchy.
 
@@ -276,5 +276,5 @@ markpublish export-template default
 
 ## License
 
-MIT License. See [LICENSE](LICENSE) for details.
+MIT License. See [LICENSE](https://github.com/fwdotcom/markpublish/blob/main/LICENSE) for details.
 
