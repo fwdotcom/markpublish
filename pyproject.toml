@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "markpublish"
-version = "0.1.0"
+version = "1.0.0"
 description = "Modern, modular, and extensible Markdown-to-PDF/HTML publishing tool powered by WeasyPrint"
 readme = "README.md"
 license = { text = "MIT" }
@@ -12,6 +12,13 @@ authors = [
     { name = "Frank Winter", email = "studio@frankwinter.com" }
 ]
 keywords = ["markdown", "pdf", "html", "weasyprint", "publishing", "converter", "cli"]
+
+[project.urls]
+Homepage = "https://github.com/frankwinter/markpublish"
+Documentation = "https://github.com/frankwinter/markpublish#readme"
+Repository = "https://github.com/frankwinter/markpublish.git"
+Issues = "https://github.com/frankwinter/markpublish/issues"
+Changelog = "https://github.com/frankwinter/markpublish/blob/main/CHANGELOG.md"
 classifiers = [
     "Development Status :: 4 - Beta",
     "Environment :: Console",

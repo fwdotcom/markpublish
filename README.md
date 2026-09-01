@@ -45,7 +45,7 @@ pip install markpublish
 
 For development:
 ```bash
-git clone https://github.com/your-username/markpublish.git
+git clone https://github.com/frankwinter/markpublish.git
 cd markpublish
 pip install -e ".[dev]"
 ```
