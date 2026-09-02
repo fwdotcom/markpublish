@@ -9,16 +9,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.0.0] - 2026-09-02
 
+### Added
+- **Native Typst AST Serializer (`TypstSerializer`)**: A dedicated, robust ElementTree-to-Typst serializer converting Python-Markdown trees directly into clean, well-formed Typst markup.
+- **Synchronized AST Numbering & TOC**: Headings, autoincrement numbers, and slugs are calculated and injected directly into the syntax tree, ensuring 100% synchronization between document headings and the table of contents.
+- **Local Image Resolution & Isolation**: Local image paths referenced in Markdown chapters are resolved relative to the chapter source and automatically copied to the build directory (`images/`), avoiding sandbox path restrictions.
+- **Build Diagnostics**: In case of a Typst compilation error, the complete generated Typst source is saved to `.markpublish/last_failed_build.typ` for immediate troubleshooting.
+- **Real Compilation Test Suite**: Added `tests/test_typst_compile_cases.py` and `tests/test_typst_serializer.py`, verifying real Typst compilation for prices ($5), programming languages (C#), HTML-like tags, special characters, and extensions.
+
 ### Changed
-- **Typst as Native PDF Compiler**: Replaced WeasyPrint and CSS Paged Media with **Typst**, eliminating all native C/GTK/Pango dependencies while accelerating PDF builds by an order of magnitude (~1.3s for 30+ pages).
-- **Single Markdown Pipeline with ElementTree Serializer**: Replaced the ad-hoc regex converter with a unified `python-markdown` ElementTree-to-Typst serializer (`TypstSerializer`). Headings, numbering, and table of contents are now 100% synchronized directly from the AST.
-- **Full Markdown Extension Support**: Restored seamless support for all standard markdown extensions (tables, callouts/admonitions, definition lists, footnotes, tasklists, and typographics).
-- **Robust Typst String Escaping**: Full escaping of metadata and content strings (`\`, `"`, `$`, `#`, `@`, `~`, backticks) preventing compilation crashes on special characters.
-- **Physical Page Count & Layout Refinement**: Fixed `pagenum_reset` page counting (accurate total page count across counter resets) and decoupled cover page detection from page number checks.
-- **Header & Footer Controls**: `header` and `footer` configuration flags are now wired directly into `setup-document` in Typst.
+- **Typst as Native PDF Compiler**: Replaced WeasyPrint and W3C CSS Paged Media with **Typst**, eliminating all native C/GTK/Pango runtime dependencies while accelerating PDF builds by an order of magnitude (~1.3s for 30+ pages).
+- **Single Markdown Pipeline**: Replaced the previous dual regex/HTML pipeline with a unified single AST pipeline powered by `python-markdown` and `pymdown-extensions`.
+- **Full Markdown Extension Support**: Restored complete support for all 16 standard markdown extensions (tables with column alignment, GitHub alerts/callouts, definition lists, footnotes, task lists, smart quotes, and pygments code blocks).
+- **Robust Typst String Escaping**: Full escaping of metadata and content strings (`\`, `"`, `$`, `#`, `@`, `~`, backticks) preventing syntax errors on special characters.
+- **Physical Page Count & Layout Refinement**: Fixed `pagenum_reset` page counting (accurate total page count across counter resets via `<doc-end>`) and decoupled cover page detection (`<cover-page>`) from page number checks.
+- **Header & Footer Controls**: `document.header` and `document.footer` configuration flags are now wired directly into `setup-document` in Typst.
+- **Streamlined CI/CD Matrix**: Completely removed Pango, GTK, Homebrew, and MSYS2 pacman installation steps from `.github/workflows/ci.yml` and `release.yml`, resulting in fast, portable wheel-based CI across Ubuntu, macOS, and Windows.
 
 ### Removed
 - **WeasyPrint & GTK Dependencies**: Removed `weasyprint`, `cffi`, and native GTK runtime installers.
+- **Obsolete Fontconfig Configuration**: Deleted `src/markpublish/data/fonts.conf`.
 - **HTML Output Pipeline**: Temporarily removed HTML output rendering (`--target html`) and HTML Jinja2 templates to concentrate fully on top-quality Typst PDF publishing. The `--target` switch informs the user gracefully.
 
 ---
