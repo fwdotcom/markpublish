@@ -209,11 +209,14 @@ class MarkdownPipeline:
         self.config = config
         self.base_dir = base_dir
         self.labels = labels or {}
-        # Die Labels haengen am Zielformat (Ebene 3), deshalb kommen sie von
-        # aussen herein statt hier gebaut zu werden - die Pipeline laeuft pro
-        # Zielformat.
-        self.engine = MarkdownEngine(language=config.document.language, labels=labels)
-        self.numbering_ctx = NumberingContext(default_autonum_style=config.document.autonum_style)
+        lang = config.document.language if (config and getattr(config, "document", None)) else "de"
+        autonum_style = config.document.autonum_style if (config and getattr(config, "document", None)) else None
+        self.engine = MarkdownEngine(language=lang, labels=labels)
+        self.numbering_ctx = NumberingContext(default_autonum_style=autonum_style)
+
+    def _build_local_toc(self, chapter_cfg: ChapterItem, base_level: int = 1) -> List[TOCNode]:
+        item, _ = self._process_chapter(chapter_cfg, base_level=base_level)
+        return item.local_toc_items
 
     def process_document(self) -> Tuple[List[ContentItem], List[TOCNode]]:
         """
@@ -281,23 +284,30 @@ class MarkdownPipeline:
             inherited_autonum_reset = part_cfg.autonum_reset
             inherited_pagenum_reset = effective_part_pagenum_reset
 
-            for chapter_cfg in part_cfg.chapters:
-                chapter_item, chapter_toc_nodes = self._process_chapter(
-                    chapter_cfg,
-                    base_level=1,
-                    inherited_document_toc=inherited_document_toc,
-                    inherited_chapter_toc=inherited_chapter_toc,
-                    inherited_autonum=inherited_autonum,
-                    inherited_autonum_from_level=inherited_autonum_from_level,
-                    inherited_autonum_prefix=inherited_autonum_prefix,
-                    inherited_autonum_reset=inherited_autonum_reset,
-                    inherited_pagenum_reset=inherited_pagenum_reset,
-                )
-                content_items.append(chapter_item)
-                if part_in_document_toc:
-                    part_toc_children.extend(chapter_toc_nodes)
-                else:
-                    global_toc_tree.extend(build_toc_tree(chapter_toc_nodes))
+            def _traverse_chapters(cfg_list: List[ChapterItem], level: int):
+                for ch_cfg in cfg_list:
+                    ch_item, ch_toc_nodes = self._process_chapter(
+                        ch_cfg,
+                        base_level=level,
+                        inherited_document_toc=inherited_document_toc,
+                        inherited_chapter_toc=inherited_chapter_toc,
+                        inherited_autonum=inherited_autonum,
+                        inherited_autonum_from_level=inherited_autonum_from_level,
+                        inherited_autonum_prefix=inherited_autonum_prefix,
+                        inherited_autonum_reset=inherited_autonum_reset,
+                        inherited_pagenum_reset=inherited_pagenum_reset,
+                    )
+                    content_items.append(ch_item)
+                    if part_in_document_toc:
+                        part_toc_children.extend(ch_toc_nodes)
+                    else:
+                        global_toc_tree.extend(build_toc_tree(ch_toc_nodes))
+
+                    sub_chapters = ch_cfg.get("chapters") if isinstance(ch_cfg, dict) else getattr(ch_cfg, "chapters", None)
+                    if sub_chapters:
+                        _traverse_chapters(sub_chapters, level + 1)
+
+            _traverse_chapters(part_cfg.chapters, 1)
 
             if part_item and effective_part_toc and effective_part_toc.enabled:
                 if effective_part_toc.max_depth is None:
@@ -334,6 +344,9 @@ class MarkdownPipeline:
         inherited_autonum_reset: Optional[bool] = None,
         inherited_pagenum_reset: bool = False,
     ) -> Tuple[ContentItem, List[TOCNode]]:
+        if isinstance(chapter_cfg, dict):
+            chapter_cfg = ChapterItem(**chapter_cfg)
+
         raw_md = ""
         file_base_dir = self.base_dir
 
@@ -368,6 +381,7 @@ class MarkdownPipeline:
                 raw_md = file_path.read_text(encoding="utf-8")
 
         autonum_override = _resolve_autonum_style(chapter_cfg.autonum_style) or inherited_autonum
+        doc_cfg = self.config.document if (self.config and getattr(self.config, "document", None)) else None
 
         effective_from_level = (
             chapter_cfg.autonum_from_level
@@ -375,7 +389,7 @@ class MarkdownPipeline:
             else (
                 inherited_autonum_from_level
                 if inherited_autonum_from_level is not None
-                else self.config.document.autonum_from_level
+                else (doc_cfg.autonum_from_level if doc_cfg else 1)
             )
         )
         effective_prefix = (
@@ -384,7 +398,7 @@ class MarkdownPipeline:
             else (
                 inherited_autonum_prefix
                 if inherited_autonum_prefix is not None
-                else self.config.document.autonum_prefix
+                else (doc_cfg.autonum_prefix if doc_cfg else None)
             )
         )
         effective_reset = (
@@ -393,7 +407,7 @@ class MarkdownPipeline:
             else (
                 inherited_autonum_reset
                 if inherited_autonum_reset is not None
-                else (True if effective_from_level > 1 else self.config.document.autonum_reset)
+                else (True if effective_from_level > 1 else (doc_cfg.autonum_reset if doc_cfg else False))
             )
         )
 

@@ -27,10 +27,10 @@ def test_cli_init_and_build(tmp_path: Path):
     assert (project_dir / "markpublish.yaml").is_file()
     assert (project_dir / "next-steps.md").is_file()
 
-    # 2. Test build HTML
+    # 2. Test build HTML shows notice
     build_html_res = runner.invoke(app, ["build", str(project_dir / "markpublish.yaml"), "--target", "html"])
     assert build_html_res.exit_code == 0
-    assert (project_dir / "cli_test_doc.html").is_file()
+    assert "HTML output is currently not implemented" in build_html_res.stdout
 
     # 3. Test build PDF
     build_pdf_res = runner.invoke(app, ["build", str(project_dir / "markpublish.yaml"), "--target", "pdf"])
@@ -82,10 +82,10 @@ def test_cli_cheatsheet_renders_into_the_working_directory(tmp_path: Path, monke
     """
     monkeypatch.chdir(tmp_path)
 
-    res = runner.invoke(app, ["cheatsheet", "--target", "html"])
+    res = runner.invoke(app, ["cheatsheet"])
     assert res.exit_code == 0, res.stdout
 
-    assert len(list(tmp_path.glob("*.html"))) == 1
+    assert len(list(tmp_path.glob("*.pdf"))) == 1
 
     # Kein Quelltext im Projekt des Nutzers - nur das fertige Dokument.
     assert not list(tmp_path.glob("*.md"))
@@ -128,16 +128,16 @@ def test_cli_cheatsheet_ignores_a_broken_project_theme(tmp_path: Path, monkeypat
     monkeypatch.chdir(tmp_path)
 
     assert runner.invoke(app, ["export-template", "default", "./templates"]).exit_code == 0
-    (tmp_path / "templates" / "default" / "html" / "layout.html").write_text(
-        "<html><body>{{ labels.does_not_exist }}</body></html>", encoding="utf-8"
+    (tmp_path / "templates" / "default" / "pdf" / "template.typ").write_text(
+        "INVALID TYPST SYNTAX # # # { { {", encoding="utf-8"
     )
 
-    res = runner.invoke(app, ["cheatsheet", "--target", "html"])
+    res = runner.invoke(app, ["cheatsheet"])
     assert res.exit_code == 0, res.stdout
 
     # Ausdruecklich angefordert, greift die normale Aufloesung wieder - und
     # das kaputte Theme schlaegt durch.
-    broken = runner.invoke(app, ["cheatsheet", "--target", "html", "--theme", "default"])
+    broken = runner.invoke(app, ["cheatsheet", "--theme", "default"])
     assert broken.exit_code != 0
 
 
@@ -149,12 +149,12 @@ def test_cli_manual_renders_in_both_languages(tmp_path: Path, monkeypatch):
     monkeypatch.chdir(tmp_path)
 
     for lang in ("en", "de"):
-        res = runner.invoke(app, ["manual", "--lang", lang, "--target", "html"])
+        res = runner.invoke(app, ["manual", "--lang", lang])
         assert res.exit_code == 0, f"{lang}: {res.stdout}"
 
     # Zwei Sprachen, zwei verschieden benannte Ergebnisse - der Dateiname kommt
     # aus dem Titel, und der ist uebersetzt.
-    assert len(list(tmp_path.glob("*.html"))) == 2
+    assert len(list(tmp_path.glob("*.pdf"))) == 2
 
 
 def test_cli_cheatsheet_renders_in_both_languages(tmp_path: Path, monkeypatch):
@@ -162,10 +162,10 @@ def test_cli_cheatsheet_renders_in_both_languages(tmp_path: Path, monkeypatch):
     monkeypatch.chdir(tmp_path)
 
     for lang in ("en", "de"):
-        res = runner.invoke(app, ["cheatsheet", "--lang", lang, "--target", "html"])
+        res = runner.invoke(app, ["cheatsheet", "--lang", lang])
         assert res.exit_code == 0, f"{lang}: {res.stdout}"
 
-    assert len(list(tmp_path.glob("*.html"))) == 2
+    assert len(list(tmp_path.glob("*.pdf"))) == 2
 
 
 @pytest.mark.parametrize(
@@ -188,9 +188,9 @@ def test_cli_manual_follows_the_system_language(
     monkeypatch.chdir(tmp_path)
     monkeypatch.setenv("LANGUAGE", system_locale)
 
-    assert runner.invoke(app, ["manual", "--target", "html"]).exit_code == 0
+    assert runner.invoke(app, ["manual"]).exit_code == 0
 
-    produced = list(tmp_path.glob("*.html"))
+    produced = list(tmp_path.glob("*.pdf"))
     assert len(produced) == 1
     assert expected in produced[0].name
 
@@ -206,10 +206,10 @@ def test_cli_manual_falls_back_silently_for_an_unshipped_system_language(
     monkeypatch.chdir(tmp_path)
     monkeypatch.setenv("LANGUAGE", "fr_FR.UTF-8")
 
-    res = runner.invoke(app, ["manual", "--target", "html"])
+    res = runner.invoke(app, ["manual"])
     assert res.exit_code == 0, res.stdout
 
-    produced = list(tmp_path.glob("*.html"))
+    produced = list(tmp_path.glob("*.pdf"))
     assert len(produced) == 1
     assert "user_guide" in produced[0].name
     assert "not available in" not in res.stdout, (
@@ -225,11 +225,22 @@ def test_cli_manual_says_so_when_a_language_is_missing(tmp_path: Path, monkeypat
     """
     monkeypatch.chdir(tmp_path)
 
-    res = runner.invoke(app, ["manual", "--lang", "fr", "--target", "html"])
+    res = runner.invoke(app, ["manual", "--lang", "fr"])
     assert res.exit_code == 0, res.stdout
     assert "fr" in res.stdout
     assert "de" in res.stdout and "en" in res.stdout, "die verfuegbaren Sprachen werden genannt"
-    assert len(list(tmp_path.glob("*.html"))) == 1
+    assert len(list(tmp_path.glob("*.pdf"))) == 1
+
+
+def test_cli_target_html_shows_notice(tmp_path: Path, monkeypatch):
+    """
+    --target html stuerzt nicht ab, sondern gibt einen freundlichen Hinweis aus.
+    """
+    monkeypatch.chdir(tmp_path)
+    res = runner.invoke(app, ["manual", "--target", "html"])
+    assert res.exit_code == 0, res.stdout
+    assert "HTML output is currently not implemented" in res.stdout
+    assert len(list(tmp_path.glob("*.html"))) == 0
 
 
 def test_bundled_documents_declare_the_languages_they_ship(tmp_path: Path):
@@ -262,7 +273,6 @@ def test_cli_export_template(tmp_path: Path):
     res = runner.invoke(app, ["export-template", "default", str(dest)])
     assert res.exit_code == 0
     assert (dest / "default" / "pdf" / "template.typ").is_file()
-    assert (dest / "default" / "html" / "layout.html").is_file()
 
 
 def test_cli_export_template_brings_the_theme_level_i18n(tmp_path: Path):
@@ -276,7 +286,6 @@ def test_cli_export_template_brings_the_theme_level_i18n(tmp_path: Path):
     assert res.exit_code == 0
     assert (dest / "default" / "i18n.yaml").is_file()
     assert (dest / "default" / "pdf" / "i18n.yaml").is_file()
-    assert (dest / "default" / "html" / "i18n.yaml").is_file()
 
 
 def test_cli_export_template_keeps_an_edited_i18n(tmp_path: Path):

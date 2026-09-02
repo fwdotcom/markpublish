@@ -222,10 +222,23 @@ class MarkdownToTypstConverter:
             typst_type = alert_info[0]
 
             # Label lookup (supports Dict, LabelMap, or object)
-            if isinstance(self.labels, dict):
-                default_label = self.labels.get(typst_type, alert_info[1])
+            label_key = f"alert_{typst_type}"
+            default_label = None
+            if hasattr(self.labels, "__getitem__"):
+                try:
+                    default_label = self.labels[label_key]
+                except Exception:
+                    try:
+                        default_label = self.labels[typst_type]
+                    except Exception:
+                        pass
+            elif isinstance(self.labels, dict):
+                default_label = self.labels.get(label_key) or self.labels.get(typst_type)
             else:
-                default_label = getattr(self.labels, typst_type, alert_info[1])
+                default_label = getattr(self.labels, label_key, getattr(self.labels, typst_type, None))
+
+            if not default_label:
+                default_label = alert_info[1]
 
             title = custom_title.strip() if custom_title else default_label
             title_escaped = self._convert_inline(title)

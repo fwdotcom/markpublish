@@ -17,11 +17,6 @@ def test_resolve_package_templates():
     assert pdf_default.exists()
     assert (pdf_default / "template.typ").is_file()
 
-    html_default = resolve_template_path("html", "default")
-    assert html_default.exists()
-    assert (html_default / "layout.html").is_file()
-    assert (html_default / "styles.css").is_file()
-
 
 def test_package_templates_use_theme_target_layout():
     """Das Verzeichnis heisst <theme>/<target>, nicht <target>/<theme>."""
@@ -35,8 +30,8 @@ def test_resolve_template_precedence(tmp_path: Path):
     custom_templates = tmp_path / "templates"
     custom_pdf_default = custom_templates / "default" / "pdf"
     custom_pdf_default.mkdir(parents=True)
-    custom_layout = custom_pdf_default / "layout.html"
-    custom_layout.write_text("<!-- Custom Common Template -->", encoding="utf-8")
+    custom_layout = custom_pdf_default / "template.typ"
+    custom_layout.write_text("/* Custom Common Template */", encoding="utf-8")
 
     resolved = resolve_template_path(
         target="pdf",
@@ -45,7 +40,7 @@ def test_resolve_template_precedence(tmp_path: Path):
     )
 
     assert resolved == custom_pdf_default
-    assert (resolved / "layout.html").read_text(encoding="utf-8") == "<!-- Custom Common Template -->"
+    assert (resolved / "template.typ").read_text(encoding="utf-8") == "/* Custom Common Template */"
 
 
 def test_resolve_unknown_theme_lists_current_layout(tmp_path: Path):
@@ -58,9 +53,8 @@ def test_resolve_unknown_theme_lists_current_layout(tmp_path: Path):
 
 def test_list_templates():
     templates = list_templates()
-    assert len(templates) >= 2
+    assert len(templates) >= 1
     targets = {t["target"] for t in templates}
     themes = {t["theme"] for t in templates}
     assert "pdf" in targets
-    assert "html" in targets
     assert "default" in themes

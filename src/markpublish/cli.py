@@ -38,7 +38,6 @@ from markpublish.i18n import (
 from markpublish.markdown.engine import MarkdownPipeline
 from markpublish.markdown.toc import slugify
 from markpublish.renderers.base import DocumentContext
-from markpublish.renderers.html import HTMLRenderer
 from markpublish.renderers.pdf import PDFRenderer
 from markpublish.templates.resolver import (
     get_package_templates_dir,
@@ -238,6 +237,13 @@ def _render_document(
     out_root = output_base_dir or base_dir
 
     for tgt in targets_to_build:
+        if tgt == "html":
+            console.print(
+                "[yellow]Notice:[/yellow] HTML output is currently not implemented. "
+                "markpublish focuses on high-quality PDF publishing via Typst."
+            )
+            continue
+
         with console.status(f"[bold green]Processing Markdown and rendering {tgt.upper()}...[/bold green]"):
             try:
                 tmpl_path = resolve_template_path(
@@ -286,11 +292,7 @@ def _render_document(
                 out_file = out_root / f"{doc_slug}.{tgt}"
 
             try:
-                if tgt == "pdf":
-                    renderer = PDFRenderer()
-                else:
-                    renderer = HTMLRenderer()
-
+                renderer = PDFRenderer()
                 out_result = renderer.render(context, out_file)
                 console.print(f"[bold green][OK][/bold green] {tgt.upper()} successfully generated: [cyan]{out_result}[/cyan]")
             except UndefinedLabelError as e:

@@ -118,8 +118,9 @@ class PDFRenderer(BaseRenderer):
             "",
         ]
 
-        # Track if we are at the very beginning of a fresh document without cover/TOC
-        has_content = bool(doc.cover or doc.document_toc.enabled)
+        # Track if there is already content on the current page.
+        # At document start (after cover and/or TOC pagebreak), we are already on a fresh page.
+        has_content = False
 
         for item in context.content_items:
             if item.is_part:

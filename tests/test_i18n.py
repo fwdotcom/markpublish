@@ -19,7 +19,7 @@ from markpublish.i18n import (
 )
 from markpublish.markdown.engine import MarkdownEngine, MarkdownPipeline
 from markpublish.renderers.base import DocumentContext
-from markpublish.renderers.html import HTMLRenderer
+from markpublish.renderers.pdf import PDFRenderer
 from markpublish.templates.resolver import resolve_template_path
 
 
@@ -95,28 +95,26 @@ def test_alert_titles_fall_back_to_the_program_texts():
 # --------------------------------------------------------------------------
 
 YAML = """\
-
 document:
-  title: "Language Test"
+  title: "i18n Test"
   author: "Test"
   date: "2026-08-31"
   language: "{lang}"
   cover: true
   document_toc: "full"
 {extra}
+theme: "default"
+
 parts:
-  - title: "Hauptteil"
+  - title: "Part"
     break_before: "none"
-    document_toc: "none"
     chapters:
       - file: "chapters/01.md"
-        title: "First"
-        break_before: "divider"
-        chapter_toc: 2
+        title: "Chapter"
 """
 
 
-def _render_html(tmp_path: Path, lang: str, extra: str = "") -> str:
+def _render_pdf(tmp_path: Path, lang: str, extra: str = "") -> str:
     chapters = tmp_path / "chapters"
     chapters.mkdir(exist_ok=True)
     (chapters / "01.md").write_text(
@@ -131,52 +129,29 @@ def _render_html(tmp_path: Path, lang: str, extra: str = "") -> str:
         config=config,
         content_items=items,
         toc_tree=tree,
-        template_path=resolve_template_path("html", "default"),
+        template_path=resolve_template_path("pdf", "default"),
         base_dir=tmp_path,
-        target="html",
+        target="pdf",
     )
-    out = tmp_path / "out.html"
-    HTMLRenderer().render(ctx, out)
-    return out.read_text(encoding="utf-8")
+    out = tmp_path / "out.pdf"
+    PDFRenderer().render(ctx, out)
+    import pypdfium2 as pdfium
+    doc = pdfium.PdfDocument(str(out))
+    return "\n".join(doc[i].get_textpage().get_text_range() for i in range(len(doc)))
 
 
-def _body_only(html: str) -> str:
-    """Ohne das eingebettete Stylesheet - dort stehen deutsche CSS-Kommentare."""
-    start = html.index("</style>")
-    return html[start:]
+def test_german_labels_reach_the_pdf_output(tmp_path: Path):
+    text = _render_pdf(tmp_path, "de")
+    assert "Inhaltsverzeichnis" in text
+    assert "AUTOR" in text.upper()
+    assert "DATUM" in text.upper()
 
 
-# Sondiert werden Seitenleiste und Deckblatt: das HTML-Theme zeigt weder
-# Trennseiten noch Kapitel-TOC, die Marken "Kapitel" und chapter_toc_title
-# kommen dort also nicht vor. Im PDF tun sie es - dafuer
-# steht test_page_label_reaches_the_pdf_stylesheet.
-def _cover_label(html: str, value: str) -> str:
-    """Das Label, das im Deckblatt ueber einem bestimmten Wert steht."""
-    match = re.search(
-        r'<div class="meta-item-label">([^<]*)</div>\s*'
-        r'<div class="meta-item-value">\s*' + re.escape(value),
-        html,
-    )
-    assert match, f"Kein Deckblatt-Feld mit dem Wert {value!r}"
-    return match.group(1).strip()
-
-
-def test_german_labels_reach_the_html_output(tmp_path: Path):
-    html = _render_html(tmp_path, "de")
-    assert "Inhalt" in html
-    assert _cover_label(html, "Test") == "Autor"
-    assert _cover_label(html, "2026-08-31") == "Datum"
-
-
-def test_english_labels_reach_the_html_output(tmp_path: Path):
-    html = _render_html(tmp_path, "en")
-    assert "Contents" in html
-    assert _cover_label(html, "Test") == "Author"
-    assert _cover_label(html, "2026-08-31") == "Date"
-
-    body = _body_only(html)
-    assert "Autor" not in body
-    assert "Datum" not in body
+def test_english_labels_reach_the_pdf_output(tmp_path: Path):
+    text = _render_pdf(tmp_path, "en")
+    assert "Table of Contents" in text or "Contents" in text
+    assert "AUTHOR" in text.upper()
+    assert "DATE" in text.upper()
 
 
 def test_document_level_labels_are_rejected_by_the_loader(tmp_path: Path):
@@ -186,7 +161,7 @@ def test_document_level_labels_are_rejected_by_the_loader(tmp_path: Path):
     """
     extra = '  labels:\n    chapter_toc_title: "Auf dieser Seite"\n'
     with pytest.raises(Exception) as excinfo:
-        _render_html(tmp_path, "de", extra)
+        _render_pdf(tmp_path, "de", extra)
     assert "i18n.yaml" in str(excinfo.value)
 
 
