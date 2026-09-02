@@ -433,6 +433,7 @@ def test_toc_does_not_leave_a_blank_page_before_first_content(tmp_path: Path):
         """\
 document:
   title: "T"
+  language: "de"
   cover: true
   document_toc: "full"
 parts:
