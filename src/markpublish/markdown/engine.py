@@ -133,6 +133,7 @@ class ContentItem:
         typst_content: str = "",
         element_tree: Any = None,
         file_base_dir: Optional[Path] = None,
+        base_level: int = 1,
     ):
         self.title = title
         self.display_title = display_title
@@ -152,6 +153,11 @@ class ContentItem:
         self.typst_content = typst_content
         self.element_tree = element_tree
         self.file_base_dir = file_base_dir
+        # Verschachtelungstiefe des Kapitels, 1 = oberste Ebene. Der Renderer
+        # serialisiert den element_tree selbst neu und braucht denselben Offset,
+        # den auch typst_content bekommen hat -- sonst laufen Fallback und
+        # tatsaechliche Ausgabe auseinander (S4).
+        self.base_level = base_level
         self.children: List[ContentItem] = []
 
     @property
@@ -509,6 +515,7 @@ class MarkdownPipeline:
             typst_content=typst_content,
             element_tree=tree,
             file_base_dir=file_base_dir,
+            base_level=base_level,
         )
 
         # Beitrag zum Dokumentverzeichnis kuerzen

@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import shutil
 import sys
+import warnings
 from pathlib import Path
 from typing import List, Optional
 
@@ -39,6 +40,11 @@ from markpublish.markdown.engine import MarkdownPipeline
 from markpublish.markdown.toc import slugify
 from markpublish.renderers.base import DocumentContext
 from markpublish.renderers.pdf import PDFRenderer
+from markpublish.templates.contract import (
+    ThemeContractWarning,
+    label_overview,
+    parse_theme_contract,
+)
 from markpublish.templates.resolver import (
     get_package_templates_dir,
     list_templates,
@@ -293,7 +299,19 @@ def _render_document(
 
             try:
                 renderer = PDFRenderer()
-                out_result = renderer.render(context, out_file)
+                # Theme-Warnungen einsammeln statt sie von Python mit
+                # Dateiname und Zeilennummer der Warnstelle drucken zu lassen:
+                # interessant ist die Fundstelle im Theme, nicht die im Code.
+                with warnings.catch_warnings(record=True) as caught:
+                    warnings.simplefilter("always", ThemeContractWarning)
+                    out_result = renderer.render(context, out_file)
+                for entry in caught:
+                    if issubclass(entry.category, ThemeContractWarning):
+                        console.print(f"[yellow]Theme warning ({tgt}):[/yellow] {entry.message}")
+                    else:
+                        warnings.warn_explicit(
+                            entry.message, entry.category, entry.filename, entry.lineno
+                        )
                 console.print(f"[bold green][OK][/bold green] {tgt.upper()} successfully generated: [cyan]{out_result}[/cyan]")
             except UndefinedLabelError as e:
                 # Eigener Zweig, weil die Meldung mehrzeilig ist und Fundstelle
@@ -737,20 +755,70 @@ def labels_cmd(
         )
     )
 
+    contract = parse_theme_contract(tmpl_path)
+    overview = label_overview(contract, set(resolved))
+
     table = Table(show_header=True, header_style="bold blue")
     table.add_column("Key", style="bold")
+    table.add_column("i18n", justify="center")
+    table.add_column("gelesen", justify="center")
+    table.add_column("von", style="dim")
     table.add_column("Value")
     table.add_column("Source", style="dim")
 
-    for key in sorted(resolved):
-        entry = resolved[key]
-        from_program = entry["path"] == str(BUILTIN_I18N_PATH)
-        if only_overridden and from_program:
+    # Aus der vollen Uebersicht, nicht aus der gefilterten Schleife: mit
+    # --overridden wuerde die Zusammenfassung sonst Vollstaendigkeit
+    # behaupten, die nur fuer den Ausschnitt gilt.
+    gaps = [row.key for row in overview if not row.defined]
+    unused = [row.key for row in overview if row.defined and not row.used]
+
+    for row in overview:
+        entry = resolved.get(row.key)
+        from_program = bool(entry) and entry["path"] == str(BUILTIN_I18N_PATH)
+        if only_overridden and row.defined and from_program:
             continue
-        source_style = "dim" if from_program else "green"
-        table.add_row(key, entry["value"], f"[{source_style}]{entry['source']}[/{source_style}]")
+
+        if row.defined:
+            defined_mark = "[green]x[/green]"
+            value = entry["value"]
+            source_style = "dim" if from_program else "green"
+            source = f"[{source_style}]{entry['source']}[/{source_style}]"
+        else:
+            defined_mark = "[red]-[/red]"
+            value = "[red](fehlt)[/red]"
+            source = ""
+
+        if row.used:
+            used_mark = "[green]x[/green]"
+        else:
+            used_mark = "[yellow]-[/yellow]"
+
+        readers = ", ".join(sorted(row.readers))
+        if row.breaks_build:
+            readers += " [red](ohne Fallback)[/red]"
+
+        table.add_row(row.key, defined_mark, used_mark, readers, value, source)
 
     console.print(table)
+
+    if gaps:
+        console.print(
+            f"\n[red]{len(gaps)} Label ohne Definition:[/red] {', '.join(gaps)}"
+        )
+        breaking = [r.key for r in overview if r.breaks_build]
+        if breaking:
+            console.print(
+                f"  [red]Davon ohne Fallback im Template - der Build bricht ab:[/red] "
+                f"{', '.join(breaking)}"
+            )
+    if unused:
+        console.print(
+            f"\n[yellow]{len(unused)} Label {'wird' if len(unused) == 1 else 'werden'} von niemandem gelesen:[/yellow] "
+            f"{', '.join(unused)}"
+        )
+    if not gaps and not unused:
+        console.print("\n[green]Jedes definierte Label wird gelesen, jedes gelesene ist definiert.[/green]")
+
 
     searched = [str(d / I18N_FILENAME) for d in context.label_source_dirs]
     console.print("\n[dim]Gesucht nach Overrides in:[/dim]")

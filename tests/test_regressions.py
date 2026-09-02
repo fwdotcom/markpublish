@@ -8,6 +8,7 @@ nie WAS darin steht. Diese Tests pruefen den Inhalt.
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 import pytest
@@ -75,6 +76,51 @@ def nested_project(tmp_path: Path) -> Path:
     return tmp_path
 
 
+def assemble_typst_source(project: Path) -> str:
+    """
+    Gibt die main.typ zurueck, die der Renderer an Typst uebergibt.
+
+    Nicht `ContentItem.typst_content` pruefen: das ist nur der Fallback fuer
+    den Fall, dass kein element_tree vorliegt. Der Renderer serialisiert den
+    Baum selbst neu, und genau dort ist S4 entstanden -- ein Test auf
+    typst_content war gruen, waehrend das PDF falsche Ebenen zeigte.
+    """
+    config = load_config(project / "markpublish.yaml")
+    content_items, toc_tree = MarkdownPipeline(config, base_dir=project).process_document()
+    context = DocumentContext(
+        config=config,
+        content_items=content_items,
+        toc_tree=toc_tree,
+        template_path=resolve_template_path("pdf", "default"),
+        base_dir=project,
+        target="pdf",
+    )
+    return PDFRenderer()._assemble_typst_document(context, project)
+
+
+def typst_headings(source: str) -> dict:
+    """
+    Zerlegt die Ueberschriftenzeilen einer main.typ zu {Titel: Ebene}.
+
+    Eine Zeile sieht so aus:  == 2.1 Abschnitt 02_child <abschnitt-02-child>
+    Nummer und Label gehoeren nicht zum Titel.
+    """
+    headings: dict = {}
+    for line in source.splitlines():
+        if not line.startswith("="):
+            continue
+        depth = len(line) - len(line.lstrip("="))
+        title = line.lstrip("=").split(" <")[0].strip()
+        first, _, rest = title.partition(" ")
+        if rest and first.rstrip(".").replace(".", "").isdigit():
+            title = rest
+        # Der Serializer schuetzt Sonderzeichen ("01\_parent"); der TOC-Baum
+        # fuehrt den Klartext. Fuer den Vergleich zurueckdrehen.
+        title = re.sub(r"\\(.)", r"\1", title)
+        headings[title] = depth
+    return headings
+
+
 def render_pdf_text(project: Path) -> str:
     """Rendert das Projekt als PDF und gibt den extrahierten Text zurueck."""
     config = load_config(project / "markpublish.yaml")
@@ -105,16 +151,55 @@ def test_c1_nested_chapter_bodies_are_rendered(nested_project: Path):
 
 
 def test_s4_nested_chapter_heading_levels(nested_project: Path):
-    """Verifies S4: Nested chapters have base_level_offset applied so headings scale with hierarchy."""
-    config = load_config(nested_project / "markpublish.yaml")
-    content_items, _ = MarkdownPipeline(config, base_dir=nested_project).process_document()
+    """
+    S4: Die Ueberschriftenebene eines Kapitels folgt seiner Verschachtelung.
 
-    # 01_parent is top level -> '='
-    assert content_items[0].typst_content.startswith("= ")
-    # 02_child is nested level 2 -> '=='
-    assert content_items[1].typst_content.startswith("== ")
-    # 03_grandchild is nested level 3 -> '==='
-    assert content_items[2].typst_content.startswith("=== ")
+    Geprueft wird die an Typst uebergebene Quelle, nicht `typst_content` --
+    siehe assemble_typst_source().
+    """
+    levels = typst_headings(assemble_typst_source(nested_project))
+
+    # Die Kapitel-h1: Elternkapitel auf Ebene 1, Kind auf 2, Enkel auf 3.
+    assert levels["Ueberschrift 01_parent"] == 1
+    assert levels["Ueberschrift 02_child"] == 2
+    assert levels["Ueberschrift 03_grandchild"] == 3
+
+    # Und die Ueberschriften *innerhalb* der Kapitel wandern mit.
+    assert levels["Abschnitt 01_parent"] == 2
+    assert levels["Abschnitt 02_child"] == 3
+    assert levels["Unterabschnitt 02_child"] == 4
+
+
+def test_s4_typst_levels_match_the_toc_tree(nested_project: Path):
+    """
+    S4: TOC-Baum und gesetzte Ebene duerfen nicht auseinanderlaufen.
+
+    Das war der eigentliche Schaden: das Verzeichnis fuehrte ein Unterkapitel
+    eine Ebene tiefer, das PDF-Outline setzte es als Geschwister seines
+    Elternkapitels.
+    """
+    config = load_config(nested_project / "markpublish.yaml")
+    _, toc_tree = MarkdownPipeline(config, base_dir=nested_project).process_document()
+
+    toc_levels: dict = {}
+
+    def walk(nodes):
+        for node in nodes:
+            toc_levels[node.title] = node.level
+            walk(getattr(node, "children", None) or [])
+
+    walk(toc_tree)
+
+    compared = 0
+    for title, depth in typst_headings(assemble_typst_source(nested_project)).items():
+        if title not in toc_levels:
+            continue
+        compared += 1
+        assert toc_levels[title] == depth, (
+            f"{title!r}: Verzeichnis sagt Ebene {toc_levels[title]}, "
+            f"gesetzt wird Ebene {depth}"
+        )
+    assert compared >= 6, "Zu wenige Ueberschriften verglichen -- Test greift ins Leere"
 
 
 # --------------------------------------------------------------------------

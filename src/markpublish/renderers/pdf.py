@@ -6,13 +6,21 @@ from __future__ import annotations
 
 import shutil
 import tempfile
+import warnings
 from pathlib import Path
 from typing import Any, List, Tuple
 
 import typst
 
+from markpublish.i18n import UndefinedLabelError, undefined_label_message
 from markpublish.markdown.typst_serializer import TypstSerializer, typst_string
 from markpublish.renderers.base import BaseRenderer, DocumentContext
+from markpublish.templates.contract import (
+    ThemeContractWarning,
+    check_theme_contract,
+    parse_sent_arguments,
+    parse_theme_contract,
+)
 
 
 class PDFRenderer(BaseRenderer):
@@ -44,6 +52,12 @@ class PDFRenderer(BaseRenderer):
             main_typ = tmp_path / "main.typ"
             main_typ.write_text(typst_source, encoding="utf-8")
 
+            # 2b. Theme und Aufruf gegeneinander halten, bevor Typst startet.
+            #     Geprueft wird gegen das Original-Theme, nicht gegen die Kopie
+            #     im Build-Verzeichnis: in der Meldung soll der Pfad stehen, den
+            #     der Nutzer bearbeiten kann.
+            self._check_theme_contract(context, typst_source)
+
             # 3. Determine font search paths
             font_paths: List[Path] = []
             theme_fonts = context.template_path / "fonts"
@@ -74,6 +88,46 @@ class PDFRenderer(BaseRenderer):
                 raise RuntimeError(f"Typst-Kompilierungsfehler: {e}{debug_msg}") from e
 
         return output_path
+
+    def _check_theme_contract(self, context: DocumentContext, typst_source: str) -> None:
+        """
+        Prueft das Theme gegen den erzeugten Aufruf.
+
+        Abgebrochen wird nur, wo Typst ohnehin abbraeche -- der Gewinn ist die
+        Meldung, nicht ein neues Verbot. Was heute still leer bleibt, bleibt
+        still leer und wird als Warnung gemeldet.
+        """
+        contract = parse_theme_contract(context.template_path)
+        if not contract.parameters:
+            # Kein `.typ` lesbar: das Theme ist entweder leer oder liegt in
+            # einer Form vor, die dieses Modul nicht kennt. Dann ist Schweigen
+            # richtig -- Typst meldet sich gleich selbst.
+            return
+
+        labels = context.labels
+        report = check_theme_contract(
+            contract,
+            parse_sent_arguments(typst_source),
+            labels=labels,
+            language=getattr(labels, "language", None),
+        )
+
+        if report.missing_labels:
+            blocks = [
+                undefined_label_message(key, labels, places)
+                for key, places in sorted(report.missing_labels.items())
+            ]
+            raise UndefinedLabelError("\n\n".join(blocks))
+
+        if report.errors:
+            raise RuntimeError(
+                "Theme und Aufruf passen nicht zusammen:\n"
+                + "\n".join(f"  {message}" for message in report.errors)
+                + f"\n  Theme: {context.template_path}"
+            )
+
+        for message in report.warnings:
+            warnings.warn(message, ThemeContractWarning, stacklevel=2)
 
     def _assemble_typst_document(self, context: DocumentContext, build_dir: Path) -> str:
         """
@@ -250,10 +304,15 @@ class PDFRenderer(BaseRenderer):
         images_dir = build_dir / "images"
         element_tree = getattr(chapter_item, "element_tree", None)
         file_base_dir = getattr(chapter_item, "file_base_dir", None)
+        # Ein Unterkapitel auf Ebene 2 setzt seine h1 als '==', nicht als '='.
+        # Der Offset muss derselbe sein, mit dem die Pipeline schon die
+        # TOC-Ebenen gerechnet hat, sonst zeigt das PDF-Outline Unterkapitel
+        # als Geschwister ihres Elternkapitels.
+        base_level_offset = max(0, getattr(chapter_item, "base_level", 1) - 1)
 
         if element_tree is not None:
             serializer = TypstSerializer(
-                base_level_offset=0,
+                base_level_offset=base_level_offset,
                 file_base_dir=file_base_dir,
                 images_dir=images_dir,
                 labels=labels,
@@ -272,7 +331,12 @@ class PDFRenderer(BaseRenderer):
                 if raw_md:
                     from markpublish.markdown.typst_serializer import html_to_tree
                     tree = html_to_tree(raw_md)
-                    serializer = TypstSerializer(file_base_dir=file_base_dir, images_dir=images_dir, labels=labels)
+                    serializer = TypstSerializer(
+                        base_level_offset=base_level_offset,
+                        file_base_dir=file_base_dir,
+                        images_dir=images_dir,
+                        labels=labels,
+                    )
                     ch_typst = serializer.serialize(tree)
                     if ch_typst.strip():
                         res.append(ch_typst)
