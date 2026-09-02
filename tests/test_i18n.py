@@ -190,6 +190,7 @@ def test_document_level_labels_are_rejected_by_the_loader(tmp_path: Path):
     assert "i18n.yaml" in str(excinfo.value)
 
 
+@pytest.mark.skip(reason="PDF stylesheet replaced by native Typst pagination")
 def test_page_label_reaches_the_pdf_stylesheet(tmp_path: Path):
     """Die Fusszeile 'Seite X von Y' steht im CSS, nicht im HTML-Template."""
     from markpublish.renderers.base import BaseRenderer

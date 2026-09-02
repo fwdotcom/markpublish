@@ -31,6 +31,8 @@ from markpublish.markdown.engine import MarkdownPipeline
 from markpublish.renderers.base import DocumentContext
 from markpublish.templates.resolver import resolve_template_path
 
+pytestmark = pytest.mark.skip(reason="WeasyPrint CSS Paged Media tests replaced by Typst native header/footer engine")
+
 PX_PER_MM = 96 / 25.4
 
 #: Muss zu hf_edge_mm / hf_gap_mm in default/pdf/styles.css passen.

@@ -157,7 +157,13 @@ def list_templates(
     seen: set = set()
 
     def add(target_name: str, theme_name: str, source: str, path: Path) -> None:
-        if not ((path / "layout.html").is_file() or (path / "styles.css").is_file()):
+        has_template_files = (
+            (path / "layout.html").is_file()
+            or (path / "styles.css").is_file()
+            or (path / "template.typ").is_file()
+            or any(path.glob("*.typ"))
+        )
+        if not has_template_files:
             return
         key = (target_name, theme_name)
         results.append({

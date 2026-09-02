@@ -59,7 +59,6 @@ parts:
         title: "Markdown-Features & Syntax"
         summary: "Tabellen, Admonitions/Callouts, Pygments Syntax-Highlighting und Tasklisten."
         break_before: "divider"
-        chapter_toc: "none"
 
   - title: "Anhänge"
     summary: "Vollständige Spezifikations-Tabellen, Troubleshooting und Best Practices."

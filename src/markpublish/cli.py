@@ -48,8 +48,7 @@ from markpublish.templates.resolver import (
 
 app = typer.Typer(
     name="markpublish",
-    help="Modern, modular Markdown to PDF/HTML publishing tool powered by WeasyPrint.",
-    add_completion=False,
+    help="Modern, modular Markdown to PDF publishing tool powered by Typst.",
 )
 console = Console()
 
@@ -136,7 +135,8 @@ def _resolve_bundled_doc(name: str, lang: Optional[str]) -> Path:
         )
         raise typer.Exit(code=1)
 
-    chosen = _match_doc_language(available, lang or detect_system_language())
+    detected = detect_system_language()
+    chosen = _match_doc_language(available, lang or detected)
 
     if chosen is None:
         chosen = DEFAULT_DOC_LANGUAGE if DEFAULT_DOC_LANGUAGE in available else available[0]

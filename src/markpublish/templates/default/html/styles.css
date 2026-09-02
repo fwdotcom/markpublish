@@ -270,50 +270,22 @@ a:hover { text-decoration: underline; }
   padding-left: 1rem;
 }
 
-/* Kinder eines Parts ruecken nicht ein - sie stehen linksbuendig in der Flucht der Hauptkapitel */
-.toc-item-part > .toc-list {
-  padding-left: 0;
-}
-
 .toc-item {
   margin-bottom: 0.35rem;
-  font-size: 0.9rem;
 }
 
 /* Wie im PDF: die Bloecke der obersten Ebene werden voneinander durch eine
    Leerzeile getrennt, vor dem ersten steht keine. */
 .sidebar-nav > .toc-list > .toc-item + .toc-item,
 .toc-item-part > .toc-list > .toc-item + .toc-item {
-  margin-top: 1rem;
-}
 
 .toc-item-part {
   font-weight: 400;
   color: #0f172a;
-}
-
-.toc-item-part > .toc-link {
-  display: block;
-  font-weight: 700;
-  font-size: 0.95rem;
   color: #0f172a;
-  margin-bottom: 0.6rem;
 }
-
 .toc-item-h1 > .toc-link {
   font-weight: 600;
-  color: #0f172a;
-}
-
-.toc-item-h2 > .toc-link,
-.toc-item-h3 > .toc-link,
-.toc-item-h4 > .toc-link {
-  font-weight: 400;
-  color: var(--text-muted);
-}
-
-.toc-link {
-  color: var(--text-main);
 }
 
 .toc-link:hover {

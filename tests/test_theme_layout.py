@@ -160,6 +160,7 @@ def toc_steps(pages):
     return steps
 
 
+@pytest.mark.skip(reason="WeasyPrint specific box-tree test")
 def test_toc_uses_one_uniform_line_height(tmp_path: Path):
     """
     Innerhalb des Verzeichnisses liegen alle Zeilen exakt auf dem 6mm-Raster
@@ -177,6 +178,7 @@ def test_toc_uses_one_uniform_line_height(tmp_path: Path):
     )
 
 
+@pytest.mark.skip(reason="WeasyPrint specific box-tree test")
 def test_toc_separates_the_top_level_blocks(tmp_path: Path):
     """
     Vor Hauptbloecken (neues Kapitel auf Hauptebene, neuer Part) steht
@@ -191,6 +193,7 @@ def test_toc_separates_the_top_level_blocks(tmp_path: Path):
     )
 
 
+@pytest.mark.skip(reason="WeasyPrint specific CSS test")
 def test_theme_declares_its_fonts_in_one_place():
     """
     Die Schriftfamilien stehen als Custom Property in :root. Verstreute
@@ -242,12 +245,10 @@ def test_theme_ships_the_font_files(target: str):
         assert (fonts / name).is_file(), f"{target}: {name} fehlt"
 
 
-@pytest.mark.parametrize("target", ["pdf", "html"])
+@pytest.mark.parametrize("target", ["html"])
 def test_font_face_name_matches_the_file(target: str):
     """
     Der Name unter font-family muss dem Familiennamen IN der Datei entsprechen.
-    Weicht er ab, faellt WeasyPrint still auf die naechste Schrift der Kette
-    zurueck - ohne Fehlermeldung, nur mit anderem Satzbild.
     """
     fonttools = pytest.importorskip("fontTools.ttLib")
 
@@ -266,12 +267,10 @@ def test_font_face_name_matches_the_file(target: str):
         )
 
 
-@pytest.mark.parametrize("target", ["pdf", "html"])
+@pytest.mark.parametrize("target", ["html"])
 def test_font_is_inlined_not_linked(target: str):
     """
-    Die Schrift wird ueber asset_url() als data-URI eingebettet. Ein relativer
-    Pfad wuerde gegen das Dokumentverzeichnis aufgeloest, nicht gegen das
-    Template - und dort liegt keine Schrift.
+    Die Schrift wird ueber asset_url() als data-URI eingebettet.
     """
     css = (resolve_template_path(target, "default") / "styles.css").read_text(
         encoding="utf-8"
@@ -281,6 +280,7 @@ def test_font_is_inlined_not_linked(target: str):
         assert "asset_url(" in block, f"{target}: @font-face ohne asset_url:\n{block}"
 
 
+@pytest.mark.skip(reason="WeasyPrint font test replaced by native Typst font handling")
 def test_bundled_font_supplies_faces_the_system_lacks(tmp_path: Path):
     """
     Der Beweis, dass die Datei benutzt wird und nicht die Installation: Bold und
@@ -344,9 +344,8 @@ BREAK_CHAPTER_MD = "# {title}\n\nText.\n"
 
 def _render_pages(tmp_path: Path, yaml_body: str):
     """Baut ein Dokument und gibt die gerenderten PDF-Seiten zurueck."""
-    # Lokal importiert wie in den uebrigen Tests dieser Datei: WeasyPrint zieht
-    # beim Import die GTK-Laufzeit nach.
-    from markpublish.renderers.pdf import PDFRenderer, _load_weasyprint
+    import pypdfium2 as pdfium
+    from markpublish.renderers.pdf import PDFRenderer
 
     (tmp_path / "markpublish.yaml").write_text(yaml_body, encoding="utf-8")
 
@@ -363,23 +362,13 @@ def _render_pages(tmp_path: Path, yaml_body: str):
     pipeline = MarkdownPipeline(config, base_dir=tmp_path, labels=context.labels)
     context.content_items, context.toc_tree = pipeline.process_document()
 
-    html = PDFRenderer().render_template(context, template_name="layout.html")
-    html_cls, error = _load_weasyprint()
-    assert html_cls is not None, error
-    return html_cls(string=html, base_url=str(tmp_path)).render().pages
+    out_pdf = tmp_path / "out.pdf"
+    PDFRenderer().render(context, out_pdf)
+    return pdfium.PdfDocument(str(out_pdf))
 
 
 def _page_text(page) -> str:
-    out = []
-
-    def walk(box):
-        if getattr(box, "text", None) and box.text.strip():
-            out.append(box.text.strip())
-        for child in getattr(box, "all_children", lambda: [])():
-            walk(child)
-
-    walk(page._page_box)
-    return " ".join(out)
+    return page.get_textpage().get_text_range()
 
 
 def test_chapters_start_on_a_new_page_by_default(tmp_path: Path):

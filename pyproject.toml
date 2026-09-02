@@ -5,13 +5,13 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "markpublish"
 version = "1.0.0"
-description = "Modern, modular, and extensible Markdown-to-PDF/HTML publishing tool powered by WeasyPrint"
+description = "Modern, modular, and extensible Markdown-to-PDF publishing tool powered by Typst"
 readme = "README.md"
 license = { text = "MIT" }
 authors = [
     { name = "Frank Winter", email = "studio@frankwinter.com" }
 ]
-keywords = ["markdown", "pdf", "html", "weasyprint", "publishing", "converter", "cli"]
+keywords = ["markdown", "pdf", "typst", "publishing", "converter", "cli"]
 
 classifiers = [
     "Development Status :: 5 - Production/Stable",
@@ -34,7 +34,7 @@ classifiers = [
 
 requires-python = ">=3.10"
 dependencies = [
-    "weasyprint>=60.0",
+    "typst>=0.15.0",
     "jinja2>=3.1.0",
     "markdown>=3.5.0",
     "pymdown-extensions>=10.0",

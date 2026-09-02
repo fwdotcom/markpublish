@@ -387,15 +387,12 @@ def get_labels(language: Optional[str] = None) -> "LabelMap":
 # Freie Labels: Verwendung im Template gegen die Kaskade pruefen
 # --------------------------------------------------------------------------
 
-#: Dateien, in denen nach Label-Verwendungen gesucht wird. styles.css laeuft
-#: durch dieselbe Jinja-Umgebung wie die Templates und darf Labels benutzen.
-TEMPLATE_FILE_GLOBS = ("*.html", "*.css")
+#: Dateien, in denen nach Label-Verwendungen gesucht wird.
+TEMPLATE_FILE_GLOBS = ("*.html", "*.css", "*.typ")
 
-#: Attributnamen, die zu jedem dict gehoeren. `labels.items` ist der Aufruf
-#: einer Mapping-Methode, kein Label - ohne diese Liste meldete die Pruefung
-#: sie als fehlend.
+#: Attributnamen, die zu jedem dict gehoeren (inkl. Typst .at()).
 _MAPPING_ATTRIBUTES = frozenset(
-    {"get", "items", "keys", "values", "copy", "pop", "setdefault", "update", "clear"}
+    {"at", "get", "items", "keys", "values", "copy", "pop", "setdefault", "update", "clear"}
 )
 
 #: {{ labels.foo }} und {{ labels["foo"] }} - beide Schreibweisen zaehlen.

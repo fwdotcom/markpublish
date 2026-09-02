@@ -1,0 +1,30 @@
+# markpublish.yaml
+#
+# Minimal starting point. For the full reference -- every key of this file, and
+# how themes work -- run:
+#
+#     markpublish cheatsheet
+#
+document:
+  title: "CLI Test Doc"
+  author: "Your Name"
+  date: "auto"
+  language: "de-DE"
+
+  # A one-page draft needs neither of these. Switch them on once the document
+  # has grown enough to need a way in.
+  cover: false
+  document_toc: "none"
+
+theme: "default"
+
+# Chapters always live under a part -- that is the two-level structure of a
+# markpublish document. One part is enough here; break_before: "none" keeps it
+# from claiming a divider page of its own.
+parts:
+  - title: "Main"
+    break_before: "none"
+    document_toc: "none"
+    chapters:
+      - file: "next-steps.md"
+        title: "Next steps"

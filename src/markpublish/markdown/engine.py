@@ -23,6 +23,7 @@ from markpublish.markdown.toc import (
     TOCNode,
     process_html_headings_and_toc,
 )
+from markpublish.markdown.typst_converter import MarkdownToTypstConverter
 
 #: Namen der String-Extensions. Der GitHubAlertsExtension wird pro Sprache
 #: instanziiert und deshalb erst in _build_default_extensions() vorangestellt --
@@ -123,6 +124,9 @@ class ContentItem:
         part_toc: Any = False,
         pagenum_reset: bool = False,
         local_toc_items: Optional[List[TOCNode]] = None,
+        raw_markdown: str = "",
+        document_toc: Any = None,
+        typst_content: str = "",
     ):
         self.title = title
         self.display_title = display_title
@@ -137,6 +141,9 @@ class ContentItem:
         self.part_toc = part_toc
         self.pagenum_reset = pagenum_reset
         self.local_toc_items = local_toc_items or []
+        self.raw_markdown = raw_markdown
+        self.document_toc = document_toc
+        self.typst_content = typst_content
         self.children: List[ContentItem] = []
 
     @property
@@ -201,6 +208,7 @@ class MarkdownPipeline:
     ):
         self.config = config
         self.base_dir = base_dir
+        self.labels = labels or {}
         # Die Labels haengen am Zielformat (Ebene 3), deshalb kommen sie von
         # aussen herein statt hier gebaut zu werden - die Pipeline laeuft pro
         # Zielformat.
@@ -248,6 +256,7 @@ class MarkdownPipeline:
                     html_content="",
                     part_toc=effective_part_toc if (effective_part_toc and effective_part_toc.enabled) else None,
                     pagenum_reset=effective_part_pagenum_reset,
+                    document_toc=part_cfg.document_toc,
                 )
                 content_items.append(part_item)
 
@@ -425,6 +434,14 @@ class MarkdownPipeline:
                     if chapter_level < n.level <= chapter_level + chapter_toc.max_depth - 1
                 ]
 
+        # Convert markdown to Typst with calculated numbering and slugs
+        typst_conv = MarkdownToTypstConverter(
+            labels=self.labels,
+            base_heading_level=base_level,
+            toc_nodes=toc_nodes,
+        )
+        typst_content = typst_conv.convert(raw_md) if raw_md else ""
+
         item = ContentItem(
             title=display_title,
             display_title=display_title,
@@ -436,8 +453,12 @@ class MarkdownPipeline:
             number_prefix=number_prefix,
             html_content=processed_html,
             chapter_toc=chapter_toc,
+            part_toc=False,
             pagenum_reset=effective_pagenum_reset,
             local_toc_items=local_toc_items,
+            raw_markdown=raw_md,
+            document_toc=effective_document_toc,
+            typst_content=typst_content,
         )
 
         # Beitrag zum Dokumentverzeichnis kuerzen

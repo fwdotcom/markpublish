@@ -15,8 +15,7 @@ from markpublish.templates.resolver import (
 def test_resolve_package_templates():
     pdf_default = resolve_template_path("pdf", "default")
     assert pdf_default.exists()
-    assert (pdf_default / "layout.html").is_file()
-    assert (pdf_default / "styles.css").is_file()
+    assert (pdf_default / "template.typ").is_file()
 
     html_default = resolve_template_path("html", "default")
     assert html_default.exists()
