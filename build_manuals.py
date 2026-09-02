@@ -1,11 +1,6 @@
 """
 Baut das offizielle markpublish Benutzerhandbuch in Deutsch und Englisch
-und legt die fertigen Dokumente im Verzeichnis 'manual/' ab.
-
-Die Ergebnisse sind zugleich die Schaustuecke im README: vier Dateien, zwei
-Sprachen mal zwei Zielformate. Deshalb baut der Aufruf ohne Argumente beides -
-haette er weiter nur PDF erzeugt, waere die HTML-Fassung im Repository still
-veraltet, waehrend die PDF-Fassung daneben aktuell bleibt.
+als PDF und legt die fertigen Dokumente im Verzeichnis 'manual/' ab.
 """
 
 from __future__ import annotations

@@ -208,6 +208,16 @@ class TypstSerializer:
             return f"#quote[\n{content}\n]\n"
 
         if tag == "div":
+            # Check for arithmatex display math: <div class="arithmatex">\[...\]</div>
+            if "arithmatex" in classes:
+                math_text = "".join(elem.itertext()).strip()
+                if math_text.startswith(r"\[") and math_text.endswith(r"\]"):
+                    math_text = math_text[2:-2].strip()
+                elif math_text.startswith("$$") and math_text.endswith("$$"):
+                    math_text = math_text[2:-2].strip()
+                norm_math = self._normalize_math(math_text)
+                return f"$ {norm_math} $\n"
+
             # Check for admonitions (e.g. class="admonition note")
             if "admonition" in classes:
                 callout_type = "note"
@@ -389,20 +399,28 @@ class TypstSerializer:
         align_typst = f"({', '.join(align_spec)})"
 
         cells_typst: List[str] = []
-        is_first_row = True
         has_header = any(cell[1] for cell in rows[0])
 
-        for _r_idx, r in enumerate(rows):
+        start_row_idx = 0
+        if has_header:
+            header_row = rows[0]
+            padded_header = list(header_row)
+            while len(padded_header) < max_cols:
+                padded_header.append(("", False, "left"))
+            header_cells = [f"[#text(weight: \"bold\")[{content}]]" for content, _, _ in padded_header]
+            cells_typst.append("  table.header(\n    " + ",\n    ".join(header_cells) + ",\n  )")
+            start_row_idx = 1
+
+        for r in rows[start_row_idx:]:
             padded_row = list(r)
             while len(padded_row) < max_cols:
                 padded_row.append(("", False, "left"))
 
             for content, is_th, _ in padded_row:
-                if is_th or (is_first_row and has_header):
-                    cells_typst.append(f"  table.header([#text(weight: \"bold\")[{content}]])")
+                if is_th:
+                    cells_typst.append(f"  [#text(weight: \"bold\")[{content}]]")
                 else:
                     cells_typst.append(f"  [{content}]")
-            is_first_row = False
 
         cells_str = ",\n".join(cells_typst)
         return (
@@ -437,9 +455,47 @@ class TypstSerializer:
                 parts.append(escape_typst_text(child.tail))
         return "".join(parts)
 
+    @staticmethod
+    def _normalize_math(math_text: str) -> str:
+        """Translates common LaTeX math macros into Typst math syntax."""
+        replacements = [
+            (r"\pi", "pi"),
+            (r"\cdot", "dot"),
+            (r"\times", "times"),
+            (r"\infty", "infinity"),
+            (r"\alpha", "alpha"),
+            (r"\beta", "beta"),
+            (r"\gamma", "gamma"),
+            (r"\delta", "delta"),
+            (r"\sigma", "sigma"),
+            (r"\mu", "mu"),
+            (r"\pm", "plus.minus"),
+            (r"\leq", "<="),
+            (r"\geq", ">="),
+            (r"\neq", "!="),
+            (r"\approx", "approx"),
+            (r"\to", "arrow.r"),
+        ]
+        res = math_text
+        for latex_cmd, typst_sym in replacements:
+            res = res.replace(latex_cmd, typst_sym)
+        # Normalize common physical shorthand like mc^2 to m c^2 so Typst does not treat it as a single variable
+        res = re.sub(r"\bmc\^2\b", "m c^2", res)
+        return res
+
     def _visit_inline(self, elem: etree.Element) -> str:
         """Serializes an inline element to Typst syntax."""
         tag = elem.tag.lower()
+
+        # Arithmatex inline math: <span class="arithmatex">\(...\)</span>
+        if tag == "span" and "arithmatex" in elem.attrib.get("class", "").split():
+            math_text = "".join(elem.itertext()).strip()
+            if math_text.startswith(r"\(") and math_text.endswith(r"\)"):
+                math_text = math_text[2:-2].strip()
+            elif math_text.startswith("$") and math_text.endswith("$"):
+                math_text = math_text[1:-1].strip()
+            norm_math = self._normalize_math(math_text)
+            return f"${norm_math}$"
 
         # Strong / Bold
         if tag in ("strong", "b"):

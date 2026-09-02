@@ -46,15 +46,17 @@ DEFAULT_EXTENSION_NAMES = [
     "pymdownx.tilde",
     "pymdownx.caret",
     "pymdownx.smartsymbols",
+    "pymdownx.arithmatex",
 ]
 
 DEFAULT_EXTENSION_CONFIGS = {
+    "pymdownx.arithmatex": {
+        "generic": True,
+    },
     "pymdownx.highlight": {
-        "use_pygments": True,
-        # Mit noclasses=False gibt Pygments CSS-Klassen aus; die Farben stehen
-        # dann im Theme-Stylesheet (.highlight .k usw.), nicht hier. Ein
-        # pygments_style waere an dieser Stelle wirkungslos.
-        "noclasses": False,
+        # Typst verfuegt ueber eine eigene, hochqualitative Syntax-Highlighting-Engine.
+        # use_pygments=False uebergibt die Sprachklasse (z.B. language-yaml) an Typst.
+        "use_pygments": False,
     },
     "pymdownx.tasklist": {
         "custom_checkbox": True,

@@ -1,81 +1,74 @@
-# Installation & Schnellstart
+# Installation und Schnellstart
 
-In diesem Kapitel erfahren Sie, wie Sie `markpublish` installieren und in weniger als zwei Minuten Ihr erstes Dokument kompilieren.
+Dieses Kapitel beschreibt den direkten Weg von der Installation bis zum ersten fertig erstellten PDF-Dokument.
 
 ## Voraussetzungen
 
-`markpublish` benötigt **Python 3.10 oder neuer**. Es läuft nativ unter:
-- **Windows** (10, 11, Server)
-- **macOS** (Intel und Apple Silicon)
-- **Linux** (Debian, Ubuntu, Fedora, Arch, etc.)
+Für den Betrieb von markpublish wird eine funktionierende Python-Installation benötigt:
 
-## Installation via pip
+* **Python-Version:** 3.10 oder neuer
+* **Betriebssystem:** Windows, macOS oder Linux
 
-Installieren Sie das Paket über den Python-Paketmanager:
+## Installation
+
+markpublish wird komfortabel über den Python-Paketmanager `pip` installiert:
 
 ```bash
 pip install markpublish
 ```
 
-Für Entwickler oder zur Installation aus dem Quellcode:
+Nach Abschluss der Installation steht der Befehl `markpublish` (sowie das kurze Alias `mpub`) im Terminal zur Verfügung. Die erfolgreiche Bereitstellung lässt sich mit folgendem Aufruf prüfen:
 
 ```bash
-git clone https://github.com/fwdotcom/markpublish.git
-cd markpublish
-pip install -e ".[dev]"
+markpublish --version
 ```
 
-## Erstes Projekt initialisieren
+## Schritte bis zum ersten Build
 
-Verwenden Sie den Befehl `init`, um eine neue Dokumentenstruktur zu erzeugen:
+Die Erstellung eines neuen Dokumentenprojekts erfolgt in wenigen einfachen Schritten:
+
+### Neues Projekt initialisieren
+
+Mit dem Befehl `init` legt markpublish ein neues Projektverzeichnis mit einer lauffähigen Beispielstruktur an:
 
 ```bash
-markpublish init mein-leitfaden --title "Mein Leitfaden"
-cd mein-leitfaden
+markpublish init mein-dokument
 ```
 
-Der Befehl legt einen bewusst minimalen Stumpf an — zwei Dateien, direkt im
-Zielordner:
+Dieser Befehl erzeugt einen neuen Ordner `mein-dokument/` mit folgender Grundstruktur:
 
-```
-mein-leitfaden/
-├── markpublish.yaml          # Das Dokumenten-Manifest
-└── next-steps.md             # Ein Kapitel, zum Ersetzen gedacht
+```text
+mein-dokument/
+├── markpublish.yaml
+└── chapters/
+    └── 01_einleitung.md
 ```
 
-## Nachschlagen
+### In das Projektverzeichnis wechseln
+
+Wechseln Sie in das neu angelegte Verzeichnis:
 
 ```bash
-# zweiseitige Kurzreferenz
-markpublish cheatsheet [--lang CODE] [--target pdf|html|all] [--output PFAD] [--theme NAME]
-
-# dieses Handbuch
-markpublish manual [--lang CODE] [--target pdf|html|all] [--output PFAD] [--theme NAME]
+cd mein-dokument
 ```
 
-Beide werden aus Quellen gerendert, die im Paket mitgeliefert werden — sie
-passen also immer zur installierten Version. Ein erfolgreicher Lauf ist zugleich
-der Nachweis, dass die Rendering-Kette funktioniert; unter Windows also, dass
-WeasyPrint seine GTK-Laufzeit findet.
+### Erstes PDF erstellen
 
-Ohne `--lang` entscheidet die Sprache Ihres Systems; gibt es dafür keine
-Übersetzung, erscheint die englische. Der Parameter wählt die **Quelle** des
-Handbuchs, nicht bloß die Beschriftungen der Oberfläche.
-
-## Dokument erstellen
-
-Rendern Sie Ihr Dokument mit dem `build`-Befehl:
+Starten Sie den Veröffentlichungsprozess direkt aus dem Projektverzeichnis heraus:
 
 ```bash
-# PDF aus dem aktuellen Projektverzeichnis erstellen
 markpublish build
-
-# HTML-Ausgabe erzeugen
-markpublish build --target html
-
-# Sowohl PDF als auch HTML in einem Durchgang bauen
-markpublish build --target all
 ```
 
-Die fertigen Dateien werden direkt im Projektordner abgelegt.
+markpublish liest die Konfigurationsdatei `markpublish.yaml`, verarbeitet die Kapitel im Ordner `chapters/` und erstellt das Dokument.
 
+### Dokument öffnen
+
+Das generierte PDF befindet sich nun im Unterordner `dist/`:
+
+```text
+dist/
+└── mein-dokument.pdf
+```
+
+Öffnen Sie die Datei mit einem beliebigen PDF-Betrachter, um das Ergebnis zu begutachten. Das Dokument enthält bereits ein gestaltetes Deckblatt, ein Inhaltsverzeichnis, Kopf- und Fußzeilen sowie das erste formatierte Kapitel.

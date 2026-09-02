@@ -60,7 +60,8 @@ def test_serializer_tables():
     typ = serializer.serialize(tree)
 
     assert "#table(" in typ
-    assert "table.header([#text(weight: \"bold\")[Header 1]])" in typ
+    assert "table.header(" in typ
+    assert '[#text(weight: "bold")[Header 1]]' in typ
     assert "[Val 1]" in typ
 
 
@@ -89,3 +90,17 @@ Apple
     typ = serializer.serialize(tree)
 
     assert "/ Apple: A fruit that keeps the doctor away." in typ
+
+
+def test_serializer_math():
+    from markpublish.markdown.engine import MarkdownEngine
+
+    engine = MarkdownEngine("de")
+    md = "Die Formel $E = mc^2$ und block:\n\n$$ A = \\pi \\cdot r^2 $$"
+    html = engine.convert(md)
+    tree = html_to_tree(html)
+    serializer = TypstSerializer()
+    typ = serializer.serialize(tree)
+
+    assert "$E = m c^2$" in typ
+    assert "$ A = pi dot r^2 $" in typ

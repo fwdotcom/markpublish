@@ -1,12 +1,81 @@
-# Anhang B: Fehlerbehebung & FAQ
+# Anhang B: Fehlerbehebung und FAQ
 
-Häufige Fragen, Fehlermeldungen und Lösungen bei der Dokumentenerstellung.
+Dieser Anhang bietet konkrete Hilfestellungen bei typischen Problemen während des Veröffentlichungsprozesses sowie Antworten auf häufige Fragen.
 
-| Problem / Fehlermeldung | Mögliche Ursache | Lösung |
-| :--- | :--- | :--- |
-| `cannot load library 'libgobject-2.0-0'` | WeasyPrint benötigt auf Windows die C-Bibliotheken von Pango und GTK. | GTK3-Runtime installieren ([GTK-Installer](https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer)) oder MSYS2: `pacman -S mingw-w64-x86_64-pango`. Schnelle Alternative: `--target html` rendert ohne WeasyPrint. |
-| Leere Bildrahmen / fehlende Grafiken im PDF | Bildpfad ist falsch oder absolut statt relativ notiert. | Pfade immer relativ zur jeweiligen Markdown-Datei angeben (z. B. `images/diag.png`). markpublish bettet Grafiken bis 12 MB als Data-URI ein. |
-| Inhaltsverzeichnis: Falsche Seitenzahlen | Manuell vergebene Heading-IDs kollidieren im Zweipass-Rendering. | Automatische Eindeutigkeit von markpublish nutzen oder manuell vergebene Anker (`{#id}`) prüfen. |
-| `Label 'x' is used in template but defined in no i18n level` | Ein Theme verwendet einen statischen Textschlüssel, der in keiner `i18n.yaml` deklariert ist. | Schlüssel in `<theme>/i18n.yaml` für alle Sprachen oder unter `*` eintragen. Gültige Texte mit `markpublish labels` prüfen. |
-| `cheatsheet` oder `manual` ignoriert Arbeitsordner-Theme | Eingebaute Referenzen nutzen standardmäßig das robuste Built-in-Theme. | Mit `--theme <name>` explizit das Rendern im eigenen Theme anfordern. |
+## Diagnose von Kompilierungsfehlern
 
+Sollte ein Kompiliervorgang mit einer Fehlermeldung der Typst-Engine abbrechen, speichert markpublish den vollständig generierten Typst-Quellcode automatisch in Ihrem Projektverzeichnis:
+
+```text
+.markpublish/last_failed_build.typ
+```
+
+### Vorgehen zur Fehleranalyse
+
+1. Öffnen Sie die Datei `.markpublish/last_failed_build.typ` in einem beliebigen Texteditor.
+2. Suchen Sie nach der in der Fehlermeldung genannten Zeilennummer.
+3. Anhand des Kontexts lässt sich unmittelbar erkennen, welcher Textabschnitt, welches Markdown-Kapitel oder welches Template-Element den Syntaxfehler verursacht hat.
+
+---
+
+## Häufige Ursachen und Lösungen
+
+### Bilder oder Grafiken werden nicht gefunden
+
+**Problem:** Typst bricht mit einer Meldung wie `image not found` ab.
+
+**Lösung:** 
+* Pfade zu Abbildungen im Markdown (z. B. `![Diagramm](images/architektur.png)`) werden immer **relativ zur jeweiligen Markdown-Datei** aufgelöst.
+* Liegt die Datei `01_kapitel.md` im Ordner `chapters/`, muss der Ordner `images/` entweder in `chapters/images/` liegen oder als `../images/architektur.png` referenziert werden.
+* markpublish kopiert lokale Bilddateien während des Builds automatisch in den internen Build-Ordner.
+
+### Ungültige Einrückungen in der Konfiguration (YAML)
+
+**Problem:** markpublish meldet beim Start `Configuration error: mapping values are not allowed here` oder `YAML parsing error`.
+
+**Lösung:**
+* YAML reagiert strikt auf falsche Einrückungen. Verwenden Sie für Einrückungen stets **zwei Leerzeichen** und niemals Tabulatoren.
+* Achten Sie darauf, dass Listeneinträge (`-`) und verschachtelte Schlüssel bündig zueinander stehen.
+
+### Fehlende Übersetzungen oder statische Texte
+
+**Problem:** Der Build bricht mit dem Fehler `Undefined label: table_of_contents` ab.
+
+**Lösung:**
+* Wenn Sie ein eigenes Theme nutzen oder eine neue Sprache eintragen, müssen alle vom Template verwendeten Beschriftungen in der `i18n.yaml` definiert sein.
+* Führen Sie `markpublish labels` aus, um zu überprüfen, welche Beschriftungen fehlen oder aus welcher Quelle sie stammen.
+
+### Schriften und Schriftfamilien
+
+**Problem:** Fehlermeldungen bezüglich Schriftarten oder unerwartetes Schriftbild.
+
+**Lösung:**
+* markpublish liefert die hochwertige serifenlose Schriftfamilie **Open Sans** direkt im Paket mit.
+* Das Standard-Theme greift automatisch auf diese Schrift zu. Sie müssen auf Ihrem Betriebssystem keine Schriften manuell nachinstallieren.
+* Wenn Sie in eigenen Themes andere Schriften definieren, müssen diese auf dem ausführenden System installiert und verfügbar sein.
+
+---
+
+## Häufig gestellte Fragen (FAQ)
+
+### Wie verhindere ich eine Trennseite vor einem Kapitel?
+
+Standardmäßig leitet ein Kapitel mit `break_before: "page"` ein, während Abschnitte (`parts:`) mit `break_before: "divider"` eine repräsentative Trennseite erzeugen. Wenn ein Kapitel oder Abschnitt direkt ohne neue Trennseite anschließen soll, setzen Sie:
+
+```yaml
+break_before: "none"
+```
+
+### Wie kann ich die Seitennummerierung für jedes Kapitel neu starten?
+
+Setzen Sie in der `markpublish.yaml` auf Dokument- oder Kapitel-Ebene:
+
+```yaml
+pagenum_reset: true
+```
+
+markpublish setzt die Seitenzahl zu Beginn des Kapitels automatisch auf 1 zurück und berechnet die Gesamtzahl der Seiten konsistent.
+
+### Werden Hyperlinks im PDF klickbar exportiert?
+
+Ja. Sowohl interne Verweise (aus dem Inhaltsverzeichnis oder Fußnoten) als auch externe Weblinks (`[Webseite](https://example.com)`) werden als echte, anklickbare PDF-Hyperlinks erzeugt.

@@ -1,209 +1,98 @@
-# Anhang A: YAML-Schema-Referenz
+# Anhang A: Schema-Referenz markpublish.yaml
 
-Vollständige Übersicht aller Konfigurationsoptionen in `markpublish.yaml`.
+Dieser Anhang enthält die vollständige Spezifikation aller Konfigurationsoptionen der `markpublish.yaml`.
 
-## Dokumenten-Eigenschaften (`document`)
+---
 
-| Schlüssel | Typ | Standard | Beschreibung |
+## Dokument-Ebene (document)
+
+Die Sektion `document:` legt globale Metadaten, Layoutschalter, Verzeichnisvorgaben und Nummerierungsstile für das Gesamtdokument fest.
+
+| Schlüssel | Typ | Default | Beschreibung |
 | :--- | :--- | :--- | :--- |
-| `title` | String | *Pflicht* | Titel der Publikation |
-| `subtitle` | String | `null` | Untertitel |
-| `summary` | String | `null` | Zusammenfassung für Deckblatt |
-| `author` | String | `null` | Name des Autors |
-| `status` | String | `null` | Dokumentstatus (z. B. "Entwurf", "Freigegeben") |
-| `copyright` | String | `null` | Copyright-Angabe (z. B. "© 2026 Frank Winter") |
-| `date` | String | `"auto"` | Datum oder `"auto"` für Tagesdatum |
-| `version` | String | `null` | Versionskennung |
-| `language` | String | Systemsprache | ISO-Sprachcode (`de`, `en`, ...) |
-| `cover` | Bool | `true` | Deckblatt aktivieren/deaktivieren |
-| `document_toc` | String/Int | `full` | Vorgabe für das Hauptverzeichnis |
-| `part_toc` | String/Int | `full` | Vorgabe für Part-Trennseiten-TOCs |
-| `chapter_toc` | String/Int | `full` | Vorgabe für Kapitel-Trennseiten-TOCs |
-| `autonum_style` | String | `"decimal"` | Vorgabe für Nummerierungsstil (`decimal`, `roman`, `legal`, `none`) |
-| `autonum_from_level` | Int | `1` | Vorgabe für Start-Überschriftenebene |
-| `autonum_prefix` | String | `null` | Vorgabe für Ziffernpräfix |
-| `autonum_reset` | Bool | `false` | Vorgabe für Zähler-Reset |
-| `pagenum_reset` | Bool | `false` | Vorgabe für Seitennummern-Reset |
-| `header` | Bool | `true` | Laufende Kopfzeile aktivieren |
-| `footer` | Bool | `true` | Laufende Fußzeile aktivieren |
+| `title` | String | *(Pflichtfeld)* | Titel des Dokuments (erscheint auf Deckblatt, Kopfzeilen und Metadaten). |
+| `subtitle` | String | `None` | Untertitel des Dokuments. |
+| `summary` | String | `None` | Zusammenfassung oder Abstract (erscheint auf dem Deckblatt). |
+| `author` | String | `None` | Name des Autors oder der Organisation. |
+| `status` | String | `None` | Status des Dokuments (z. B. „Entwurf“, „Freigegeben“, „Vertraulich“). |
+| `copyright` | String | `None` | Copyright-Hinweis (z. B. „© 2026 Frank Winter“). |
+| `date` | String | `"auto"` | Datum des Dokuments. Bei `"auto"` oder `"today"` wird das aktuelle Tagesdatum eingesetzt. |
+| `version` | String | `None` | Versionskennung (z. B. `"2.0.0"`). Wird nur gedruckt, wenn explizit gesetzt. |
+| `language` | String | *(Systemsprache)* | ISO-Sprachcode (z. B. `"de"` oder `"en"`). Steuert Silbentrennung und UI-Texte. |
+| `cover` | Boolean | `true` | Steuert, ob eine gestaltete Deckblattseite erzeugt wird. |
+| `header` | Boolean | `true` | Aktiviert oder deaktiviert die laufende Kopfzeile im Dokument. |
+| `footer` | Boolean | `true` | Aktiviert oder deaktiviert die laufende Fußzeile (inkl. Seitennummerierung). |
+| `document_toc` | Scope | `"full"` | Tiefe des Haupt-Inhaltsverzeichnisses (`"none"`, `"full"` oder Zahl $\ge 1$). |
+| `part_toc` | Scope | `"full"` | Standardtiefe für lokale Inhaltsverzeichnisse auf Abschnitts-Trennseiten. |
+| `chapter_toc` | Scope | `"full"` | Standardtiefe für lokale Inhaltsverzeichnisse auf Kapitel-Trennseiten. |
+| `autonum_style` | String | `"decimal"` | Nummerierungsstil: `"decimal"` (1.2.3), `"legal"`, `"roman"` oder `"none"`. |
+| `autonum_from_level`| Integer | `1` | Überschriftenebene, ab der nummeriert wird (`1` = ab H1, `2` = erst ab H2). |
+| `autonum_prefix` | String | `None` | Zeichenkette vor den Nummern (z. B. `"A."` für Anhänge). |
+| `autonum_reset` | Boolean | `false` | Setzt den Überschriftenzähler bei jedem neuen Kapitel auf 1 zurück. |
+| `pagenum_reset` | Boolean | `false` | Startet die Seitennummerierung bei jedem Abschnitt oder Kapitel neu bei Seite 1. |
 
-## Part-Eigenschaften (`parts`)
+---
 
-| Schlüssel | Typ | Standard | Beschreibung |
+## Globale Projekt-Einstellungen
+
+Direkt auf oberster Ebene der `markpublish.yaml` (neben `document:` und `parts:`) können folgende Schalter gesetzt werden:
+
+| Schlüssel | Typ | Default | Beschreibung |
 | :--- | :--- | :--- | :--- |
-| `title` / `part` | String | *Pflicht* | Titel des Parts (z. B. `"Anhänge"`, `"Hauptteil"`) |
-| `subtitle` | String | `null` | Untertitel für die Part-Trennseite |
-| `summary` | String | `null` | Zusammenfassung für die Part-Trennseite |
-| `break_before` | String | `"divider"` | `"divider"`, `"page"` oder `"none"` |
-| `document_toc` | String/Int | `full` | Beitrag des Parts zum Inhaltsverzeichnis |
-| `part_toc` | String/Int | `full` | Lokales Inhaltsverzeichnis auf der Part-Trennseite |
-| `chapter_toc` | String/Int | `full` | Vorgabe für Kapitel-TOCs in diesem Part |
-| `autonum_style` | String | `"decimal"` | Nummerierungsstil für den Part |
-| `autonum_from_level` | Int | `1` | Start-Ebene für Zählung |
-| `autonum_prefix` | String | `null` | Präfix für Ziffern (z. B. `"A."`) |
-| `autonum_reset` | Bool | `false` | Zähler-Reset bei Part-/Kapitelwechsel |
-| `pagenum_reset` | Bool | `false` | Seitennummerierung ab Part-Beginn auf 1 zurücksetzen |
-| `chapters` | Liste | `[]` | Flache Liste der Kapitel dieses Parts |
+| `theme` | String | `"default"` | Name des zu verwendenden Themes. |
+| `templates_dir` | String | `None` | Optionaler benutzerdefinierter Pfad zu einem Verzeichnis mit Themes. |
 
-## Kapitel-Eigenschaften (`chapters`)
+---
 
-| Schlüssel | Typ | Standard | Beschreibung |
+## Abschnitts-Ebene (parts)
+
+Die Liste `parts:` unterteilt das Dokument in übergeordnete Abschnitte. Ein Abschnitt fasst Kapitel zusammen und vererbt seine Einstellungen nach unten.
+
+| Schlüssel | Typ | Default | Beschreibung |
 | :--- | :--- | :--- | :--- |
-| `file` | String | `null` | Pfad zur Markdown-Datei |
-| `title` | String | `null` | Überschreibt den Titel der Datei |
-| `subtitle` | String | `null` | Untertitel für die Kapitel-Trennseite |
-| `summary` | String | `null` | Zusammenfassung für Trennseite |
-| `break_before` | String | `page` | Wie das Kapitel abgesetzt wird: `page`, `divider` oder `none` |
-| `document_toc` | String/Int | `full` | Beitrag zum Haupt-Inhaltsverzeichnis |
-| `chapter_toc` | String/Int | `full` | Lokales Inhaltsverzeichnis auf der Kapitel-Trennseite |
-| `autonum_style` | String | `"decimal"` | Nummerierungsstil für dieses Kapitel |
-| `autonum_from_level` | Int | `1` | Ab welcher Überschriften-Ebene nummeriert wird |
-| `autonum_prefix` | String | `null` | Optionales Präfix für Ziffern (z. B. `"A."` ➔ `A.1`, `A.2`) |
-| `autonum_reset` | Bool | `false` | Zähler zu Kapitelbeginn auf 0 zurücksetzen |
-| `pagenum_reset` | Bool | `false` | Seitennummerierung ab Kapitelbeginn auf 1 zurücksetzen |
+| `title` | String | *(Pflichtfeld)* | Name oder Titel des Abschnitts (z. B. „Hauptteil“, „Anhänge“). |
+| `summary` | String | `None` | Kurzbeschreibung des Abschnitts (erscheint auf der Trennseite). |
+| `break_before` | String | `"divider"` | Umbruchverhalten vor dem Abschnitt: `"divider"` (Trennseite), `"page"` (Seitenwechsel) oder `"none"`. |
+| `document_toc` | Scope | `None` | Überschreibt den Beitrag dieses Abschnitts zum Haupt-Inhaltsverzeichnis. |
+| `part_toc` | Scope | `None` | Steuert das lokale Inhaltsverzeichnis auf der Abschnitts-Trennseite. |
+| `chapter_toc` | Scope | `None` | Vererbt die Vorgabe für Kapitelverzeichnisse an alle Kapitel des Abschnitts. |
+| `autonum_style` | String | `None` | Überschreibt den Nummerierungsstil für alle Kapitel des Abschnitts. |
+| `autonum_from_level`| Integer | `None` | Überschreibt die Startebene der Nummerierung für den Abschnitt. |
+| `autonum_prefix` | String | `None` | Präfix für Nummern innerhalb des Abschnitts (z. B. `"A."`). |
+| `autonum_reset` | Boolean | `None` | Steuert, ob Kapitel im Abschnitt jeweils bei 1 neu nummerieren. |
+| `pagenum_reset` | Boolean | `None` | Setzt den Seitenzähler zu Beginn des Abschnitts auf 1 zurück. |
+| `chapters` | Liste | *(Pflichtfeld)* | Liste der Inhaltskapitel innerhalb dieses Abschnitts (mindestens 1 Eintrag). |
 
-### `break_before` — wie ein Kapitel abgesetzt wird
+---
 
-Ein Schlüssel mit drei Werten, keine zwei unabhängigen Schalter:
+## Kapitel-Ebene (chapters)
 
-| Wert | Wirkung |
-| :--- | :--- |
-| `page` | Standard. Das Kapitel beginnt oben auf einer neuen Seite |
-| `divider` | Dem Kapitel geht eine eigene Trennseite voraus |
-| `none` | Das Kapitel läuft im Fließtext weiter |
+Die Liste `chapters:` definiert die Inhaltsdateien. Kapitel können unter `parts:` oder verschachtelt innerhalb anderer Kapitel liegen.
 
-Dass es *ein* Schlüssel ist, hat einen Grund: die drei Werte sind eine Achse,
-nicht drei Fragen. Als zwei Booleans ließe sich „Trennseite, aber kein
-Seitenumbruch" hinschreiben — ein Zustand, den es nicht gibt, weil eine
-Trennseite immer umbricht. Eine Angabe, die man notieren kann und die nichts
-bewirkt, ist eine Fehlerquelle ohne Gegenwert.
+| Schlüssel | Typ | Default | Beschreibung |
+| :--- | :--- | :--- | :--- |
+| `file` | String | `None` | Relativer Pfad zur Markdown-Datei (z. B. `"chapters/01_intro.md"`). |
+| `title` | String | `None` | Kapiteltitel (überschreibt bei Bedarf die erste H1-Überschrift der Datei). |
+| `subtitle` | String | `None` | Untertitel des Kapitels. |
+| `summary` | String | `None` | Kurzbeschreibung (wird auf Trennseiten oder im Inhaltsverzeichnis genutzt). |
+| `break_before` | String | `"page"` | Umbruch vor dem Kapitel: `"page"` (neue Seite), `"divider"` (Trennseite) oder `"none"`. |
+| `document_toc` | Scope | `None` | Beitrag dieses Kapitels zum Hauptverzeichnis (`"none"`, `"full"`, Zahl). |
+| `chapter_toc` | Scope | `None` | Lokales Verzeichnis auf der Trennseite dieses Kapitels. |
+| `autonum_style` | String | `None` | Nummerierungsstil für Überschriften dieses Kapitels. |
+| `autonum_from_level`| Integer | `None` | Startebene der Nummerierung innerhalb des Kapitels. |
+| `autonum_prefix` | String | `None` | Präfix für Überschriftennummern dieses Kapitels. |
+| `autonum_reset` | Boolean | `None` | Setzt den Nummerierungszähler zu Beginn dieses Kapitels auf 1 zurück. |
+| `pagenum_reset` | Boolean | `None` | Setzt die Seitennummerierung zu Beginn dieses Kapitels auf 1 zurück. |
+| `chapters` | Liste | `[]` | Optionale Liste von hierarchisch untergeordneten Unterkapiteln. |
 
-`page` ist die Erwartung an ein gesetztes Dokument. Wer kurze Abschnitte
-durchlaufen lassen will — Merkblätter, Referenzkarten, eng gesetzte Anhänge —
-setzt am einzelnen Kapitel `break_before: "none"`.
+---
 
-Bei `divider` fallen der Umbruch des Kapitels und der der Trennseite auf
-dieselbe Stelle und verschmelzen zu einem — es entsteht kein Leerblatt. Vor dem
-ersten Kapitel greift die Regel nicht.
+## Verzeichnis-Steuerung (Scope-Werte)
 
-Ein unbekannter Wert bricht den Build ab, statt still auf `page` zurückzufallen:
-aus einem vertippten `divder` würde sonst klaglos ein normaler Seitenumbruch,
-und die fehlende Trennseite fände man erst beim Durchblättern des fertigen PDFs.
-
-### `chapter_toc` und `document_toc` — zwei Verzeichnisse, ein Vokabular
-
-Ein Dokument hat zwei Inhaltsverzeichnisse, und für jedes gibt es ein Paar aus
-Vorgabe und Einzelfall:
-
-| Verzeichnis | Vorgabe unter `document:` | Am Kapitel |
-| :--- | :--- | :--- |
-| Das **große** vorn im Dokument | `document_toc` | `document_toc` |
-| Das **kleine** auf der Kapitel-Trennseite | `chapter_toc` | `chapter_toc` |
-
-Alle vier Schlüssel nehmen dieselben drei Schreibweisen:
+Die Verzeichnisschalter `document_toc`, `part_toc` und `chapter_toc` akzeptieren folgende Werte:
 
 | Wert | Bedeutung |
 | :--- | :--- |
-| `none` | Kommt in diesem Verzeichnis gar nicht vor |
-| `full` | Jede Ebene |
-| *Zahl* | Bis zu dieser Tiefe, gezählt ab der Kapitelüberschrift |
-
-Die Tiefe zählt **innerhalb des Kapitels**: 1 ist die Kapitelüberschrift selbst,
-2 die Ebene darunter. `document_toc: 1` nimmt das Kapitel also ins große
-Verzeichnis auf, seine Zwischenüberschriften aber nicht. `chapter_toc: 2`
-listet auf der Trennseite genau die Ebene unterhalb der Kapitelüberschrift.
-
-Für den häufigsten Fall genügen damit zwei Zeilen im `document`-Block:
-
-```yaml
-document:
-  document_toc: 2       # großes Verzeichnis, zwei Ebenen tief
-  chapter_toc: 2        # kleine Verzeichnisse ebenso
-```
-
-`document_toc: "none"` lässt das große Verzeichnis ganz weg; die Angaben an den Kapiteln
-sind dann gegenstandslos.
-
-### Vererbung
-
-`document_toc` wird nach unten vererbt: an einem Part gesetzt, gilt er für alle
-Kapitel darunter, und ein Kapitel gibt ihn an seine Unterkapitel weiter. Für den
-häufigsten Fall — ein Anhang, dessen innere Gliederung das Verzeichnis nur
-aufbläht — genügt damit eine Zeile:
-
-```yaml
-  - part: "Anhänge"
-    document_toc: 1
-    chapters:
-      - file: "chapters/07_appendix_yaml_spec.md"
-        title: "Anhang A: YAML-Schema-Referenz"
-      - file: "chapters/08_appendix_troubleshooting.md"
-        title: "Anhang B: Troubleshooting"
-```
-
-Ein einzelnes Kapitel schlägt das Geerbte — auch zurück auf `full`. Genau dafür
-gibt es das Schlüsselwort: ohne es müsste man eine willkürlich große Zahl
-hinschreiben, um „doch wieder alles" zu sagen.
-
-`chapter_toc` wird **nicht** von Kapitel zu Unterkapitel gereicht. Es beschreibt
-die Trennseite genau dieses Kapitels, und die hat jedes Kapitel für sich; ohne
-eigene Angabe gilt schlicht `document.chapter_toc`.
-
-### Was gekürzt wird — und was nicht
-
-Der Fließtext bleibt unberührt: die Zwischenüberschriften stehen weiterhin im
-Kapitel, samt Nummerierung und Sprungzielen. Gekürzt wird ausschließlich das
-Verzeichnis. Ein Unterkapitel behält dabei seinen eigenen Eintrag — vererbt wird
-die Tiefe relativ zu jedem Kapitel, nicht über die zusammengelegte Liste.
-
-Ein unbekannter Wert bricht den Build ab. Auch Wahrheitswerte werden abgewiesen:
-einem `true` sähe man die Tiefe nicht an — genau dafür gibt es `full`.
-
-## Nummerierung
-
-`document.autonum_style` legt den Stil für das ganze Dokument fest; `autonum_style` an
-einem Kapitel oder Part weicht davon ab und **gibt den Wert nach unten weiter**.
-Ohne diese Vererbung bliebe die Angabe am Part wirkungslos: die Überschriften
-stehen in den Kapiteldateien, nicht im Part.
-
-`autonum_style: "none"` heißt: in diesem Zweig trägt **nichts** eine Nummer — weder die
-Kapitelüberschrift noch die Ebenen darunter. Es gibt also auch keinen Neustart
-bei 1, denn innerhalb des Zweigs läuft keine Zählung, die neu beginnen könnte.
-
-Der Dokumentzähler bleibt dabei unangetastet. Eine unnummerierte Strecke
-verbraucht keine Nummer:
-
-```yaml
-parts:
-  - chapters:
-      - file: "chapters/01.md"          # 1
-  - part: "Anhänge"
-    autonum_style: "none"           # Anhänge: keine Nummern
-    chapters:
-      - file: "chapters/a.md"
-      - file: "chapters/b.md"
-  - chapters:
-      - file: "chapters/02.md"          # 2, nicht 4
-```
-
-### Nummerierung ab Unterebenen (`autonum_from_level` & `autonum_prefix`)
-
-Für lange Anhänge oder spezialisierte Abschnitte, deren Haupttitel keine Ziffer tragen soll (z. B. *„Anhang A: Referenz“*), deren Unterabschnitte aber durchnummeriert werden sollen:
-
-- `autonum_from_level: 2` lässt die `h1`-Überschrift unnummeriert und beginnt die Zählung erst ab `h2` (`1`, `2`, ...) bzw. `h3` (`1.1`, `1.2`).
-- Bei `autonum_from_level > 1` wird der Zähler für jedes Kapitel automatisch isoliert zurückgesetzt.
-- `autonum_prefix: "A."` stellt den generierten Nummern ein Präfix voran (`A.1`, `A.2`, `A.2.1`).
-
-```yaml
-parts:
-  - part: "Anhänge"
-    autonum_from_level: 2           # erbt autonum_style aus document
-    chapters:
-      - file: "chapters/appendix_a.md"
-        title: "Anhang A: Referenz"
-        autonum_prefix: "A."        # A.1, A.2, A.2.1
-
-      - file: "chapters/appendix_b.md"
-        title: "Anhang B: FAQ"
-        autonum_prefix: "B."        # B.1, B.2, B.2.1
-```
+| `"none"` | Schaltet das jeweilige Verzeichnis komplett ab bzw. nimmt das Element nicht auf. |
+| `"full"` | Nimmt alle vorhandenen Überschriftenebenen ohne Tiefenbegrenzung auf. |
+| Ganze Zahl (z. B. `1`, `2`, `3`) | Begrenzt die Verzeichnistiefe exakt auf die angegebene Zahl von Ebenen. |

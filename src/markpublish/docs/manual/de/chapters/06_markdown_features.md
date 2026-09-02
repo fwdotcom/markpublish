@@ -1,59 +1,162 @@
-# Markdown-Features & Syntax
+# Besondere Markdown-Features
 
-`markpublish` beinhaltet eine leistungsfähige Markdown-Engine mit voller Unterstützung moderner Dokumentations-Elemente.
+markpublish unterstützt den vollen Funktionsumfang des modernen CommonMark- und GitHub Flavored Markdown-Standards. Grundlegende Elemente wie Überschriften, Absätze, Textauszeichnungen (*kursiv*, **fett**), Tabellen, Aufzählungen, Quellcode-Blöcke und Weblinks funktionieren exakt wie gewohnt.
 
-## Code-Blöcke & Syntax Highlighting
+Dieses Kapitel konzentriert sich ausschließlich auf die darüber hinausgehenden Spezialfeatures und typografischen Erweiterungen von markpublish.
 
-Quellcode wird durch Pygments hervorgehoben:
+---
 
-```python
-from markpublish.config.loader import load_config
-from markpublish.markdown.engine import MarkdownPipeline
+## Hinweisboxen (Admonitions und Callouts)
 
-# Manifest laden
-config = load_config("markpublish.yaml")
-print(f"Building: {config.document.title}")
-```
+Zur optischen Hervorhebung wichtiger Passagen unterstützt markpublish GitHub-konforme Callout-Blöcke. 
 
-## Tabellen
+### Syntax
 
-Tabellen werden mit sauberem CSS-Zebramuster und Seitenumbruchschutz gerendert:
-
-| Parameter | Typ | Standard | Beschreibung |
-| :--- | :--- | :--- | :--- |
-| `title` | String | *Pflicht* | Haupttitel des Dokuments |
-| `author` | String | `None` | Name des Autors |
-| `status` | String | `None` | Dokumentstatus (z.B. "Freigegeben", "Draft") |
-| `copyright` | String | `None` | Copyright-Vermerk (z.B. "© 2026 Frank Winter") |
-| `version` | String | `null` | Versionskennung. Ohne Angabe entfällt das Feld auf dem Deckblatt; ist sie gesetzt, steht sie in der Fußzeile links neben dem Datum |
-
-## GitHub-Style Callout-Boxen (Alerts)
-
-`markpublish` unterstützt die gängige **GitHub-Alert-Syntax** mit fünf semantischen Typen. Die Icons stammen dabei direkt aus dem Template:
-
+```markdown
 > [!NOTE]
-> Dies ist eine informative Notiz mit blauem Akzent und passendem Info-Icon.
+> Dies ist ein allgemeiner Informationstext mit nützlichen Details.
 
 > [!TIP]
-> Nutzen Sie `markpublish build --target all`, um PDF und HTML parallel in einem Durchgang zu erstellen.
+> Ein praktischer Tipp für schnellere Arbeitsabläufe.
 
 > [!IMPORTANT]
-> GitHub-Callouts werden automatisch anhand der Dokumentensprache lokalisiert (z. B. *Hinweis*, *Tipp*, *Wichtig*, *Warnung*, *Achtung*).
+> Wichtige Information, die für das Verständnis unerlässlich ist.
 
 > [!WARNING]
-> Achten Sie bei relativen Bildpfaden darauf, dass diese relativ zur jeweiligen Markdown-Datei liegen.
+> Warnung vor möglichen Fehlbedienungen oder unerwartetem Verhalten.
 
 > [!CAUTION]
-> Fehlerhafte YAML-Einrückungen führen zu Abbruchfehlern beim Parsen des Manifests.
+> Kritischer Sicherheitshinweis vor potenziellen Datenverlusten.
+```
 
-> [!TIP] Eigener Titel
-> Sie können nach dem Alert-Typ auch einen individuellen Titel angeben, der die Standardbeschriftung überschreibt.
+### Live-Darstellung im Dokument
 
-Alternativ wird auch weiterhin die klassische `!!! note`-Syntax unterstützt.
+Die obige Auszeichnung wird im PDF wie folgt als gestaltete Boxen mit farbigem Rahmen und Icon gerendert:
 
-## Tasklisten
+> [!NOTE]
+> Dies ist ein allgemeiner Informationstext mit nützlichen Details.
 
-- [x] Projekt initialisieren
-- [x] Kapitel schreiben
-- [ ] Dokument veröffentlichen
+> [!TIP]
+> Ein praktischer Tipp für schnellere Arbeitsabläufe.
 
+> [!IMPORTANT]
+> Wichtige Information, die für das Verständnis unerlässlich ist.
+
+> [!WARNING]
+> Warnung vor möglichen Fehlbedienungen oder unerwartetem Verhalten.
+
+> [!CAUTION]
+> Kritischer Sicherheitshinweis vor potenziellen Datenverlusten.
+
+### Automatische Lokalisierung über i18n-Labels
+
+Die Titelleiste der Hinweisboxen („Hinweis“, „Tipp“, „Wichtig“, „Warnung“, „Achtung“) wird automatisch über die Beschriftungsdatei `i18n.yaml` der gewählten Dokumentensprache bezogen:
+
+| Box-Typ | Verwendeter i18n-Schlüssel | Deutsche Beschriftung |
+| :--- | :--- | :--- |
+| `[!NOTE]` | `alert_note` | Hinweis |
+| `[!TIP]` | `alert_tip` | Tipp |
+| `[!IMPORTANT]` | `alert_important` | Wichtig |
+| `[!WARNING]` | `alert_warning` | Warnung |
+| `[!CAUTION]` | `alert_caution` | Achtung |
+
+Wird im Markdown ein eigener Titel gewünscht, kann dieser in der ersten Zeile direkt angegeben werden:
+
+```markdown
+> [!NOTE] Individuelle Überschrift
+> Eigener Inhalt mit spezifischem Titel.
+```
+
+> [!NOTE] Individuelle Überschrift
+> Eigener Inhalt mit spezifischem Titel.
+
+---
+
+## Definitionslisten
+
+Für Glossare, Begriffserklärungen oder Parameterübersichten bieten Definitionslisten eine besonders saubere typografische Struktur.
+
+### Syntax
+
+```markdown
+Markdown
+: Einfache, lesbare Auszeichnungssprache für formatierte Texte im Klartextformat.
+
+markpublish.yaml
+: Zentrale Projekt-Konfigurationsdatei zur Steuerung von Dokumentstruktur, Metadaten und Nummerierung.
+
+Theme
+: Gestaltungsvorlage aus Typst-Templates und Beschriftungen, die das visuelle Layout des Dokuments bestimmt.
+
+Typst
+: Moderne, hochperformante Satz-Engine, die markpublish zur typografischen Erzeugung von Druck-PDFs nutzt.
+```
+
+### Live-Darstellung im Dokument
+
+Markdown
+: Einfache, lesbare Auszeichnungssprache für formatierte Texte im Klartextformat.
+
+markpublish.yaml
+: Zentrale Projekt-Konfigurationsdatei zur Steuerung von Dokumentstruktur, Metadaten und Nummerierung.
+
+Theme
+: Gestaltungsvorlage aus Typst-Templates und Beschriftungen, die das visuelle Layout des Dokuments bestimmt.
+
+Typst
+: Moderne, hochperformante Satz-Engine, die markpublish zur typografischen Erzeugung von Druck-PDFs nutzt.
+
+---
+
+## Aufgabenlisten (Tasklists)
+
+Zur Darstellung von Checklisten, To-Do-Listen oder Meilensteinen stehen Aufgabenlisten zur Verfügung.
+
+### Syntax
+
+```markdown
+- [x] Python 3.10 oder neuer bereitstellen
+- [x] markpublish installieren
+- [ ] Erstes eigenes Dokument veröffentlichen
+```
+
+### Live-Darstellung im Dokument
+
+- [x] Python 3.10 oder neuer bereitstellen
+- [x] markpublish installieren
+- [ ] Erstes eigenes Dokument veröffentlichen
+
+---
+
+## Mathematische Formeln
+
+markpublish ermöglicht das direkte Setzen mathematischer Formeln im Fließtext oder als abgesetzte Formelblöcke. Die Formeln werden über die Satz-Engine Typst typografisch präzise gerendert.
+
+### Syntax
+
+```markdown
+Die berühmte Energie-Masse-Äquivalenz lautet $E = mc^2$.
+
+Abgesetzte Formel:
+
+$$ A = \pi \cdot r^2 $$
+```
+
+### Live-Darstellung im Dokument
+
+Die berühmte Energie-Masse-Äquivalenz lautet $E = mc^2$.
+
+Abgesetzte Formel:
+
+$$ A = \pi \cdot r^2 $$
+
+---
+
+## Alltägliche Sonderzeichen
+
+Viele Dokumentationswerkzeuge erfordern das umständliche Maskieren bestimmter Symbole. markpublish verarbeitet gebräuchliche Zeichen im Fließtext vollautomatisch und kollisionsfrei:
+
+* **Währungsbeträge:** `$5.00` oder `10.50 $` werden nicht versehentlich als mathematische Formeln interpretiert.
+* **Programmiersprachen:** Namen wie `C#` lösen keine Typst-Sonderbefehle aus.
+* **Benutzernamen und Erwähnungen:** `@author` oder `user@domain.com` werden sicher gedruckt.
+* **Spitze Klammern:** Technische Platzhalter wie `<zielverzeichnis>` bleiben im Text erhalten.

@@ -1,350 +1,130 @@
-# Das Template- und Design-System
+# Templates und Mehrsprachigkeit
 
-Das Template-System von `markpublish` ermöglicht vollständige visuelle Anpassbarkeit bei gleichzeitiger Wartbarkeit.
+markpublish trennt Inhalt und Gestaltung strikt voneinander: Die Textinhalte entstehen in Markdown, während das visuelle Erscheinungsbild, die Typografie und das Seitenlayout über Typst-Templates gesteuert werden. Ergänzt wird dieses System durch eine flexible Kaskade zur Mehrsprachigkeit (i18n).
 
-## Theme-basierte Verzeichnisstruktur
+## Die 3-stufige Auflösungshierarchie
 
-Templates sind nach Theme gruppiert, darunter liegt das Ausgabeformat. So gehören
-alle Dateien eines Designs zusammen und ein Theme lässt sich als Ganzes kopieren,
-weitergeben oder versionieren:
+Wenn markpublish nach einem Theme sucht (angegeben über `theme:` in der Konfigurationsdatei oder den Standard `default`), durchsucht es drei Ebenen in fester Reihenfolge:
 
-```
+1. **Projekt-Vorlagen (`./templates/<theme>/`):**  
+   Vorlagen im Projektordner haben höchste Priorität. Liegt hier ein Theme, wird dieses verwendet. Dies ermöglicht projektspezifische Layouts, die direkt mit dem Repository versioniert werden können.
+2. **Benutzer-Vorlagen (`~/.markpublish/templates/<theme>/`):**  
+   Vorlagen im Home-Verzeichnis des aktuellen Benutzers. Ideal für persönliche Dokumentvorlagen, die über mehrere Projekte hinweg zur Verfügung stehen sollen.
+3. **Paket-Vorlagen (Integrierte Standard-Themes):**  
+   Das mitgelieferte Standard-Theme `default`. Es dient als verlässliche Basis und Fallback, wenn auf Benutzer- oder Projektebene keine Vorlage gefunden wird.
+
+*Benutzerdefinierter Vorlagenpfad:*  
+Zusätzlich kann über den Schlüssel `templates_dir:` direkt in der `markpublish.yaml` oder über den Kommandozeilen-Parameter `--templates-dir` ein beliebiger alternativer Ordner angegeben werden, der die Suche anführt.
+
+## Aufbau eines Themes
+
+Ein vollständiges markpublish-Theme besitzt folgende Verzeichnisstruktur:
+
+```text
 templates/
-└── default/                       # Theme-Name
-    ├── pdf/
-    │   ├── layout.html            # HTML-Grundgerüst
-    │   ├── styles.css             # CSS Paged Media & Kopf-/Fußzeilen
-    │   ├── fonts/                 # Mitgelieferte Schrift (Open Sans, variabel) + OFL.txt
-    │   ├── cover.html             # Deckblatt-Template
-    │   ├── part_divider.html      # Trennseite für übergeordnete Parts
-    │   ├── chapter_divider.html   # Trennseite für Kapitel mit Mini-TOC
-    │   └── toc.html               # Globales Inhaltsverzeichnis
-    └── html/
-        ├── layout.html            # Standalone Web-Layout
-        ├── styles.css             # Screen/Responsive Stylesheet
-        └── ...
+└── mein-theme/
+    ├── i18n.yaml            # Übergreifende Beschriftungen des Themes
+    └── pdf/
+        ├── template.typ     # Typst-Layoutvorlage für das PDF
+        └── i18n.yaml        # Formatspezifische Beschriftungen (höchste Kaskaden-Priorität)
 ```
 
-## Die 3-stufige Auflösungs-Hierarchie
+### Typst als Layout-Engine
 
-Beim Suchen nach einem Template (z. B. `default/pdf`) gilt folgende strikte Priorität:
+Typst ist eine moderne, hochperformante Satz- und Programmiersprache für Dokumente. Sie bietet mächtige Funktionen für Seitenränder, Kopf- und Fußzeilen, Farbwelten, Schriftdefinitionen und mathematischen Formelsatz.
 
-```
-1. User-Verzeichnis (~/.markpublish/templates/default/pdf/)
-   │ (höchste Priorität)
-   ▼
-2. Gemeinsamer / Projekt-Ordner (<templates_dir>/default/pdf/)
-   │
-   ▼
-3. Paket Built-in (im markpublish Python-Paket)
-```
+* **Weiterführende Typst-Dokumentation:**  
+  Eine vollständige Einführung in alle Möglichkeiten von Typst (Gestaltungselemente, Funktionen, Regeln und Typografie) finden Sie in der offiziellen Dokumentation unter [https://typst.app/docs](https://typst.app/docs).
 
-### Konfiguration des gemeinsamen Template-Ordners
-Sie können den gemeinsamen Template-Pfad auf 4 Wegen festlegen:
-1. **CLI-Parameter**: `markpublish build --templates-dir /pfad/zu/templates`
-2. **In `markpublish.yaml`**: `templates_dir: "./custom-templates"`
-3. **Umgebungsvariable**: `MARKPUBLISH_TEMPLATES_DIR=/pfad/zu/templates`
-4. **Automatischer Fallback**: `./templates` im Projektordner.
+### Exemplarischer Aufbau einer template.typ
 
-## Statische Texte und Sprache
+Die Datei `template.typ` definiert das Gesamterscheinungsbild des Dokuments. Ein Auszug zeigt die grundlegende Struktur:
 
-Die festen Beschriftungen — Überschrift des Inhaltsverzeichnisses, Kapitel-Marken,
-Cover-Labels, Seitenzahl-Fußzeile, Callout-Titel — stehen nicht im Template, sondern in
-`i18n.yaml`-Dateien. Welche Sprache gilt, bestimmt `document.language`:
+```typst
+// template.typ (Auszug)
 
-```yaml
-document:
-  title: "User Guide"
-  language: "en"      # steuert Beschriftungen, Callout-Titel und Datumsformat
-```
+#let setup-document(
+  title: "",
+  subtitle: "",
+  authors: (),
+  version: "",
+  date: "",
+  labels: (:),
+  body
+) = {
+  // Grundlegende Seiteneigenschaften
+  set page(
+    paper: "a4",
+    margin: (top: 2.5cm, bottom: 2.5cm, left: 2.5cm, right: 2.5cm),
+    header: locate(loc => {
+      // Individuelle Kopfzeilengestaltung
+      text(9pt, fill: rgb("#64748b"))[#title]
+    }),
+    footer: locate(loc => {
+      // Seitennummerierung: Seite X von Y
+      let page_num = counter(page).at(loc).first()
+      align(center)[#text(9pt)[#page_num]]
+    })
+  )
 
-Mitgeliefert sind `de` und `en`. Regionale Formen werden zugeordnet (`de-AT` → `de`),
-eine unbekannte Sprache fällt auf Englisch zurück. Fehlt `language:` ganz, gilt die
-Systemsprache — `markpublish init` schreibt sie gleich hin, damit ein Dokument auf
-jedem Rechner gleich gebaut wird.
+  // Grundschriftart und Absatzgestaltung
+  set text(font: "Open Sans", size: 10pt, lang: "de")
+  set par(justify: true, leading: 0.65em)
 
-> [!NOTE]
-> **i18n** bezeichnet die Quellen — die Dateien und den YAML-Eintrag, jeweils über alle
-> Sprachen. **labels** ist das daraus aufgelöste Ergebnis für *ein* Dokument in *einer*
-> Sprache: das, was im Template unter `{{ labels.chapter }}` ankommt.
-
-### Die 3-stufige i18n-Kaskade
-
-Alle drei Ebenen sind **identisch aufgebaut**: Sprachcode auf oberster Ebene, darunter
-die Texte. Jede tiefere Ebene überschreibt die höher liegende — und zwar **nur die
-Schlüssel, die sie tatsächlich setzt**. Alles andere bleibt, wie es weiter oben steht:
-
-```
-1. Programm      markpublish/i18n.yaml
-   │             vollständig, de + en
-   ▼
-2. Theme         <templates>/<theme>/i18n.yaml
-   │             gilt für alle Zielformate des Themes
-   ▼
-3. Zielformat    <templates>/<theme>/<target>/i18n.yaml
-                 nur für PDF bzw. nur für HTML
+  body
+}
 ```
 
-Ebene 1 ist die einzige, die vollständig sein muss. Sie legt zusätzlich Englisch unter
-die Dokumentsprache, damit jeder Programmtext garantiert auflöst. Die Ebenen 2 und 3
-sind reine Overrides.
+## Eigene Themes erstellen und anpassen
 
-Statische Texte werden **ausschließlich im Theme** definiert. Eine Dokumentebene gibt es
-nicht: `document.i18n` in der `markpublish.yaml` wird abgelehnt, mit Hinweis auf die
-Theme-Datei. Wer die Texte eines Dokuments ändern will, gibt ihm sein eigenes Theme —
-`markpublish export-template` legt es an.
-
-> [!IMPORTANT]
-> Die Ebenen 2 und 3 stammen immer aus **genau einem** Theme: welches gilt, entscheidet
-> vorher die Template-Auflösung (User > Projekt > Paket). Ein Projekt-Theme erbt **nicht**
-> die Texte des gleichnamigen Paket-Themes — gemischt wird nur das eine gefundene Theme
-> mit dem Programmstandard.
-
-> [!IMPORTANT]
-> Die Ebenen 2 und 3 greifen **nur für die gewählte Sprache**. Ein Theme, das einen
-> `en:`-Block definiert, verändert eine deutsche Ausgabe nicht — sonst würden englische
-> Theme-Texte in fremdsprachige Dokumente durchschlagen.
-
-### Das gemeinsame Format
-
-```yaml
-# templates/mytheme/i18n.yaml
-de:
-  part: "Abschnitt"
-  chapter_toc_title: "Auf dieser Seite"
-en:
-  part: "Section"
-  chapter_toc_title: "On this page"
-```
-
-Der Sonderschlüssel `"*"` gilt für **jede** Sprache und wird vor dem sprachspezifischen
-Block angewendet — für Begriffe, die unabhängig von der Dokumentsprache gleich heißen:
-
-```yaml
-"*":
-  version: "Rev."       # in jeder Sprache "Rev."
-de:
-  part: "Abschnitt"
-```
-
-Wer nur eine Sprache pflegt, darf die Sprachebene auch weglassen; die flache Form ist
-gleichbedeutend mit `"*"`:
-
-```yaml
-part: "Abschnitt"       # entspricht:  "*":\n  part: "Abschnitt"
-```
-
-Regionale Blöcke schlagen den Basis-Block: bei `language: "de-AT"` gewinnt `de-at:`
-über `de:`. Fehlt eine `i18n.yaml`, ist das kein Fehler — ein Theme ohne eigene Texte
-ist der Normalfall. Ist sie vorhanden, aber fehlerhaft, bricht der Build mit Angabe der
-Datei ab, statt still die Standardtexte zu verwenden.
-
-### Beispiel: PDF und HTML unterschiedlich beschriften
-
-```
-templates/mytheme/
-├── i18n.yaml            de: chapter: "Kapitel"
-├── pdf/
-│   └── i18n.yaml        de: chapter: "Kap."      ← nur im PDF
-└── html/
-    └── i18n.yaml        (leer → erbt "Kapitel")
-```
-
-Das mitgelieferte Theme `default` bringt alle drei Dateien als **auskommentiertes
-Muster** mit: `templates/default/i18n.yaml`, `default/pdf/i18n.yaml` und
-`default/html/i18n.yaml`. Sie sind bewusst wirkungslos — das Standard-Theme soll exakt
-wie der Programmstandard aussprechen. Kommentieren Sie aus, was Sie ändern möchten.
-`markpublish export-template` kopiert diese Dateien mit — auch die `i18n.yaml` der
-Theme-Ebene, die neben den Zielformat-Ordnern liegt.
-
-### Freie Labels: eigene Texte des Templates
-
-Ein Theme darf **eigene Schlüssel** definieren, die das Programm nicht kennt — für die
-statischen Texte des Templates selbst. Der Aufbau ist derselbe, der Zugriff ebenso:
-
-```yaml
-# templates/mytheme/i18n.yaml
-de:
-  imprint_title: "Impressum"
-  disclaimer: "Alle Angaben ohne Gewähr."
-en:
-  imprint_title: "Imprint"
-  disclaimer: "All information without guarantee."
-```
-
-```html
-<!-- templates/mytheme/html/layout.html -->
-<footer>{{ labels.imprint_title }}</footer>
-```
-
-> [!WARNING]
-> Für freie Labels gibt es **keinen Programmstandard**, der einspringen könnte. Deshalb
-> gilt hier eine strikte Regel: Ein Label, das ein Template notiert, **muss** in der
-> Kaskade auflösen. Tut es das nicht, bricht der Build ab und nennt Schlüssel,
-> Fundstelle mit Zeilennummer, Dokumentsprache und die durchsuchten Dateien:
->
-> ```
-> Label 'imprint_title' ist im Template notiert, aber in keiner i18n-Ebene definiert.
->   Dokumentsprache: de
->   Fundstelle:
->     templates/mytheme/html/layout.html:108
->   Gesucht in:
->     templates/mytheme/html/i18n.yaml  (vorhanden)
->     templates/mytheme/i18n.yaml       (vorhanden)
->     markpublish/i18n.yaml             (vorhanden)
-> ```
->
-> Pflegen Sie also jede Sprache, die Sie ausliefern, oder legen Sie den Schlüssel unter
-> `"*"` ab. Ein leerer Text im fertigen PDF fällt niemandem auf — ein Abbruch schon.
-
-Geprüft werden die Template-Quellen, nicht der Renderlauf: auch ein Label in einem
-Zweig, den genau dieses Dokument nicht durchläuft, wird gemeldet. `styles.css` zählt
-mit, da es durch dieselbe Jinja-Umgebung läuft.
-
-### Die aufgelöste Tabelle ansehen
-
-Bei drei Ebenen ist nicht immer offensichtlich, woher ein Text kommt. `markpublish
-labels` zeigt das Ergebnis samt Herkunft:
+Der einfachste und sicherste Weg zur Erstellung eines eigenen Corporate Designs ist der Export des integrierten Standard-Themes:
 
 ```bash
-markpublish labels                       # alle Schlüssel, Ziel PDF
-markpublish labels --target html         # Kaskade für die HTML-Ausgabe
-markpublish labels --overridden          # nur das, was vom Theme kommt
+markpublish export-template default ./templates
 ```
 
-### Verfügbare Schlüssel
+Dieser Befehl kopiert das Standard-Theme vollständig in das lokale Verzeichnis `templates/default/`. Sie können die Dateien anschließend direkt bearbeiten, Schriften anpassen, Farben ändern oder Ihr Firmenlogo einbinden. markpublish greift beim nächsten `build` automatisch auf Ihre angepasste Projektvorlage zu.
 
-| Schlüssel | `de` | `en` |
-| :--- | :--- | :--- |
-| `toc_title` | Inhaltsverzeichnis | Table of Contents |
-| `toc_sidebar` | Inhalt | Contents |
-| `chapter_toc_title` | Inhalt dieses Kapitels | In this chapter |
-| `chapter` | Kapitel | Chapter |
-| `part` | Teil | Part |
-| `author` | Autor | Author |
-| `status` | Status | Status |
-| `version` | Version | Version |
-| `date` | Datum | Date |
-| `copyright` | Copyright | Copyright |
-| `page` | Seite | Page |
-| `page_of` | von | of |
-| `alert_note` | Hinweis | Note |
-| `alert_tip` | Tipp | Tip |
-| `alert_important` | Wichtig | Important |
-| `alert_warning` | Warnung | Warning |
-| `alert_caution` | Achtung | Caution |
+---
 
-Die `alert_*`-Titel entstehen bereits beim Markdown-Parsen, nicht erst im Template —
-die Kaskade wird dorthin durchgereicht, ein `alert_note` im Theme wirkt also auch im
-Callout.
+## Mehrsprachigkeit und Textkaskade (i18n)
 
-Eine neue Sprache legen Sie an, indem Sie in `markpublish/i18n.yaml` einen
-vollständigen Block ergänzen — oder, ohne das Paket anzufassen, auf Ebene 2 oder 3 alle
-Schlüssel unter dem gewünschten Sprachcode setzen.
+Professionelle Dokumente enthalten eine Vielzahl statischer Texte, die nicht aus den Markdown-Kapiteln stammen, sondern vom Template erzeugt werden – beispielsweise „Inhaltsverzeichnis“, „Kapitel“, „Seite X von Y“ oder Hinweise im Deckblatt.
 
-> [!TIP]
-> In eigenen Templates greifen Sie mit `{{ labels.chapter }}` auf das Ergebnis zu — auch
-> in `styles.css`, das durch dieselbe Jinja-Umgebung läuft. So ist die Fußzeile
-> `"{{ labels.page }} " counter(page) " {{ labels.page_of }} " counter(pages)` gebaut.
+markpublish verwaltet diese Texte über ein Kaskadensystem in `i18n.yaml`-Dateien.
 
-## Kopf- und Fußzeilen
+### Die 3-stufige Beschriftungskaskade
 
-Kopf- und Fußzeile sind **Running Elements**: ein Block im `layout.html` bekommt
-`position: running(name)` und wird damit aus dem Textfluss genommen; die
-`@page`-Regel setzt ihn über `content: element(name)` in die Margin-Box ein.
+Bei der Auflösung eines Textschlüssels (z. B. `table_of_contents`) sucht markpublish in folgender Reihenfolge – spätere Fundstellen überschreiben frühere:
 
-Der Unterschied zu einer `content:`-Zeichenkette ist wesentlich: In der Margin-Box
-steht dadurch **echtes Markup**. Damit sind beliebig viele Zeilen möglich, jede mit
-eigener Auszeichnung — eine Zeichenkette kennt nur eine Formatierung für alles.
+1. **Paket-Basis (`markpublish/i18n.yaml`):** Vollständige Standardbeschriftungen für alle unterstützten Sprachen.
+2. **Theme-Ebene (`<theme>/i18n.yaml`):** Themes können eigene Formulierungen oder Bezeichnungen definieren.
+3. **Format-Ebene (`<theme>/pdf/i18n.yaml`):** Formatspezifische Anpassungen.
 
-```html
-<!-- layout.html -->
-<div class="page-header-runner">
-  <div class="hf-left">
-    <div class="hf-doc-title">{{ document.title }}</div>
-    <div class="hf-doc-subtitle">{{ document.subtitle }}</div>
-  </div>
-  <div class="hf-right"><span class="hf-section"></span></div>
-</div>
+### Aufbau der i18n.yaml
+
+Eine `i18n.yaml` enthält strukturierte Übersetzungen je Sprachkürzel:
+
+```yaml
+de:
+  table_of_contents: "Inhaltsverzeichnis"
+  chapter: "Kapitel"
+  part: "Abschnitt"
+  page_x_of_y: "Seite {x} von {y}"
+  version: "Version"
+  author: "Autor"
+
+en:
+  table_of_contents: "Table of Contents"
+  chapter: "Chapter"
+  part: "Part"
+  page_x_of_y: "Page {x} of {y}"
+  version: "Version"
+  author: "Author"
 ```
 
-```css
-/* styles.css */
-.page-header-runner {
-  position: running(pageheader);
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;    /* rechte Spalte bleibt oben */
-}
-.hf-doc-title { font-weight: 700; }
-.hf-section::before { content: string(current-section); }
+### Spracherkennung und Validierung
 
-@page {
-  @top-left {
-    content: element(pageheader);
-    width: 100%;
-    vertical-align: top;
-    margin-top: 12mm;          /* Abstand zur Papierkante */
-    padding-bottom: 0;
-    border-bottom: 0.5pt solid #cbd5e1;
-    margin-bottom: 12mm;       /* Abstand zum Inhalt */
-  }
-}
-```
+Die Sprache eines Dokuments wird in der `markpublish.yaml` über den Schlüssel `language:` (z. B. `language: "de"`) festgelegt. Fehlt dieser Eintrag, ermittelt markpublish automatisch die Systemsprache des Autors.
 
-### Geometrie
-
-Von der Papierkante nach innen:
-
-```
-Kante ── margin ── Zeilen (top-aligned) ── Linie ── margin ── Inhalt
-         12 mm                                       12 mm
-```
-
-Beide Abstände sind bewusst gleich groß: eine Kopfzeile, die dicht über dem Text
-sitzt, liest sich als Teil des Satzspiegels statt als Seitenfurnitur.
-
-Beide Spalten sitzen in einem Flex-Container mit `align-items: flex-start`. Die
-rechte Spalte beginnt deshalb auf der Höhe der **ersten** linken Zeile, auch wenn
-links drei Zeilen stehen und rechts nur eine.
-
-> [!IMPORTANT]
-> Der Abstand zum Inhalt kommt aus `margin-bottom`, nicht aus `padding-bottom`.
-> In CSS liegt der Rahmen **außerhalb** des Paddings — ein `padding-bottom` würde
-> die Trennlinie vom Text wegschieben und an den Inhalt drücken. Gewollt ist das
-> Gegenteil: Linie direkt am Text, Abstand danach.
-
-> [!WARNING]
-> Eine Margin-Box **schiebt den Inhalt nicht**. Ihre Höhe ist durch den Seitenrand
-> gedeckelt; zusätzliche Zeilen laufen aus der Seite heraus, statt den Satzspiegel
-> zu verkleinern. Der Seitenrand wird deshalb in `styles.css` aus der Zeilenzahl
-> gerechnet:
->
-> ```
-> margin-top = Rand zur Kante + Zeilen × Zeilenhöhe + Linienstärke + Abstand zum Inhalt
-> ```
->
-> Wer in `layout.html` eine Zeile ergänzt, zieht `hf_header_lines` bzw.
-> `hf_footer_lines` in `styles.css` mit.
-
-### Standardbelegung des Themes
-
-```
-Kopfzeile     Dokumenttitel (fett)                        Kapiteltitel
-              Untertitel
-
-Fußzeile      Copyright                     Version 1.0.0 | 01.09.2026
-                                                        Seite X von Y
-```
-
-Untertitel und Version sind optional. Fehlt der Untertitel, hat die Kopfzeile nur
-eine Zeile und der Satzspiegel rückt entsprechend nach oben. Fehlt die Version,
-entfällt sie samt Trenner — in der Fußzeile steht dann nur das Datum, und auf dem
-Deckblatt fehlt das Feld ganz.
-
-Der Kapiteltitel kommt aus `string(current-section)`, das die Kapitel-`<article>`
-per `string-set` setzen; `counter(page)` funktioniert innerhalb des Running
-Elements ebenso wie in einer Margin-Box. Die Schalter `document.header` und
-`document.footer` blenden den jeweiligen Block ab; auf Deck- und Trennseiten ist
-er ohnehin abgeschaltet.
-
+Mit dem CLI-Befehl `markpublish labels` können Sie jederzeit prüfen, welche Beschriftungen für Ihr Projekt aktiv sind und aus welcher Datei sie stammen.

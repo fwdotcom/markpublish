@@ -1,95 +1,101 @@
-# Konfigurations-Leitfaden
+# Projektkonfiguration mit markpublish.yaml
 
-Die Datei `markpublish.yaml` ist das zentrale Steuerungsdokument jeder Publikation.
+Die zentrale Steuerungsdatei eines jeden markpublish-Projekts ist die `markpublish.yaml`. Sie definiert das Dokument deklarativ: Metadaten, Layout-Vorgaben, Gliederung und die Zuordnung der Markdown-Dateien zu Kapiteln und Abschnitten.
 
-## Das `document`-Objekt
+## Die drei Strukturebenen
 
-Unter `document:` werden alle globalen Metadaten und Schalter hinterlegt:
+markpublish organisiert Dokumente in drei klar voneinander abgegrenzten Ebenen:
 
-```yaml
-document:
-  title: "markpublish Benutzerhandbuch"
-  subtitle: "Moderne PDF- und HTML-Dokumentenerstellung"
-  summary: "Kurze Zusammenfassung für Deckblatt und Metadaten."
-  author: "Frank Winter"
-  organisation: "WASDCAT Games"
-  date: "auto"                 # "auto" (Tagesdatum) oder festes Datum "2026-08-31"
-  version: "1.0.0"             # optional - ohne Angabe entfällt das Feld
-  language: "de"               # Beschriftungen und Datumsformat; ohne Angabe die Systemsprache
-
-  # Globale Schalter
-  cover: true                  # Deckblatt an/aus
-  document_toc: 2              # Großes Verzeichnis, zwei Ebenen tief
-  autonum_style: "decimal"     # "decimal", "roman", "legal", "none"
-  chapter_toc: 2               # Vorgabe für die Kapitel-Trennseiten
-  header: true                 # Laufende Kopfzeile
-  footer: true                 # Laufende Fußzeile
+```text
+document
+└── parts (Abschnitte)
+    └── chapters (Kapitel)
+        └── [Unterkapitel in chapters]
 ```
 
-### Automatische Datumsauflösung
+### Document (Dokumentebene)
 
-Wird `date: "auto"` oder `date: "today"` angegeben, setzt `markpublish` das aktuelle Datum im passenden Sprachformat ein:
+Die oberste Ebene `document:` beschreibt das Gesamtdokument:
+* **Metadaten:** Titel, Untertitel, Autoren, Version, Datum, Sprache, Status und Copyright-Hinweise.
+* **Layout-Schalter:** Anzeige des Deckblatts (`cover`), Aktivierung von Kopfzeilen (`header`) und Fußzeilen (`footer`).
+* **Globale Verzeichnisvorgaben:** Steuerung der Tiefe für das Gesamt-Inhaltsverzeichnis (`document_toc`), Abschnittsverzeichnisse (`part_toc`) und lokale Kapitelverzeichnisse (`chapter_toc`).
+* **Nummerierungsregeln:** Vorgaben zur automatischen Nummerierung von Überschriften (`autonum_style`, `autonum_from_level`, `autonum_prefix`).
 
-- `language: "de"` → `31.08.2026`
-- `language: "en"` → `2026-08-31`
+### Parts (Abschnitte)
 
-### Zusätzliche Metadatenfelder
+Ein Dokument wird durch `parts:` in übergeordnete Abschnitte gegliedert (z. B. „Hauptteil“, „Fallstudien“, „Anhänge“). 
+* Ein Abschnitt fasst logisch zusammengehörige Kapitel zusammen.
+* Abschnitte können mit Trennseiten (`break_before: "divider"`) oder einfachen Seitenumbrüchen (`break_before: "page"`) eingeleitet werden.
+* Auf Abschnittsebene gesetzte Einstellungen (z. B. Verzeichnistiefe oder Nummerierungspräfixe wie `autonum_prefix: "A."`) vererben sich automatisch auf alle darin enthaltenen Kapitel.
 
-Beliebige zusätzliche Schlüssel (z. B. `status: "Entwurf"`, `department: "IT-Architektur"`) können frei definiert werden und stehen in allen Jinja2-Templates über `document.<feldname>` zur Verfügung.
+### Chapters (Kapitel)
 
-## Kapitel definieren
+Die Liste `chapters:` innerhalb eines Abschnitts verweist auf die eigentlichen Markdown-Inhaltsdateien:
+* Jedes Kapitel besitzt einen Verweis auf die Markdown-Datei (`file:`), einen Titel (`title:`) sowie eine optionale Kurzbeschreibung (`summary:`).
+* Kapitel können über das Feld `break_before` steuern, ob vor ihnen eine Trennseite erzeugt wird, ein einfacher Seitenwechsel erfolgt oder der Text nahtlos anschließt.
+* Kapitel können hierarchisch geschachtelt werden, indem ein Kapitel selbst wiederum eine Liste von Unterkapiteln (`chapters:`) enthält.
 
-Ein einfaches Kapitel wird mit `file:`, optionalem `title:` und `summary:` angegeben:
+---
+
+## Beispiel einer vollständigen Konfiguration
+
+Das folgende Beispiel zeigt eine praxisnahe, vollständige `markpublish.yaml`:
 
 ```yaml
+# markpublish.yaml
+
+document:
+  title: "Projektbericht Jahresabschluss"
+  subtitle: "Analyse, Ergebnisse und Ausblick"
+  summary: "Umfassender Gesamtbericht über die Projektphasen des vergangenen Geschäftsjahres."
+  author: "Projektgruppe Controlling"
+  date: "auto"
+  version: "1.2.0"
+  language: "de"
+  copyright: "© 2026 Musterunternehmen GmbH"
+
+  # Layout-Elemente
+  cover: true
+  header: true
+  footer: true
+
+  # Verzeichnistiefen
+  document_toc: 2
+  part_toc: 2
+  chapter_toc: "none"
+
+  # Nummerierung
+  autonum_style: "decimal"
+  autonum_from_level: 1
+
+theme: "default"
+
 parts:
   - title: "Hauptteil"
     break_before: "none"
     chapters:
-      - file: "chapters/01_intro.md"
-        title: "Einleitung"
-        summary: "Zielsetzung des Leitfadens."
-        break_before: "divider"    # Eigene Trennseite vor dem Kapitel
-        chapter_toc: "none"        # Kein kapitelweises Mini-TOC
-```
+      - file: "chapters/01_einleitung.md"
+        title: "Einleitung und Projektziele"
+        break_before: "page"
 
-Ein Kapitel steht immer unter einem Part — `chapters:` auf oberster Ebene weist
-`markpublish` mit einem Hinweis auf den richtigen Aufbau zurück. Der nächste
-Abschnitt erklärt, warum.
+      - file: "chapters/02_analyse.md"
+        title: "Marktanalyse und Vorgehen"
+        break_before: "page"
 
-Alle Pfade sind relativ zur `markpublish.yaml`, nicht zum Arbeitsverzeichnis der Shell.
+      - file: "chapters/03_ergebnisse.md"
+        title: "Zentrale Ergebnisse"
+        break_before: "divider"
 
-## Dokumentaufbau in 2 Stufen: Parts und Kapitel
-
-`markpublish` organisiert Dokumente in einer klaren 2-stufigen Struktur:
-
-1. **Stufe 1 — Parts (`parts:`):** Gliedert das Dokument in logische Hauptabschnitte (z. B. Hauptteil, Anhänge, Bände). Jeder Part besitzt einen Namen (`title:` oder `part:`).
-2. **Stufe 2 — Kapitel (`chapters:`):** Die eigentlichen Inhaltsdateien (*.md) unter dem jeweiligen Part.
-3. **Binnenstruktur (`##`, `###`):** Wird direkt im Markdown formatiert.
-
-```yaml
-parts:
-  - title: "Hauptteil"         # Hauptabschnitt
-    break_before: "none"       # Keine Part-Trennseite für den Hauptteil
-    document_toc: "none"       # 'Hauptteil' erscheint nicht im TOC; Kapitel direkt gelistet
-    chapters:
-      - file: "chapters/01_intro.md"
-        title: "Einführung"
-      - file: "chapters/02_usage.md"
-        title: "Nutzung"
-
-  - title: "Anhänge"           # Gliedernder Abschnitt mit Trennseite & TOC-Rubrik
-    summary: "Ergänzende Tabellen und Referenzen."
+  - title: "Anhänge"
     break_before: "divider"
     autonum_from_level: 2
-    document_toc: 2
+    autonum_prefix: "A."
     chapters:
-      - file: "chapters/appendix_a.md"
-        title: "Anhang A: Referenz"
-        autonum_prefix: "A."
-      - file: "chapters/appendix_b.md"
-        title: "Anhang B: Glossar"
-        autonum_prefix: "B."
+      - file: "chapters/anhang_tabellen.md"
+        title: "Detailtabellen"
+
+      - file: "chapters/anhang_glossar.md"
+        title: "Glossar"
 ```
 
-Ein benannter Part gruppiert seine Kapitel, erhält auf Wunsch eine Trennseite und steht als gliedernde Rubrik im Inhaltsverzeichnis (wenn nicht mit `document_toc: "none"` ausgeblendet). Alle Kapitel stehen typografisch bündig auf derselben primären Fluchtlinie.
+Eine vollständige Übersicht aller verfügbaren Schlüssel, Datentypen, Standardwerte und Kombinationsmöglichkeiten für jede der drei Ebenen finden Sie im [Anhang A: Schema-Referenz markpublish.yaml](chapters/07_appendix_yaml_spec.md).
