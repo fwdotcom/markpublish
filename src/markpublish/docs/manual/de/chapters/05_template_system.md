@@ -2,19 +2,16 @@
 
 markpublish trennt Inhalt und Gestaltung strikt voneinander: Die Textinhalte entstehen in Markdown, während das visuelle Erscheinungsbild, die Typografie und das Seitenlayout über Typst-Templates gesteuert werden. Ergänzt wird dieses System durch eine flexible Kaskade zur Mehrsprachigkeit (i18n).
 
-## Die 3-stufige Auflösungshierarchie
+## Die Auflösungshierarchie für Themes
 
-Wenn markpublish nach einem Theme sucht (angegeben über `theme:` in der Konfigurationsdatei oder den Standard `default`), durchsucht es drei Ebenen in fester Reihenfolge:
+Wenn markpublish nach einem Theme sucht (angegeben über `theme:` in der Konfigurationsdatei oder den Standard `default`), durchsucht der Resolver folgende Ebenen der Reihe nach (der erste Treffer gewinnt):
 
-1. **Projekt-Vorlagen (`./templates/<theme>/`):**  
-   Vorlagen im Projektordner haben höchste Priorität. Liegt hier ein Theme, wird dieses verwendet. Dies ermöglicht projektspezifische Layouts, die direkt mit dem Repository versioniert werden können.
-2. **Benutzer-Vorlagen (`~/.markpublish/templates/<theme>/`):**  
-   Vorlagen im Home-Verzeichnis des aktuellen Benutzers. Ideal für persönliche Dokumentvorlagen, die über mehrere Projekte hinweg zur Verfügung stehen sollen.
-3. **Paket-Vorlagen (Integrierte Standard-Themes):**  
-   Das mitgelieferte Standard-Theme `default`. Es dient als verlässliche Basis und Fallback, wenn auf Benutzer- oder Projektebene keine Vorlage gefunden wird.
-
-*Benutzerdefinierter Vorlagenpfad:*  
-Zusätzlich kann über den Schlüssel `templates_dir:` direkt in der `markpublish.yaml` oder über den Kommandozeilen-Parameter `--templates-dir` ein beliebiger alternativer Ordner angegeben werden, der die Suche anführt.
+1. **Benutzer-Vorlagen (`user`):**  
+   Vorlagen im Home-Verzeichnis des aktuellen Benutzers (`~/.markpublish/templates/<theme>/`) bzw. im benutzerspezifischen AppData-Verzeichnis. Dies ermöglicht autorenweite Standardvorlagen über alle Projekte hinweg.
+2. **Projekt- / Vorlagen-Verzeichnis (`common`):**  
+   Vorlagen im Projektordner (`./templates/<theme>/`) oder in einem explizit über `templates_dir:` in der `markpublish.yaml`, über das Kommandozeilen-Flag `--templates-dir` oder die Umgebungsvariable `MARKPUBLISH_TEMPLATES_DIR` festgelegten Verzeichnis.
+3. **Paket-Vorlagen (`package`):**  
+   Das mitgelieferte Standard-Theme `default`. Es dient als verlässlicher Fallback, wenn auf Benutzer- oder Projektebene keine Vorlage gefunden wird.
 
 ## Aufbau eines Themes
 
@@ -26,7 +23,10 @@ templates/
     ├── i18n.yaml            # Übergreifende Beschriftungen des Themes
     └── pdf/
         ├── template.typ     # Typst-Layoutvorlage für das PDF
-        └── i18n.yaml        # Formatspezifische Beschriftungen (höchste Kaskaden-Priorität)
+        ├── i18n.yaml        # Formatspezifische Beschriftungen (höchste Priorität)
+        ├── fonts/           # Optionale Schriftdateien (z. B. .ttf, .otf)
+        └── assets/          # Statische Grafiken, Logos und Icons
+            └── icons/
 ```
 
 ### Typst als Layout-Engine
@@ -38,7 +38,7 @@ Typst ist eine moderne, hochperformante Satz- und Programmiersprache für Dokume
 
 ### Exemplarischer Aufbau einer template.typ
 
-Die Datei `template.typ` definiert das Gesamterscheinungsbild des Dokuments. Ein Auszug zeigt die grundlegende Struktur:
+Die Datei `template.typ` definiert das Gesamterscheinungsbild des Dokuments. Ein Auszug zeigt die grundlegende Struktur unter Verwendung moderner Typst-Kontexte (`context`):
 
 ```typst
 // template.typ (Auszug)
@@ -56,15 +56,16 @@ Die Datei `template.typ` definiert das Gesamterscheinungsbild des Dokuments. Ein
   set page(
     paper: "a4",
     margin: (top: 2.5cm, bottom: 2.5cm, left: 2.5cm, right: 2.5cm),
-    header: locate(loc => {
+    header: context {
       // Individuelle Kopfzeilengestaltung
       text(9pt, fill: rgb("#64748b"))[#title]
-    }),
-    footer: locate(loc => {
-      // Seitennummerierung: Seite X von Y
-      let page_num = counter(page).at(loc).first()
-      align(center)[#text(9pt)[#page_num]]
-    })
+    },
+    footer: context {
+      // Seitennummerierung über aktuelle Labels
+      let page_num = counter(page).display()
+      let page_label = labels.at("page", default: "Seite")
+      align(center)[#text(9pt)[#page_label #page_num]]
+    }
   )
 
   // Grundschriftart und Absatzgestaltung
@@ -80,7 +81,7 @@ Die Datei `template.typ` definiert das Gesamterscheinungsbild des Dokuments. Ein
 Der einfachste und sicherste Weg zur Erstellung eines eigenen Corporate Designs ist der Export des integrierten Standard-Themes:
 
 ```bash
-markpublish export-template default ./templates
+markpublish export-template default ./templates --target pdf
 ```
 
 Dieser Befehl kopiert das Standard-Theme vollständig in das lokale Verzeichnis `templates/default/`. Sie können die Dateien anschließend direkt bearbeiten, Schriften anpassen, Farben ändern oder Ihr Firmenlogo einbinden. markpublish greift beim nächsten `build` automatisch auf Ihre angepasste Projektvorlage zu.
@@ -95,11 +96,11 @@ markpublish verwaltet diese Texte über ein Kaskadensystem in `i18n.yaml`-Dateie
 
 ### Die 3-stufige Beschriftungskaskade
 
-Bei der Auflösung eines Textschlüssels (z. B. `table_of_contents`) sucht markpublish in folgender Reihenfolge – spätere Fundstellen überschreiben frühere:
+Bei der Auflösung eines Textschlüssels (z. B. `toc_title`) sucht markpublish in folgender Reihenfolge – spätere Fundstellen überschreiben frühere:
 
 1. **Paket-Basis (`markpublish/i18n.yaml`):** Vollständige Standardbeschriftungen für alle unterstützten Sprachen.
 2. **Theme-Ebene (`<theme>/i18n.yaml`):** Themes können eigene Formulierungen oder Bezeichnungen definieren.
-3. **Format-Ebene (`<theme>/pdf/i18n.yaml`):** Formatspezifische Anpassungen.
+3. **Format-Ebene (`<theme>/pdf/i18n.yaml`):** Formatspezifische Anpassungen mit höchster Priorität.
 
 ### Aufbau der i18n.yaml
 
@@ -107,18 +108,20 @@ Eine `i18n.yaml` enthält strukturierte Übersetzungen je Sprachkürzel:
 
 ```yaml
 de:
-  table_of_contents: "Inhaltsverzeichnis"
+  toc_title: "Inhaltsverzeichnis"
   chapter: "Kapitel"
   part: "Abschnitt"
-  page_x_of_y: "Seite {x} von {y}"
+  page: "Seite"
+  page_of: "von"
   version: "Version"
   author: "Autor"
 
 en:
-  table_of_contents: "Table of Contents"
+  toc_title: "Table of Contents"
   chapter: "Chapter"
   part: "Part"
-  page_x_of_y: "Page {x} of {y}"
+  page: "Page"
+  page_of: "of"
   version: "Version"
   author: "Author"
 ```

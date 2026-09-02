@@ -132,23 +132,28 @@ Zur Darstellung von Checklisten, To-Do-Listen oder Meilensteinen stehen Aufgaben
 
 markpublish ermöglicht das direkte Setzen mathematischer Formeln im Fließtext oder als abgesetzte Formelblöcke. Die Formeln werden über die Satz-Engine Typst typografisch präzise gerendert.
 
+Unterstützt werden gängige mathematische Ausdrücke wie Brüche (`\frac{a}{b}`), Wurzeln (`\sqrt{x}`), Summen (`\sum`), Integrale (`\int`), griechische Symbole (`\alpha`, `\pi`, `\sigma` etc.) sowie die native Typst-Math-Syntax.
+
 ### Syntax
 
 ```markdown
-Die berühmte Energie-Masse-Äquivalenz lautet $E = mc^2$.
+Die berühmte Energie-Masse-Äquivalenz lautet $E = m c^2$.
 
-Abgesetzte Formel:
+Abgesetzte Kreisflächenberechnung und quadratische Lösungsformel:
 
-$$ A = \pi \cdot r^2 $$
+$$ A = \pi \cdot r^2 \quad \text{und} \quad x = \frac{-b \pm \sqrt{b^2 - 4 a c}}{2 a} $$
 ```
+
+*Typografischer Hinweis zu Variablen:*  
+In Typst Math stehen mehrbuchstabige Wörter für Funktionen oder Bezeichner (wie `sin`, `cos`, `sqrt`). Die Multiplikation einzelner Variablen wird deshalb durch ein Leerzeichen getrennt notiert (z. B. `m c^2` oder `4 a c`).
 
 ### Live-Darstellung im Dokument
 
-Die berühmte Energie-Masse-Äquivalenz lautet $E = mc^2$.
+Die berühmte Energie-Masse-Äquivalenz lautet $E = m c^2$.
 
-Abgesetzte Formel:
+Abgesetzte Kreisflächenberechnung und quadratische Lösungsformel:
 
-$$ A = \pi \cdot r^2 $$
+$$ A = \pi \cdot r^2 \quad \text{und} \quad x = \frac{-b \pm \sqrt{b^2 - 4 a c}}{2 a} $$
 
 ---
 

@@ -13,8 +13,8 @@ Sollte ein Kompiliervorgang mit einer Fehlermeldung der Typst-Engine abbrechen, 
 ### Vorgehen zur Fehleranalyse
 
 1. Öffnen Sie die Datei `.markpublish/last_failed_build.typ` in einem beliebigen Texteditor.
-2. Suchen Sie nach der in der Fehlermeldung genannten Zeilennummer.
-3. Anhand des Kontexts lässt sich unmittelbar erkennen, welcher Textabschnitt, welches Markdown-Kapitel oder welches Template-Element den Syntaxfehler verursacht hat.
+2. Suchen Sie nach dem in der Fehlermeldung genannten Begriff, Variablennamen oder Textfragment.
+3. Anhand des umgebenden Kontexts lässt sich unmittelbar erkennen, welches Markdown-Kapitel oder welcher Formatierungsblock die Ursache war.
 
 ---
 
@@ -37,13 +37,13 @@ Sollte ein Kompiliervorgang mit einer Fehlermeldung der Typst-Engine abbrechen, 
 * YAML reagiert strikt auf falsche Einrückungen. Verwenden Sie für Einrückungen stets **zwei Leerzeichen** und niemals Tabulatoren.
 * Achten Sie darauf, dass Listeneinträge (`-`) und verschachtelte Schlüssel bündig zueinander stehen.
 
-### Fehlende Übersetzungen oder statische Texte
+### Anpassung statischer Textbeschriftungen (i18n)
 
-**Problem:** Der Build bricht mit dem Fehler `Undefined label: table_of_contents` ab.
+**Problem:** Ein generierter Text (wie „Inhaltsverzeichnis“ oder „Kapitel“) soll umformuliert werden oder fehlt in einer neuen Sprache.
 
 **Lösung:**
-* Wenn Sie ein eigenes Theme nutzen oder eine neue Sprache eintragen, müssen alle vom Template verwendeten Beschriftungen in der `i18n.yaml` definiert sein.
-* Führen Sie `markpublish labels` aus, um zu überprüfen, welche Beschriftungen fehlen oder aus welcher Quelle sie stammen.
+* Führen Sie `markpublish labels` aus, um alle aufgelösten Textvariablen und deren Herkunftsebene anzuzeigen.
+* Ergänzen oder überschreiben Sie die gewünschten Schlüssel in der `i18n.yaml` Ihres Themes.
 
 ### Schriften und Schriftfamilien
 
@@ -52,7 +52,7 @@ Sollte ein Kompiliervorgang mit einer Fehlermeldung der Typst-Engine abbrechen, 
 **Lösung:**
 * markpublish liefert die hochwertige serifenlose Schriftfamilie **Open Sans** direkt im Paket mit.
 * Das Standard-Theme greift automatisch auf diese Schrift zu. Sie müssen auf Ihrem Betriebssystem keine Schriften manuell nachinstallieren.
-* Wenn Sie in eigenen Themes andere Schriften definieren, müssen diese auf dem ausführenden System installiert und verfügbar sein.
+* Wenn Sie in eigenen Themes andere Schriften nutzen möchten, können Sie die Schriftdateien (`.ttf`, `.otf`) direkt im Ordner `pdf/fonts/` Ihres Themes ablegen oder auf dem System installieren. markpublish bindet Theme-Schriften automatisch in den Suchpfad ein.
 
 ---
 

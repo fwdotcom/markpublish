@@ -456,31 +456,135 @@ class TypstSerializer:
         return "".join(parts)
 
     @staticmethod
-    def _normalize_math(math_text: str) -> str:
-        """Translates common LaTeX math macros into Typst math syntax."""
-        replacements = [
-            (r"\pi", "pi"),
-            (r"\cdot", "dot"),
-            (r"\times", "times"),
-            (r"\infty", "infinity"),
-            (r"\alpha", "alpha"),
-            (r"\beta", "beta"),
-            (r"\gamma", "gamma"),
-            (r"\delta", "delta"),
-            (r"\sigma", "sigma"),
-            (r"\mu", "mu"),
-            (r"\pm", "plus.minus"),
-            (r"\leq", "<="),
-            (r"\geq", ">="),
-            (r"\neq", "!="),
-            (r"\approx", "approx"),
-            (r"\to", "arrow.r"),
-        ]
+    def _extract_braced(text: str, start_idx: int) -> Tuple[str, int]:
+        """Finds content inside balanced { ... } starting at or after start_idx."""
+        open_idx = text.find("{", start_idx)
+        if open_idx == -1:
+            return "", start_idx
+        depth = 0
+        for i in range(open_idx, len(text)):
+            if text[i] == "{":
+                depth += 1
+            elif text[i] == "}":
+                depth -= 1
+                if depth == 0:
+                    return text[open_idx + 1:i], i + 1
+        return text[open_idx + 1:], len(text)
+
+    @classmethod
+    def _normalize_math(cls, math_text: str) -> str:
+        """Translates standard LaTeX math macros into Typst math syntax."""
         res = math_text
-        for latex_cmd, typst_sym in replacements:
-            res = res.replace(latex_cmd, typst_sym)
-        # Normalize common physical shorthand like mc^2 to m c^2 so Typst does not treat it as a single variable
-        res = re.sub(r"\bmc\^2\b", "m c^2", res)
+
+        # 1. Fractions: \frac{num}{den} -> ((num) / (den))
+        while r"\frac" in res:
+            idx = res.find(r"\frac")
+            arg1, end1 = cls._extract_braced(res, idx + 5)
+            arg2, end2 = cls._extract_braced(res, end1)
+            norm_arg1 = cls._normalize_math(arg1)
+            norm_arg2 = cls._normalize_math(arg2)
+            res = res[:idx] + f"(({norm_arg1}) / ({norm_arg2}))" + res[end2:]
+
+        # 2. Roots: \sqrt[n]{x} -> root(n, x), \sqrt{x} -> sqrt(x)
+        while r"\sqrt" in res:
+            idx = res.find(r"\sqrt")
+            after = res[idx + 5:].lstrip()
+            if after.startswith("["):
+                close_bracket = after.find("]")
+                n_val = after[1:close_bracket].strip()
+                arg, end_idx = cls._extract_braced(res, idx + 5 + close_bracket + 1)
+                norm_arg = cls._normalize_math(arg)
+                res = res[:idx] + f"root({n_val}, {norm_arg})" + res[end_idx:]
+            else:
+                arg, end_idx = cls._extract_braced(res, idx + 5)
+                norm_arg = cls._normalize_math(arg)
+                res = res[:idx] + f"sqrt({norm_arg})" + res[end_idx:]
+
+        # 3. Text and font macros: \text{...}, \mathrm{...}, \mathbf{...}, \mathit{...}
+        for macro, wrapper in [
+            (r"\text", lambda s: f'"{s}"'),
+            (r"\mathrm", lambda s: f'"{s}"'),
+            (r"\mathbf", lambda s: f"bold({s})"),
+            (r"\mathit", lambda s: f"italic({s})"),
+        ]:
+            while macro in res:
+                idx = res.find(macro)
+                arg, end_idx = cls._extract_braced(res, idx + len(macro))
+                res = res[:idx] + wrapper(arg) + res[end_idx:]
+
+        # 4. Braced indices: _{abc} -> _(abc), ^{abc} -> ^(abc)
+        res = re.sub(r"_\{([^}]+)\}", r"_(\1)", res)
+        res = re.sub(r"\^\{([^}]+)\}", r"^(\1)", res)
+
+        # 5. Scaled brackets: \left(, \right) etc.
+        res = re.sub(r"\\left\s*([(\[{|])", r"\1", res)
+        res = re.sub(r"\\right\s*([)\]}|])", r"\1", res)
+
+        # 6. Differentials: ' dx' -> ' dif x' for integrals
+        res = re.sub(r"\s+d([a-z])\b", r" dif \1", res)
+
+        # 6. LaTeX command replacements using negative lookahead to allow subscripts like \sum_
+        word_replacements = [
+            (r"\\sum(?![a-zA-Z])", "sum"),
+            (r"\\prod(?![a-zA-Z])", "product"),
+            (r"\\int(?![a-zA-Z])", "integral"),
+            (r"\\partial(?![a-zA-Z])", "diff"),
+            (r"\\top(?![a-zA-Z])", "top"),
+            (r"\\to(?![a-zA-Z])", "arrow.r"),
+            (r"\\rightarrow(?![a-zA-Z])", "arrow.r"),
+            (r"\\leftarrow(?![a-zA-Z])", "arrow.l"),
+            (r"\\Rightarrow(?![a-zA-Z])", "arrow.r.double"),
+            (r"\\Leftarrow(?![a-zA-Z])", "arrow.l.double"),
+            (r"\\leftrightarrow(?![a-zA-Z])", "arrow.l.r"),
+            (r"\\Leftrightarrow(?![a-zA-Z])", "arrow.l.r.double"),
+            (r"\\quad(?![a-zA-Z])", "  "),
+            (r"\\qquad(?![a-zA-Z])", "    "),
+            (r"\\infty(?![a-zA-Z])", "infinity"),
+            (r"\\times(?![a-zA-Z])", "times"),
+            (r"\\cdot(?![a-zA-Z])", "dot"),
+            (r"\\pm(?![a-zA-Z])", "plus.minus"),
+            (r"\\leq(?![a-zA-Z])", "<="),
+            (r"\\geq(?![a-zA-Z])", ">="),
+            (r"\\neq(?![a-zA-Z])", "!="),
+            (r"\\approx(?![a-zA-Z])", "approx"),
+            # Greek lowercase
+            (r"\\alpha(?![a-zA-Z])", "alpha"),
+            (r"\\beta(?![a-zA-Z])", "beta"),
+            (r"\\gamma(?![a-zA-Z])", "gamma"),
+            (r"\\delta(?![a-zA-Z])", "delta"),
+            (r"\\epsilon(?![a-zA-Z])", "epsilon"),
+            (r"\\zeta(?![a-zA-Z])", "zeta"),
+            (r"\\eta(?![a-zA-Z])", "eta"),
+            (r"\\theta(?![a-zA-Z])", "theta"),
+            (r"\\iota(?![a-zA-Z])", "iota"),
+            (r"\\kappa(?![a-zA-Z])", "kappa"),
+            (r"\\lambda(?![a-zA-Z])", "lambda"),
+            (r"\\mu(?![a-zA-Z])", "mu"),
+            (r"\\nu(?![a-zA-Z])", "nu"),
+            (r"\\xi(?![a-zA-Z])", "xi"),
+            (r"\\pi(?![a-zA-Z])", "pi"),
+            (r"\\rho(?![a-zA-Z])", "rho"),
+            (r"\\sigma(?![a-zA-Z])", "sigma"),
+            (r"\\tau(?![a-zA-Z])", "tau"),
+            (r"\\phi(?![a-zA-Z])", "phi"),
+            (r"\\chi(?![a-zA-Z])", "chi"),
+            (r"\\psi(?![a-zA-Z])", "psi"),
+            (r"\\omega(?![a-zA-Z])", "omega"),
+            # Greek uppercase
+            (r"\\Gamma(?![a-zA-Z])", "Gamma"),
+            (r"\\Delta(?![a-zA-Z])", "Delta"),
+            (r"\\Theta(?![a-zA-Z])", "Theta"),
+            (r"\\Lambda(?![a-zA-Z])", "Lambda"),
+            (r"\\Xi(?![a-zA-Z])", "Xi"),
+            (r"\\Pi(?![a-zA-Z])", "Pi"),
+            (r"\\Sigma(?![a-zA-Z])", "Sigma"),
+            (r"\\Phi(?![a-zA-Z])", "Phi"),
+            (r"\\Psi(?![a-zA-Z])", "Psi"),
+            (r"\\Omega(?![a-zA-Z])", "Omega"),
+        ]
+        for pattern, typst_sym in word_replacements:
+            res = re.sub(pattern, typst_sym, res)
+
         return res
 
     def _visit_inline(self, elem: etree.Element) -> str:

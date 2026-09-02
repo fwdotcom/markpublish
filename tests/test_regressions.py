@@ -104,6 +104,19 @@ def test_c1_nested_chapter_bodies_are_rendered(nested_project: Path):
         assert marker in text, f"Rumpf von {name}.md fehlt in der Ausgabe"
 
 
+def test_s4_nested_chapter_heading_levels(nested_project: Path):
+    """Verifies S4: Nested chapters have base_level_offset applied so headings scale with hierarchy."""
+    config = load_config(nested_project / "markpublish.yaml")
+    content_items, _ = MarkdownPipeline(config, base_dir=nested_project).process_document()
+
+    # 01_parent is top level -> '='
+    assert content_items[0].typst_content.startswith("= ")
+    # 02_child is nested level 2 -> '=='
+    assert content_items[1].typst_content.startswith("== ")
+    # 03_grandchild is nested level 3 -> '==='
+    assert content_items[2].typst_content.startswith("=== ")
+
+
 # --------------------------------------------------------------------------
 # C2 / C3 - Kopfzeile und TOC-Seitenzahlen im PDF
 # --------------------------------------------------------------------------

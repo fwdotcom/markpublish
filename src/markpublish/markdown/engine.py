@@ -480,7 +480,7 @@ class MarkdownPipeline:
 
         # Convert ElementTree to Typst markup using the clean AST serializer
         serializer = TypstSerializer(
-            base_level_offset=0,  # levels already adjusted during process_tree_headings_and_toc
+            base_level_offset=base_level - 1,
             file_base_dir=file_base_dir,
             labels=self.labels,
         )

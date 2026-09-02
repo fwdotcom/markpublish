@@ -66,6 +66,7 @@
   version: "",
   date: "",
   copyright: "",
+  status: "",
   language: "de",
   show-cover: true,
   summary: "",
@@ -274,6 +275,12 @@
       ],
       if copyright != "" [
         #text(fill: rgb("#0f172a"))[#copyright]
+      ],
+      if status != "" and status != none [
+        #text(weight: "bold", fill: rgb("#64748b"))[#labels.at("status", default: "Status")]
+      ],
+      if status != "" and status != none [
+        #text(fill: rgb("#0f172a"))[#status]
       ],
     )
     v(1cm)

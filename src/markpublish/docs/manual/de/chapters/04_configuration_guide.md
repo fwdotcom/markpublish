@@ -98,4 +98,4 @@ parts:
         title: "Glossar"
 ```
 
-Eine vollständige Übersicht aller verfügbaren Schlüssel, Datentypen, Standardwerte und Kombinationsmöglichkeiten für jede der drei Ebenen finden Sie im [Anhang A: Schema-Referenz markpublish.yaml](chapters/07_appendix_yaml_spec.md).
+Eine vollständige Übersicht aller verfügbaren Schlüssel, Datentypen, Standardwerte und Kombinationsmöglichkeiten für jede der drei Ebenen finden Sie in **Anhang A: Schema-Referenz markpublish.yaml** am Ende dieses Handbuchs.

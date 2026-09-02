@@ -150,3 +150,35 @@ def test_pdf_theme_renders_divider_pages(tmp_path: Path):
     assert "KAPITEL 1" in text.upper()
     assert "Zusammenfassung des Kapitels." in text
     assert "Abschnitt A" in text
+
+
+def test_pdf_theme_without_fonts_dir_renders_successfully(tmp_path: Path):
+    """Verifies N1: A theme without fonts/ directory does not fail with TypeError."""
+    import shutil
+
+    project = _divider_project(tmp_path / "proj")
+    config = load_config(project / "markpublish.yaml")
+
+    # Custom theme without fonts/ directory
+    theme_dir = tmp_path / "custom_theme" / "pdf"
+    theme_dir.mkdir(parents=True)
+    orig_template = resolve_template_path("pdf", "default")
+    shutil.copy2(orig_template / "template.typ", theme_dir / "template.typ")
+    shutil.copy2(orig_template / "i18n.yaml", theme_dir / "i18n.yaml")
+
+    context = DocumentContext(
+        config=config,
+        content_items=[],
+        toc_tree=[],
+        template_path=theme_dir,
+        base_dir=project,
+        target="pdf",
+    )
+    context.content_items, context.toc_tree = MarkdownPipeline(
+        config, base_dir=project, labels=context.labels
+    ).process_document()
+
+    out = project / "out_custom.pdf"
+    PDFRenderer().render(context, out)
+    assert out.is_file()
+    assert out.stat().st_size > 1000

@@ -51,13 +51,16 @@ class PDFRenderer(BaseRenderer):
                 font_paths.append(theme_fonts)
 
             # 4. Compile with Typst
+            compile_kwargs: dict = {
+                "input": main_typ,
+                "output": output_path,
+                "root": tmp_path,
+            }
+            if font_paths:
+                compile_kwargs["font_paths"] = font_paths
+
             try:
-                typst.compile(
-                    input=main_typ,
-                    output=output_path,
-                    root=tmp_path,
-                    font_paths=font_paths if font_paths else None,
-                )
+                typst.compile(**compile_kwargs)
             except Exception as e:
                 # Retain generated source in working directory for easy diagnosis (A4)
                 debug_dir = Path.cwd() / ".markpublish"
@@ -97,6 +100,7 @@ class PDFRenderer(BaseRenderer):
         date_esc = typst_string(doc.date or "")
         copyright_esc = typst_string(doc.copyright or "")
         summary_esc = typst_string(doc.summary or "")
+        status_esc = typst_string(doc.status or "")
 
         show_header = getattr(doc, "header", True)
         show_footer = getattr(doc, "footer", True)
@@ -121,6 +125,7 @@ class PDFRenderer(BaseRenderer):
             f'  version: "{version_esc}",',
             f'  date: "{date_esc}",',
             f'  copyright: "{copyright_esc}",',
+            f'  status: "{status_esc}",',
             f'  language: "{lang_code}",',
             f'  show-cover: {str(doc.cover).lower()},',
             f'  summary: "{summary_esc}",',

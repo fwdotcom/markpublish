@@ -29,7 +29,7 @@ Die Erstellung eines neuen Dokumentenprojekts erfolgt in wenigen einfachen Schri
 
 ### Neues Projekt initialisieren
 
-Mit dem Befehl `init` legt markpublish ein neues Projektverzeichnis mit einer lauffähigen Beispielstruktur an:
+Mit dem Befehl `init` legt markpublish ein neues Projektverzeichnis mit einer minimalen, lauffähigen Startstruktur an:
 
 ```bash
 markpublish init mein-dokument
@@ -40,8 +40,7 @@ Dieser Befehl erzeugt einen neuen Ordner `mein-dokument/` mit folgender Grundstr
 ```text
 mein-dokument/
 ├── markpublish.yaml
-└── chapters/
-    └── 01_einleitung.md
+└── next-steps.md
 ```
 
 ### In das Projektverzeichnis wechseln
@@ -60,15 +59,17 @@ Starten Sie den Veröffentlichungsprozess direkt aus dem Projektverzeichnis hera
 markpublish build
 ```
 
-markpublish liest die Konfigurationsdatei `markpublish.yaml`, verarbeitet die Kapitel im Ordner `chapters/` und erstellt das Dokument.
+markpublish liest die Konfigurationsdatei `markpublish.yaml`, verarbeitet die referenzierten Markdown-Dateien und kompiliert das Dokument.
 
 ### Dokument öffnen
 
-Das generierte PDF befindet sich nun im Unterordner `dist/`:
+Das generierte PDF befindet sich nun direkt in Ihrem Projektverzeichnis:
 
 ```text
-dist/
-└── mein-dokument.pdf
+mein-dokument/
+└── new_document.pdf
 ```
 
-Öffnen Sie die Datei mit einem beliebigen PDF-Betrachter, um das Ergebnis zu begutachten. Das Dokument enthält bereits ein gestaltetes Deckblatt, ein Inhaltsverzeichnis, Kopf- und Fußzeilen sowie das erste formatierte Kapitel.
+*(Hinweis: Der Dateiname der Ausgabe leitet sich automatisch aus dem in der `markpublish.yaml` hinterlegten Dokumententitel ab; standardmäßig ist dies `New Document` $\rightarrow$ `new_document.pdf`.)*
+
+Öffnen Sie die Datei mit einem beliebigen PDF-Betrachter, um das Ergebnis zu begutachten. Das Dokument enthält bereits ein gestaltetes Deckblatt, ein Inhaltsverzeichnis, Kopf- und Fußzeilen sowie die formatierte Einstiegsseite.

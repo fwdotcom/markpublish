@@ -52,7 +52,7 @@ parts:
 
       - file: "chapters/06_markdown_features.md"
         title: "Besondere Markdown-Features"
-        summary: "Auszeichnung und typografische Darstellung von Hinweisen, Tabellen, Listen und Code."
+        summary: "Auszeichnung und typografische Darstellung von Hinweisboxen, Definitionslisten, Aufgaben und mathematischen Formeln."
         break_before: "divider"
 
   - title: "Anhänge"

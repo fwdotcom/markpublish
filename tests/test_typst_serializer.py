@@ -4,6 +4,8 @@ Unit tests for TypstSerializer, html_to_tree, and process_tree_headings_and_toc.
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import markdown
 
 from markpublish.markdown.toc import NumberingContext
@@ -92,15 +94,29 @@ Apple
     assert "/ Apple: A fruit that keeps the doctor away." in typ
 
 
-def test_serializer_math():
+def test_serializer_math(tmp_path: Path):
+    import typst
+
     from markpublish.markdown.engine import MarkdownEngine
 
     engine = MarkdownEngine("de")
-    md = "Die Formel $E = mc^2$ und block:\n\n$$ A = \\pi \\cdot r^2 $$"
+    md = (
+        "Inline: $\\frac{a}{b} + \\sqrt{x+1} + \\top \\to 0$.\n\n"
+        "Block:\n\n"
+        "$$ \\sum_{i=1}^{n} x_i + \\int_0^1 f(x) dx + \\text{Euro} $$\n"
+    )
     html = engine.convert(md)
     tree = html_to_tree(html)
     serializer = TypstSerializer()
     typ = serializer.serialize(tree)
 
-    assert "$E = m c^2$" in typ
-    assert "$ A = pi dot r^2 $" in typ
+    assert "$((a) / (b)) + sqrt(x+1) + top arrow.r 0$" in typ
+    assert "sum_(i=1)^(n) x_i + integral_0^1 f(x) dif x + \"Euro\"" in typ
+
+    # Compile with Typst to verify valid syntax
+    out_pdf = tmp_path / "math.pdf"
+    typ_file = tmp_path / "math.typ"
+    typ_file.write_text(typ, encoding="utf-8")
+    typst.compile(typ_file, output=out_pdf)
+    assert out_pdf.is_file()
+    assert out_pdf.stat().st_size > 500
