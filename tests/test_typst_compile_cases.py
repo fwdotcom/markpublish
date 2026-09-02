@@ -17,7 +17,6 @@ import base64
 from pathlib import Path
 
 import pypdfium2 as pdfium
-import pytest
 
 from markpublish.config.loader import load_config
 from markpublish.markdown.engine import MarkdownPipeline
