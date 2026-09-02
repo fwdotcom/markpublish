@@ -304,6 +304,7 @@ BREAK_CHAPTER_MD = "# {title}\n\nText.\n"
 def _render_pages(tmp_path: Path, yaml_body: str):
     """Baut ein Dokument und gibt die gerenderten PDF-Seiten zurueck."""
     import pypdfium2 as pdfium
+
     from markpublish.renderers.pdf import PDFRenderer
 
     (tmp_path / "markpublish.yaml").write_text(yaml_body, encoding="utf-8")

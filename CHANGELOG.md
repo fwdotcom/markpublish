@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.0.0] - 2026-09-02
+
+### Changed
+- **Typst as Native PDF Compiler**: Replaced WeasyPrint and CSS Paged Media with **Typst**, eliminating all native C/GTK/Pango dependencies while accelerating PDF builds by an order of magnitude (~1.3s for 30+ pages).
+- **Single Markdown Pipeline with ElementTree Serializer**: Replaced the ad-hoc regex converter with a unified `python-markdown` ElementTree-to-Typst serializer (`TypstSerializer`). Headings, numbering, and table of contents are now 100% synchronized directly from the AST.
+- **Full Markdown Extension Support**: Restored seamless support for all standard markdown extensions (tables, callouts/admonitions, definition lists, footnotes, tasklists, and typographics).
+- **Robust Typst String Escaping**: Full escaping of metadata and content strings (`\`, `"`, `$`, `#`, `@`, `~`, backticks) preventing compilation crashes on special characters.
+- **Physical Page Count & Layout Refinement**: Fixed `pagenum_reset` page counting (accurate total page count across counter resets) and decoupled cover page detection from page number checks.
+- **Header & Footer Controls**: `header` and `footer` configuration flags are now wired directly into `setup-document` in Typst.
+
+### Removed
+- **WeasyPrint & GTK Dependencies**: Removed `weasyprint`, `cffi`, and native GTK runtime installers.
+- **HTML Output Pipeline**: Temporarily removed HTML output rendering (`--target html`) and HTML Jinja2 templates to concentrate fully on top-quality Typst PDF publishing. The `--target` switch informs the user gracefully.
+
+---
+
 ## [1.0.0] - 2026-09-01
 
 ### Added

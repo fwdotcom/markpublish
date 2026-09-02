@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "markpublish"
-version = "1.0.0"
+version = "2.0.0"
 description = "Modern, modular, and extensible Markdown-to-PDF publishing tool powered by Typst"
 readme = "README.md"
 license = { text = "MIT" }
@@ -73,7 +73,6 @@ where = ["src"]
 "markpublish" = [
     "templates/**/*",
     "docs/**/*",
-    "data/*.conf",
     "i18n.yaml",
 ]
 

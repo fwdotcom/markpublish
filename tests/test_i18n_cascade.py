@@ -27,9 +27,7 @@ from markpublish.i18n import (
     UndefinedLabelError,
     build_labels,
     describe_labels,
-    find_label_references,
     read_i18n_file,
-    validate_label_references,
 )
 from markpublish.markdown.engine import MarkdownPipeline
 from markpublish.renderers.base import DocumentContext

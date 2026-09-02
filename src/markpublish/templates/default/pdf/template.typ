@@ -72,6 +72,8 @@
   show-toc: true,
   toc-title: "Inhaltsverzeichnis",
   toc-depth: 3,
+  show-header: true,
+  show-footer: true,
   labels: (:),
   body,
 ) = {
@@ -80,15 +82,16 @@
     paper: "a4",
     margin: (top: 2.8cm, bottom: 2.5cm, left: 2.5cm, right: 2.5cm),
     header: context {
-      let page-num = counter(page).get().first()
-      let is-divider = query(selector(label("part-entry")).or(selector(label("chapter-divider")))).any(it => it.location().page() == page-num)
-      if page-num > 1 and not is-divider {
+      let cur-page = here().page()
+      let is-cover = show-cover and query(label("cover-page")).any(it => it.location().page() == cur-page)
+      let is-divider = query(selector(label("part-divider")).or(selector(label("chapter-divider")))).any(it => it.location().page() == cur-page)
+      if show-header and not is-cover and not is-divider {
         let all-h = query(selector(heading.where(level: 1)))
         let chapter-h = all-h.filter(h => not (h.has("label") and (str(h.label) == "part-entry" or str(h.label) == "chapter-divider")))
-        let on-p = chapter-h.filter(h => h.location().page() == page-num)
-        let before-p = chapter-h.filter(h => h.location().page() < page-num)
+        let on-p = chapter-h.filter(h => h.location().page() == cur-page)
+        let before-p = chapter-h.filter(h => h.location().page() < cur-page)
         let active = if on-p.len() > 0 { on-p.first() } else if before-p.len() > 0 { before-p.last() } else { none }
-        let ch-title = if active != none and active.location().page() <= page-num { active.body } else { "" }
+        let ch-title = if active != none and active.location().page() <= cur-page { active.body } else { "" }
         grid(
           columns: (1fr, 1fr),
           align: (left + top, right + top),
@@ -107,10 +110,12 @@
       }
     },
     footer: context {
-      let page-num = counter(page).get().first()
-      let is-divider = query(selector(label("part-entry")).or(selector(label("chapter-divider")))).any(it => it.location().page() == page-num)
-      if page-num > 1 and not is-divider {
-        let total-pages = counter(page).final().first()
+      let cur-page = here().page()
+      let is-cover = show-cover and query(label("cover-page")).any(it => it.location().page() == cur-page)
+      let is-divider = query(selector(label("part-divider")).or(selector(label("chapter-divider")))).any(it => it.location().page() == cur-page)
+      if show-footer and not is-cover and not is-divider {
+        let doc-ends = query(label("doc-end"))
+        let total-pages = if doc-ends.len() > 0 { doc-ends.last().location().page() } else { 1 }
         line(length: 100%, stroke: 0.5pt + rgb("#cbd5e1"))
         v(-2pt)
         grid(
@@ -217,6 +222,7 @@
 
   // Render Cover Page if enabled
   if show-cover {
+    [#metadata("cover") <cover-page>]
     v(2cm)
     text(size: 26pt, weight: "bold", fill: rgb("#0f172a"))[#title]
     v(0.5em)
@@ -289,6 +295,7 @@
   }
 
   body
+  [#metadata("end") <doc-end>]
 }
 
 // Part Divider Page
@@ -301,6 +308,7 @@
   toc-title: "Inhalt dieses Abschnitts",
   toc-items: (),
 ) = {
+  [#metadata("part-divider") <part-divider>]
   v(3cm)
   text(size: 10pt, weight: "bold", fill: rgb("2563eb"), tracking: 0.1em)[#upper(tag)]
   v(0.3em)

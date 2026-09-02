@@ -446,9 +446,7 @@ with your own content -- nothing here is needed once you start writing.
 ## Build it
 
 ```bash
-markpublish build                 # PDF
-markpublish build --target html   # standalone HTML
-markpublish build --target all    # both
+markpublish build                 # PDF via Typst
 ```
 
 ## Look things up

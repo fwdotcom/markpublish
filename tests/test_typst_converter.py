@@ -2,7 +2,6 @@
 Tests for MarkdownToTypstConverter.
 """
 
-from markpublish.i18n import LabelMap
 from markpublish.markdown.typst_converter import MarkdownToTypstConverter, escape_typst_text, slugify_heading
 
 

@@ -8,7 +8,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from functools import cached_property
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import List
 
 from markpublish.config.models import MarkpublishConfig
 from markpublish.i18n import LabelMap, build_labels

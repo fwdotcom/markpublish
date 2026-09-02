@@ -11,8 +11,6 @@ import re
 from dataclasses import dataclass
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
-from markpublish.i18n import LabelMap
-
 
 def escape_typst_text(text: str) -> str:
     """
@@ -393,7 +391,7 @@ class MarkdownToTypstConverter:
             para_lines.append(line)
             i += 1
 
-        full_para = " ".join(l.strip() for l in para_lines)
+        full_para = " ".join(line_part.strip() for line_part in para_lines)
         return self._convert_inline(full_para), i
 
     def _is_list_item(self, line: str) -> bool:

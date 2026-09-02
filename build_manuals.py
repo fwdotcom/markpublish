@@ -39,7 +39,7 @@ def main(
             "-t",
             help="Ausgabeformat: 'pdf', 'html' oder 'all'.",
         ),
-    ] = "all",
+    ] = "pdf",
     output_dir: Annotated[
         Path,
         typer.Option(

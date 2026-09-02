@@ -17,13 +17,15 @@ from markpublish.config.models import (
     TocScope,
 )
 from markpublish.markdown.alerts import GitHubAlertsExtension
-from markpublish.markdown.assets import rewrite_html_asset_paths
 from markpublish.markdown.toc import (
     NumberingContext,
     TOCNode,
-    process_html_headings_and_toc,
 )
-from markpublish.markdown.typst_converter import MarkdownToTypstConverter
+from markpublish.markdown.typst_serializer import (
+    TypstSerializer,
+    html_to_tree,
+    process_tree_headings_and_toc,
+)
 
 #: Namen der String-Extensions. Der GitHubAlertsExtension wird pro Sprache
 #: instanziiert und deshalb erst in _build_default_extensions() vorangestellt --
@@ -127,6 +129,8 @@ class ContentItem:
         raw_markdown: str = "",
         document_toc: Any = None,
         typst_content: str = "",
+        element_tree: Any = None,
+        file_base_dir: Optional[Path] = None,
     ):
         self.title = title
         self.display_title = display_title
@@ -144,6 +148,8 @@ class ContentItem:
         self.raw_markdown = raw_markdown
         self.document_toc = document_toc
         self.typst_content = typst_content
+        self.element_tree = element_tree
+        self.file_base_dir = file_base_dir
         self.children: List[ContentItem] = []
 
     @property
@@ -284,28 +290,52 @@ class MarkdownPipeline:
             inherited_autonum_reset = part_cfg.autonum_reset
             inherited_pagenum_reset = effective_part_pagenum_reset
 
-            def _traverse_chapters(cfg_list: List[ChapterItem], level: int):
+            def _traverse_chapters(
+                cfg_list: List[ChapterItem],
+                level: int,
+                doc_toc=inherited_document_toc,
+                ch_toc=inherited_chapter_toc,
+                autonum=inherited_autonum,
+                from_level=inherited_autonum_from_level,
+                prefix=inherited_autonum_prefix,
+                autoreset=inherited_autonum_reset,
+                page_reset=inherited_pagenum_reset,
+                in_doc_toc=part_in_document_toc,
+                toc_children=part_toc_children,
+            ):
                 for ch_cfg in cfg_list:
                     ch_item, ch_toc_nodes = self._process_chapter(
                         ch_cfg,
                         base_level=level,
-                        inherited_document_toc=inherited_document_toc,
-                        inherited_chapter_toc=inherited_chapter_toc,
-                        inherited_autonum=inherited_autonum,
-                        inherited_autonum_from_level=inherited_autonum_from_level,
-                        inherited_autonum_prefix=inherited_autonum_prefix,
-                        inherited_autonum_reset=inherited_autonum_reset,
-                        inherited_pagenum_reset=inherited_pagenum_reset,
+                        inherited_document_toc=doc_toc,
+                        inherited_chapter_toc=ch_toc,
+                        inherited_autonum=autonum,
+                        inherited_autonum_from_level=from_level,
+                        inherited_autonum_prefix=prefix,
+                        inherited_autonum_reset=autoreset,
+                        inherited_pagenum_reset=page_reset,
                     )
                     content_items.append(ch_item)
-                    if part_in_document_toc:
-                        part_toc_children.extend(ch_toc_nodes)
+                    if in_doc_toc:
+                        toc_children.extend(ch_toc_nodes)
                     else:
                         global_toc_tree.extend(build_toc_tree(ch_toc_nodes))
 
                     sub_chapters = ch_cfg.get("chapters") if isinstance(ch_cfg, dict) else getattr(ch_cfg, "chapters", None)
                     if sub_chapters:
-                        _traverse_chapters(sub_chapters, level + 1)
+                        _traverse_chapters(
+                            sub_chapters,
+                            level + 1,
+                            doc_toc=doc_toc,
+                            ch_toc=ch_toc,
+                            autonum=autonum,
+                            from_level=from_level,
+                            prefix=prefix,
+                            autoreset=autoreset,
+                            page_reset=page_reset,
+                            in_doc_toc=in_doc_toc,
+                            toc_children=toc_children,
+                        )
 
             _traverse_chapters(part_cfg.chapters, 1)
 
@@ -416,15 +446,13 @@ class MarkdownPipeline:
         if effective_reset:
             self.numbering_ctx.reset_counters()
 
-        # Convert markdown to HTML
+        # Convert markdown to HTML via python-markdown (all extensions active)
         raw_html = self.engine.convert(raw_md) if raw_md else ""
 
-        # Rewrite asset paths
-        asset_html = rewrite_html_asset_paths(raw_html, file_base_dir)
-
-        # Process headings, numbering, and extract TOC
-        processed_html, toc_nodes = process_html_headings_and_toc(
-            asset_html,
+        # Parse HTML into ElementTree and process headings / numbering directly in the AST
+        tree = html_to_tree(raw_html)
+        toc_nodes = process_tree_headings_and_toc(
+            tree,
             self.numbering_ctx,
             autonum_override=autonum_override,
             base_level_offset=base_level - 1,
@@ -448,13 +476,17 @@ class MarkdownPipeline:
                     if chapter_level < n.level <= chapter_level + chapter_toc.max_depth - 1
                 ]
 
-        # Convert markdown to Typst with calculated numbering and slugs
-        typst_conv = MarkdownToTypstConverter(
+        # Convert ElementTree to Typst markup using the clean AST serializer
+        serializer = TypstSerializer(
+            base_level_offset=0,  # levels already adjusted during process_tree_headings_and_toc
+            file_base_dir=file_base_dir,
             labels=self.labels,
-            base_heading_level=base_level,
-            toc_nodes=toc_nodes,
         )
-        typst_content = typst_conv.convert(raw_md) if raw_md else ""
+        typst_content = serializer.serialize(tree) if raw_md else ""
+
+        # Produce enhanced HTML for html_content
+        import xml.etree.ElementTree as etree
+        processed_html = "".join(etree.tostring(child, encoding="unicode", method="html") for child in tree) if raw_md else ""
 
         item = ContentItem(
             title=display_title,
@@ -473,6 +505,8 @@ class MarkdownPipeline:
             raw_markdown=raw_md,
             document_toc=effective_document_toc,
             typst_content=typst_content,
+            element_tree=tree,
+            file_base_dir=file_base_dir,
         )
 
         # Beitrag zum Dokumentverzeichnis kuerzen
