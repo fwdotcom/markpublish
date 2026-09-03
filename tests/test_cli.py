@@ -92,7 +92,7 @@ def test_cli_cheatsheet_renders_into_the_working_directory(tmp_path: Path, monke
     assert not list(tmp_path.glob("*.yaml"))
 
 
-@pytest.mark.skip(reason="Cheatsheet layout will be updated after Typst migration")
+@pytest.mark.skip(reason="Cheatsheet page count is flexible")
 @pytest.mark.parametrize("lang", ["de", "en"])
 def test_cli_cheatsheet_stays_two_pages(tmp_path: Path, monkeypatch, lang):
     """

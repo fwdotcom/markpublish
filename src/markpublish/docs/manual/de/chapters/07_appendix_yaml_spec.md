@@ -50,7 +50,8 @@ Die Liste `parts:` unterteilt das Dokument in übergeordnete Abschnitte. Ein Abs
 
 | Schlüssel | Typ | Default | Beschreibung |
 | :--- | :--- | :--- | :--- |
-| `title` | String | *(Pflichtfeld)* | Name oder Titel des Abschnitts (z. B. „Hauptteil“, „Anhänge“). |
+| `title` / `part` | String | *(Pflichtfeld)* | Name oder Titel des Abschnitts (z. B. „Hauptteil“, „Anhänge“). |
+| `subtitle` | String | `None` | Untertitel des Abschnitts (erscheint auf der Trennseite). |
 | `summary` | String | `None` | Kurzbeschreibung des Abschnitts (erscheint auf der Trennseite). |
 | `break_before` | String | `"divider"` | Umbruchverhalten vor dem Abschnitt: `"divider"` (Trennseite), `"page"` (Seitenwechsel) oder `"none"`. |
 | `document_toc` | Scope | `None` | Überschreibt den Beitrag dieses Abschnitts zum Haupt-Inhaltsverzeichnis. |
@@ -72,9 +73,9 @@ Die Liste `chapters:` definiert die Inhaltsdateien. Kapitel können unter `parts
 | Schlüssel | Typ | Default | Beschreibung |
 | :--- | :--- | :--- | :--- |
 | `file` | String | `None` | Relativer Pfad zur Markdown-Datei (z. B. `"chapters/01_intro.md"`). |
-| `title` | String | `None` | Kapiteltitel (überschreibt bei Bedarf die erste H1-Überschrift der Datei). |
-| `subtitle` | String | `None` | Untertitel des Kapitels. |
-| `summary` | String | `None` | Kurzbeschreibung (wird auf Trennseiten oder im Inhaltsverzeichnis genutzt). |
+| `title` | String | `None` | Kapiteltitel (rein informativ in der YAML zur Orientierung; hat keinen Einfluss auf das generierte Dokument). |
+| `subtitle` | String | `None` | Untertitel des Kapitels (erscheint auf Trennseiten). |
+| `summary` | String | `None` | Kurzbeschreibung (wird auf Trennseiten genutzt). |
 | `break_before` | String | `"page"` | Umbruch vor dem Kapitel: `"page"` (neue Seite), `"divider"` (Trennseite) oder `"none"`. |
 | `document_toc` | Scope | `None` | Beitrag dieses Kapitels zum Hauptverzeichnis (`"none"`, `"full"`, Zahl). |
 | `chapter_toc` | Scope | `None` | Lokales Verzeichnis auf der Trennseite dieses Kapitels. |
@@ -83,7 +84,7 @@ Die Liste `chapters:` definiert die Inhaltsdateien. Kapitel können unter `parts
 | `autonum_prefix` | String | `None` | Präfix für Überschriftennummern dieses Kapitels. |
 | `autonum_reset` | Boolean | `None` | Setzt den Nummerierungszähler zu Beginn dieses Kapitels auf 1 zurück. |
 | `pagenum_reset` | Boolean | `None` | Setzt die Seitennummerierung zu Beginn dieses Kapitels auf 1 zurück. |
-| `chapters` | Liste | `[]` | Optionale Liste von hierarchisch untergeordneten Unterkapiteln. |
+| `chapters` | Liste | `[]` | Optionale Liste von weiteren Unterkapiteln (strukturiert die YAML; Gliederungstiefe entsteht ausschließlich aus den Überschriften der Datei). |
 
 > [!IMPORTANT]
 > Auf `parts:` und `chapters:` sind **nur** die hier aufgeführten Schlüssel erlaubt. Ein unbekannter Schlüssel bricht den Build ab und nennt, falls vorhanden, den ähnlich geschriebenen — `break_befor` also, bevor das Kapitel still mit dem falschen Umbruch gesetzt wird. Freie Felder gibt es ausschließlich unter `document:`; dort erreichen sie das Theme, hier blieben sie wirkungslos.

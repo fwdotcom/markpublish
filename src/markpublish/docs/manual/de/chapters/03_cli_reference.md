@@ -100,7 +100,7 @@ markpublish cheatsheet [OPTIONEN]
 
 ### Erläuterungen
 
-Wird beim Aufruf von `manual` oder `cheatsheet` keine Sprache mit `--lang` angegeben, ermittelt markpublish automatisch die Sprache Ihres Betriebssystems. Ist für diese Sprache keine Übersetzung vorhanden, wird auf Englisch zurückgegriffen.
+Wird beim Aufruf von `manual` oder `cheatsheet` keine Sprache mit `--lang` angegeben, ermittelt markpublish automatisch die Sprache Ihres Betriebssystems. Ist für diese Sprache keine Übersetzung vorhanden, wird auf die erste im Paket vorhandene Sprache zurückgegriffen (beim Handbuch derzeit `de`).
 
 Für eigene Dokumente gilt: Die Sprachwahl (`language: "de"`) in der `markpublish.yaml` steuert die statischen Textvariablen (wie „Inhaltsverzeichnis“, „Kapitel“, „Seite X von Y“). Diese müssen vom verwendeten Theme in dessen `i18n.yaml` bereitgestellt bzw. unterstützt werden.
 
@@ -133,7 +133,7 @@ markpublish templates [OPTIONEN]
 
 ### Erläuterungen
 
-Die Ausgabe erfolgt als tabellarische Übersicht mit Angabe von Theme-Name, Herkunftsebene (User, Project oder Package) und einem Status-Indikator, welches Theme bei einem Build aktiv verwendet wird.
+Die Ausgabe erfolgt als tabellarische Übersicht mit Angabe von Theme-Name, Herkunftsebene (User, Common oder Package) und einem Status-Indikator, welches Theme bei einem Build aktiv verwendet wird.
 
 ---
 

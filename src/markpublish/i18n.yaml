@@ -2,14 +2,17 @@
 # markpublish - Ebene 1 der i18n-Kaskade: die mitgelieferten Standardtexte.
 #
 # Diese Datei ist die einzige Ebene, die vollstaendig sein muss: jeder Schluessel
-# muss in jeder Sprache vorhanden sein. Die Ebenen 2 und 3 sind reine Overrides.
+# muss in jeder Sprache vorhanden sein.
 #
 #   1. Programm      diese Datei  (markpublish/i18n.yaml)
 #   2. Theme         <templates>/<theme>/i18n.yaml
 #   3. Zielformat    <templates>/<theme>/<target>/i18n.yaml
+#   4. Projekt       ./i18n.yaml  (neben der markpublish.yaml)
 #
 # Die Ebenen 2 bis 4 sind reine Overrides. Ebene 4 gehört dem Projekt:
 # sie erlaubt das Überschreiben von Texten und das Lokalisieren eigener freier
+# Metadatenfelder.
+#
 # Der Sonderschluessel "*" gilt fuer jede Sprache und wird vor dem
 # sprachspezifischen Block angewendet.
 # Eine neue Sprache ergaenzen Sie, indem Sie hier einen vollstaendigen Block

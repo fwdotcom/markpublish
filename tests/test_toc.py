@@ -725,3 +725,40 @@ parts:
     assert '<span class="heading-number">A.1</span> Ebene zwei' in app_a.html_content
     assert '<span class="heading-number">B.1</span> Ebene zwei' in app_b.html_content
 
+
+def test_chapter_document_toc_none_and_depth_limits(tmp_path: Path):
+    (tmp_path / "c1.md").write_text("# Kap 1\n## Unter 1.1\n### Detail 1.1.1\n", encoding="utf-8")
+    (tmp_path / "c2.md").write_text("# Kap 2\n## Unter 2.1\n", encoding="utf-8")
+    (tmp_path / "markpublish.yaml").write_text(
+        """\
+document:
+  title: "T"
+parts:
+  - title: "P"
+    break_before: "none"
+    chapters:
+      - file: "c1.md"
+        document_toc: 1
+      - file: "c2.md"
+        document_toc: "none"
+""",
+        encoding="utf-8",
+    )
+
+    config = load_config(tmp_path / "markpublish.yaml")
+    items, toc = MarkdownPipeline(config, base_dir=tmp_path, labels={}).process_document()
+
+    # c1 has document_toc: 1 -> H1 is in outline, H2 and H3 have outlined: false
+    c1 = items[0]
+    lines_c1 = [line for line in c1.typst_content.splitlines() if line.startswith("#heading")]
+    assert "outlined: false" not in lines_c1[0]  # Kap 1
+    assert "outlined: false" in lines_c1[1]      # Unter 1.1
+    assert "outlined: false" in lines_c1[2]      # Detail 1.1.1
+
+    # c2 has document_toc: "none" -> All headings have outlined: false
+    c2 = items[1]
+    lines_c2 = [line for line in c2.typst_content.splitlines() if line.startswith("#heading")]
+    assert "outlined: false" in lines_c2[0]      # Kap 2
+    assert "outlined: false" in lines_c2[1]      # Unter 2.1
+
+

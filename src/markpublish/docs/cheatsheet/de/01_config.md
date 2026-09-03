@@ -1,29 +1,7 @@
-<style>
-/* Eine Referenzkarte ist absichtlich dichter gesetzt als Fliesstext: nur so
-   bleiben beide Seiten vollstaendig. Der Block gilt nur fuer dieses Dokument -
-   auf eigene Builds hat er keine Wirkung. Farben, Schrift und Rahmen kommen
-   weiterhin aus dem Theme, hier wird ausschliesslich die Dichte geregelt.
-
-   Beide Uebersetzungen tragen denselben Block, bemessen an der laengeren:
-   deutscher Satz braucht fuer dieselbe Aussage rund ein Sechstel mehr Platz.
-   Wer hier lockerer setzt, verliert die zweite Seite - in einer Sprache.
-
-   8pt in den Tabellen ist die Untergrenze. Waechst das Schema weiter, ist
-   nicht die Schrift das Stellrad, sondern der Inhalt: die vollstaendige
-   Referenz steht in Anhang A des Handbuchs, hier nur, was man staendig
-   nachschlaegt. */
-.chapter-body table { margin: 0.4em 0; font-size: 8pt; }
-.chapter-body th, .chapter-body td { padding: 0.7mm 2.0mm; }
-.chapter-body h1 { margin-top: 0; margin-bottom: 0.3em; }
-.chapter-body h2 { margin-top: 0.75em; margin-bottom: 0.15em; }
-.chapter-body p { margin: 0.35em 0; }
-.chapter-body pre { margin: 0.4em 0; }
-</style>
-
 # markpublish.yaml
 
 Oberste Ebene: `document`, `theme`, `parts`, optional `templates_dir`. Pfade
-relativ zu dieser Datei. Bauen: `markpublish build [datei] -t pdf|html|all`.
+relativ zu dieser Datei. Bauen: `markpublish build [datei] -t pdf`.
 
 ## document
 
@@ -47,15 +25,16 @@ Zusatzfelder gehen über das Wörterbuch `meta` (`meta.at("mein_schluessel").val
 
 ## parts und chapters
 
-Genau zwei Stufen: `parts:` gliedert, `chapters:` trägt den Inhalt. Kapitel
-schachteln **nicht** weiter — Tiefe entsteht aus den Überschriften der Datei.
+Genau zwei Stufen: `parts:` gliedert, `chapters:` trägt den Inhalt. Tiefe entsteht
+ausschließlich aus den Überschriften der jeweiligen Markdown-Dateien.
 
 | Schlüssel | Gilt für | Bedeutung |
 | :--- | :--- | :--- |
 | `title` / `part` | Part | Name des Parts, Pflicht |
-| `chapters` | Part | Flache Liste der Kapitel, mindestens eines |
+| `chapters` | Part | Liste der Kapitel, mindestens eines |
 | `file` | Kapitel | Pfad zur Markdown-Datei |
-| `title` / `subtitle` / `summary` | beide | Überschreiben, was in der Datei steht |
+| `title` | Kapitel | Rein informativ in der YAML (ändert nichts am Dokument) |
+| `subtitle` / `summary` | beide | Untertitel und Kurzbeschreibung auf Trennseiten |
 | `break_before` | beide | `page`, `divider` (Trennseite) oder `none` |
 | `document_toc` | beide | Anteil am Verzeichnis vorn |
 | `part_toc` / `chapter_toc` | Part / Kapitel | Verzeichnis auf der Trennseite |

@@ -1,7 +1,7 @@
 # Templates und Themes
 
-Alles Sichtbare steckt in einem Theme: Seitenlayout, Stylesheet und statische
-Texte. Mitgeliefert wird eines, `default`, in den Varianten `pdf` und `html`.
+Alles Sichtbare steckt in einem Theme: Typografie, Seitenlayout und statische
+Texte. Mitgeliefert wird das Standard-Theme `default` für PDF.
 
 ## Wo ein Theme gesucht wird
 
@@ -35,7 +35,7 @@ die sie tatsächlich setzt.
 | :--- | :--- |
 | 1. Programm | `markpublish/i18n.yaml` |
 | 2. Theme | `<templates>/<theme>/i18n.yaml` |
-| 3. Zielformat | `<templates>/<theme>/<pdf\|html>/i18n.yaml` |
+| 3. Zielformat | `<templates>/<theme>/pdf/i18n.yaml` |
 | 4. Projekt | `./i18n.yaml` neben der `markpublish.yaml` |
 
 Jede Datei ist nach Sprachcode gegliedert; der Schlüssel `"*"` gilt für jede

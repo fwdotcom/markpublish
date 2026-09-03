@@ -12,7 +12,7 @@ import shutil
 import xml.etree.ElementTree as etree
 from html.parser import HTMLParser
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 from markpublish.config.models import AutonumStyle
 from markpublish.markdown.toc import NumberingContext, TOCNode
@@ -148,11 +148,13 @@ class TypstSerializer:
         file_base_dir: Optional[Path] = None,
         images_dir: Optional[Path] = None,
         labels: Optional[Dict[str, str]] = None,
+        allowed_toc_slugs: Optional[Set[str]] = None,
     ):
         self.base_level_offset = base_level_offset
         self.file_base_dir = file_base_dir
         self.images_dir = images_dir
         self.labels = labels or {}
+        self.allowed_toc_slugs = allowed_toc_slugs
         self.copied_images: Dict[str, str] = {}
         self.footnotes: Dict[str, str] = {}  # footnote_id -> typst_text
 
@@ -230,11 +232,15 @@ class TypstSerializer:
             content = self._visit_heading_content(elem)
             label_str = f" <{slug}>" if slug else ""
 
+            outlined_param = ""
+            if self.allowed_toc_slugs is not None and slug not in self.allowed_toc_slugs:
+                outlined_param = ", outlined: false"
+
             if number_prefix:
                 num_esc = typst_string(number_prefix)
-                return f'#heading(level: {effective_level}, numbering: (..nums) => "{num_esc}")[{content}]{label_str}\n'
+                return f'#heading(level: {effective_level}, numbering: (..nums) => "{num_esc}"{outlined_param})[{content}]{label_str}\n'
             else:
-                return f"#heading(level: {effective_level}, numbering: none)[{content}]{label_str}\n"
+                return f"#heading(level: {effective_level}, numbering: none{outlined_param})[{content}]{label_str}\n"
 
         # Paragraph
         if tag == "p":
@@ -293,16 +299,10 @@ class TypstSerializer:
             code_text = "".join(target.itertext())
             lang = ""
             if code_elem is not None:
-                # Class may specify language: class="language-python"
                 for c in code_elem.attrib.get("class", "").split():
                     if c.startswith("language-"):
                         lang = c[len("language-"):]
-                    elif c.startswith("highlight-"):
-                        lang = c[len("highlight-"):]
-            if not lang and "highlight" in elem.attrib.get("class", "").split():
-                for c in elem.attrib.get("class", "").split():
-                    if c.startswith("language-"):
-                        lang = c[len("language-"):]
+                        break
 
             # Calculate safe fence length (longer than any sequence of backticks in code)
             backticks_match = re.findall(r"`+", code_text)
@@ -416,6 +416,7 @@ class TypstSerializer:
                             cell_align = "left"
 
                     content = self._visit_children_inline(cell).strip()
+                    content = content.replace(r"\\|", "|")
                     row.append((content, is_th, cell_align or "left"))
             if row:
                 rows.append(row)
@@ -530,14 +531,14 @@ class TypstSerializer:
         """Translates standard LaTeX math macros into Typst math syntax."""
         res = math_text
 
-        # 1. Fractions: \frac{num}{den} -> ((num) / (den))
+        # 1. Fractions: \frac{num}{den} -> ({num}) / ({den})
         while r"\frac" in res:
             idx = res.find(r"\frac")
             arg1, end1 = cls._extract_braced(res, idx + 5)
             arg2, end2 = cls._extract_braced(res, end1)
             norm_arg1 = cls._normalize_math(arg1)
             norm_arg2 = cls._normalize_math(arg2)
-            res = res[:idx] + f"(({norm_arg1}) / ({norm_arg2}))" + res[end2:]
+            res = res[:idx] + f"({norm_arg1}) / ({norm_arg2})" + res[end2:]
 
         # 2. Roots: \sqrt[n]{x} -> root(n, x), \sqrt{x} -> sqrt(x)
         while r"\sqrt" in res:
@@ -600,6 +601,9 @@ class TypstSerializer:
             (r"\\leq(?![a-zA-Z])", "<="),
             (r"\\geq(?![a-zA-Z])", ">="),
             (r"\\neq(?![a-zA-Z])", "!="),
+            (r"\\le(?![a-zA-Z])", "<="),
+            (r"\\ge(?![a-zA-Z])", ">="),
+            (r"\\ne(?![a-zA-Z])", "!="),
             (r"\\approx(?![a-zA-Z])", "approx"),
             # Greek lowercase
             (r"\\alpha(?![a-zA-Z])", "alpha"),

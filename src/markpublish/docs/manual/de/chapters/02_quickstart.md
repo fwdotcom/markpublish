@@ -72,4 +72,4 @@ mein-dokument/
 
 *(Hinweis: Der Dateiname der Ausgabe leitet sich automatisch aus dem in der `markpublish.yaml` hinterlegten Dokumententitel ab; standardmäßig ist dies `New Document` $\rightarrow$ `new_document.pdf`.)*
 
-Öffnen Sie die Datei mit einem beliebigen PDF-Betrachter, um das Ergebnis zu begutachten. Das Dokument enthält die formatierte Einstiegsseite mit Kopf- und Fußzeilen. Sobald Ihr Dokument wächst, können Sie in der `markpublish.yaml` einfach `cover: true` und `document_toc: true` (oder eine Zahl für die Verzeichnistiefe) aktivieren, um ein gestaltetes Deckblatt und ein Inhaltsverzeichnis einzublenden.
+Öffnen Sie die Datei mit einem beliebigen PDF-Betrachter, um das Ergebnis zu begutachten. Das Dokument enthält die formatierte Einstiegsseite mit Kopf- und Fußzeilen. Sobald Ihr Dokument wächst, können Sie in der `markpublish.yaml` einfach `cover: true` und `document_toc: "full"` (oder eine Zahl für die Verzeichnistiefe) aktivieren, um ein gestaltetes Deckblatt und ein Inhaltsverzeichnis einzublenden.

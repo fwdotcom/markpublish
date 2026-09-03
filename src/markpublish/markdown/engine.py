@@ -484,11 +484,23 @@ class MarkdownPipeline:
                     if chapter_level < n.level <= chapter_level + chapter_toc.max_depth - 1
                 ]
 
+        # Beitrag zum Dokumentverzeichnis kuerzen
+        if effective_document_toc is None or effective_document_toc.max_depth is None:
+            global_toc_nodes = list(toc_nodes) if _document_toc_enabled(effective_document_toc) else []
+        elif not effective_document_toc.enabled:
+            global_toc_nodes = []
+        else:
+            max_level = base_level + effective_document_toc.max_depth - 1
+            global_toc_nodes = [n for n in toc_nodes if n.level <= max_level]
+
+        allowed_toc_slugs = {n.slug for n in global_toc_nodes} if toc_nodes else None
+
         # Convert ElementTree to Typst markup using the clean AST serializer
         serializer = TypstSerializer(
             base_level_offset=base_level - 1,
             file_base_dir=file_base_dir,
             labels=self.labels,
+            allowed_toc_slugs=allowed_toc_slugs,
         )
         typst_content = serializer.serialize(tree) if raw_md else ""
 
@@ -517,15 +529,6 @@ class MarkdownPipeline:
             file_base_dir=file_base_dir,
             base_level=base_level,
         )
-
-        # Beitrag zum Dokumentverzeichnis kuerzen
-        if effective_document_toc is None or effective_document_toc.max_depth is None:
-            global_toc_nodes = list(toc_nodes) if _document_toc_enabled(effective_document_toc) else []
-        elif not effective_document_toc.enabled:
-            global_toc_nodes = []
-        else:
-            max_level = base_level + effective_document_toc.max_depth - 1
-            global_toc_nodes = [n for n in toc_nodes if n.level <= max_level]
 
         return item, global_toc_nodes
 

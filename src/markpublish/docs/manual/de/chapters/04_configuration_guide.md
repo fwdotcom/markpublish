@@ -61,7 +61,7 @@ Ein Dokument wird durch `parts:` in übergeordnete Abschnitte gegliedert (z. B. 
 Die Liste `chapters:` innerhalb eines Abschnitts verweist auf die eigentlichen Markdown-Inhaltsdateien:
 * Jedes Kapitel besitzt einen Verweis auf die Markdown-Datei (`file:`), einen Titel (`title:`) sowie eine optionale Kurzbeschreibung (`summary:`).
 * Kapitel können über das Feld `break_before` steuern, ob vor ihnen eine Trennseite erzeugt wird, ein einfacher Seitenwechsel erfolgt oder der Text nahtlos anschließt.
-* Kapitel können hierarchisch geschachtelt werden, indem ein Kapitel selbst wiederum eine Liste von Unterkapiteln (`chapters:`) enthält.
+* Kapitel können untereinander angeordnet werden; die inhaltliche Nummerierungs- und Gliederungstiefe (1.1, 1.1.1) entsteht dabei ausschließlich aus den Überschriftenebenen (H2, H3) innerhalb der Markdown-Dateien.
 
 ---
 

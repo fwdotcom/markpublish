@@ -4,7 +4,7 @@ Dieser Anhang bietet konkrete Hilfestellungen bei typischen Problemen während d
 
 ## Diagnose von Kompilierungsfehlern
 
-Sollte ein Kompiliervorgang mit einer Fehlermeldung der Typst-Engine abbrechen, speichert markpublish den vollständig generierten Typst-Quellcode automatisch in Ihrem Projektverzeichnis:
+Sollte ein Kompiliervorgang mit einer Fehlermeldung der Typst-Engine abbrechen, speichert markpublish den vollständig generierten Typst-Quellcode automatisch im aktuellen Arbeitsverzeichnis:
 
 ```text
 .markpublish/last_failed_build.typ
