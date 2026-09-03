@@ -293,6 +293,40 @@ parts:
     assert 'value with "quotes"' in text
 
 
+def test_custom_metadata_with_project_i18n_renders_localized_label_on_cover(tmp_path: Path):
+    """
+    Tests that Level 4 project-level i18n.yaml provides the localized label
+    for a custom extra metadata field, and that the label appears on the PDF cover page.
+    """
+    yaml_text = """\
+document:
+  title: "Projektbericht"
+  language: "de"
+  cover: true
+  department: "F&E"
+parts:
+  - title: "Hauptteil"
+    break_before: "none"
+    chapters:
+      - file: "a.md"
+        title: "A"
+"""
+    # Project-level i18n.yaml
+    project_i18n = """\
+de:
+  department: "Fachabteilung"
+"""
+    (tmp_path / "i18n.yaml").write_text(project_i18n, encoding="utf-8")
+    a_md = "# Kapitel\n\nInhalt.\n"
+    out_pdf = _compile_pdf(tmp_path, yaml_text, {"a.md": a_md})
+    doc = pdfium.PdfDocument(out_pdf)
+    assert len(doc) >= 1
+    cover_text = doc[0].get_textpage().get_text_range()
+    assert "Fachabteilung" in cover_text, "Das lokalisierte Label aus der Projekt-i18n.yaml fehlt auf dem Deckblatt"
+    assert "F&E" in cover_text, "Der Metadatenwert fehlt auf dem Deckblatt"
+
+
+
 def test_the_theme_decides_the_order_of_the_cover_metadata(tmp_path: Path):
     """
     Die Reihenfolge im Metadatenraster ist Gestaltung und steht im Theme

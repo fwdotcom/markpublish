@@ -512,3 +512,69 @@ def test_default_theme_target_levels_stay_inert():
     """Ebene 3 ist reines Muster - PDF und HTML sollen gleich sprechen."""
     theme = resolve_template_path("pdf", "default").parent
     assert read_i18n_file(theme / "pdf") == {}
+
+
+# --------------------------------------------------------------------------
+# Ebene 4: Projekt-Ebene (./i18n.yaml neben markpublish.yaml)
+# --------------------------------------------------------------------------
+
+def test_project_level_overrides_builtin_and_theme_labels(tmp_path: Path):
+    """
+    Ebene 4 gewinnt ueber alle vorherigen Ebenen.
+    """
+    theme_dir = tmp_path / "theme"
+    write_i18n(theme_dir, 'de:\n  toc_title: "Themen-Inhalt"\n')
+
+    project_dir = tmp_path / "project"
+    write_i18n(project_dir, 'de:\n  toc_title: "Projekt-Inhaltsverzeichnis"\n')
+
+    labels = build_labels("de", template_dirs=[theme_dir, project_dir])
+    assert labels["toc_title"] == "Projekt-Inhaltsverzeichnis"
+
+
+def test_project_level_provides_labels_for_custom_metadata_fields(tmp_path: Path):
+    """
+    Ebene 4 versorgt freie Zusatzmetadaten des Dokuments mit Beschriftungen.
+    """
+    from markpublish.config.models import DocumentConfig
+    from markpublish.i18n import build_document_metadata
+
+    project_dir = tmp_path / "project"
+    write_i18n(
+        project_dir,
+        'de:\n  department: "Fachabteilung"\n  classification: "Vertraulichkeitsstufe"\n',
+    )
+
+    labels = build_labels("de", template_dirs=[project_dir])
+    doc = DocumentConfig(
+        title="Test",
+        department="F&E",
+        classification="Intern",
+    )
+
+    meta_entries = build_document_metadata(doc, labels)
+    assert meta_entries["department"].label == "Fachabteilung"
+    assert meta_entries["department"].value == "F&E"
+    assert meta_entries["classification"].label == "Vertraulichkeitsstufe"
+    assert meta_entries["classification"].value == "Intern"
+
+
+def test_project_level_reflected_in_describe_labels(tmp_path: Path):
+    """
+    describe_labels weist Ebene 4 als 'projekt' und ueberschrieben aus.
+    """
+    from markpublish.i18n import LEVEL_PROJECT
+
+    project_dir = tmp_path / "project"
+    write_i18n(project_dir, 'de:\n  department: "Fachbereich"\n')
+
+    resolved = describe_labels(
+        "de",
+        template_dirs=[project_dir],
+        level_names=[LEVEL_PROJECT],
+    )
+
+    assert "department" in resolved
+    assert resolved["department"]["value"] == "Fachbereich"
+    assert resolved["department"]["source"] == LEVEL_PROJECT
+    assert str(project_dir / "i18n.yaml") == resolved["department"]["path"]

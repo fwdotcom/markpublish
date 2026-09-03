@@ -891,3 +891,45 @@ def test_a_theme_helper_with_a_variable_key_is_not_called_unused(tmp_path: Path)
     by_key = {row.key: row for row in rows}
     assert by_key["version"].theme_usage is ThemeUsage.VALUE
     assert by_key["version"].status is not DiagnosisStatus.UNUSED
+
+
+def test_labels_command_with_project_i18n_identifies_project_source_and_ok_status(tmp_path: Path):
+    """
+    `markpublish labels` erkennt eine projektlokale i18n.yaml als Quelle 'projekt'.
+    """
+    from typer.testing import CliRunner
+
+    from markpublish.cli import app
+
+    (tmp_path / "markpublish.yaml").write_text(
+        """\
+document:
+  title: "Projekt"
+  language: "de"
+  department: "F&E"
+theme: "default"
+parts:
+  - title: "P"
+    break_before: "none"
+    chapters:
+      - file: "a.md"
+        title: "A"
+""",
+        encoding="utf-8",
+    )
+    (tmp_path / "a.md").write_text("# A\n\nText.\n", encoding="utf-8")
+    (tmp_path / "i18n.yaml").write_text(
+        """\
+de:
+  department: "Fachabteilung"
+""",
+        encoding="utf-8",
+    )
+
+    runner = CliRunner(env={"COLUMNS": "200"})
+    result = runner.invoke(app, ["labels", str(tmp_path / "markpublish.yaml")])
+    assert result.exit_code == 0
+    assert "department" in result.stdout
+    assert "Fachabteilung" in result.stdout
+    assert "projekt" in result.stdout
+    assert "OK" in result.stdout

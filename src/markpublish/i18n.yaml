@@ -8,13 +8,10 @@
 #   2. Theme         <templates>/<theme>/i18n.yaml
 #   3. Zielformat    <templates>/<theme>/<target>/i18n.yaml
 #
-# Mehr Ebenen gibt es nicht - ein Dokument kann keine Texte ueberschreiben.
-# Wer eigene Texte braucht, legt ein eigenes Theme an.
-#
-# Aufbau ist auf allen drei Ebenen identisch: Sprachcode, darunter die Texte.
+# Die Ebenen 2 bis 4 sind reine Overrides. Ebene 4 gehört dem Projekt:
+# sie erlaubt das Überschreiben von Texten und das Lokalisieren eigener freier
 # Der Sonderschluessel "*" gilt fuer jede Sprache und wird vor dem
 # sprachspezifischen Block angewendet.
-#
 # Eine neue Sprache ergaenzen Sie, indem Sie hier einen vollstaendigen Block
 # anlegen - alle Schluessel, die auch unter "en" stehen.
 # =============================================================================
