@@ -4,6 +4,7 @@ Pydantic data models for markpublish configuration.
 
 from __future__ import annotations
 
+import difflib
 from enum import Enum
 from typing import Any, List, Optional, Union
 
@@ -248,6 +249,47 @@ class DocumentConfig(BaseModel):
         return data
 
 
+def reject_unknown_keys(data: Any, model: type, where: str) -> Any:
+    """
+    Bricht bei einem Schluessel ab, den das Modell nicht kennt.
+
+    Fuer Teile und Kapitel gilt das Gegenteil von `document:`: dort sind freie
+    Felder eine Zusage -- sie erreichen das Theme und erscheinen im Dokument.
+    Hier erreichen sie nichts. Ein geschluckter Schluessel waere also kein
+    Feature, sondern ein stiller Verlust.
+
+    Teuer wird das bei den Strukturschluesseln. `break_befor: "divider"` -- ein
+    Buchstabe zu wenig -- liesse das Kapitel klaglos mit dem Standardumbruch
+    setzen; auffallen wuerde es beim Durchblaettern des fertigen PDFs, wenn
+    ueberhaupt. Deshalb steht hier ein Abbruch mit Namensvorschlag statt eines
+    Defaults.
+    """
+    if not isinstance(data, dict):
+        return data
+
+    known = set(getattr(model, "model_fields", {}))
+    unknown = [key for key in data if key not in known]
+    if not unknown:
+        return data
+
+    lines = []
+    for key in unknown:
+        close = difflib.get_close_matches(str(key), sorted(known), n=1, cutoff=0.7)
+        hint = f" -- meinten Sie '{close[0]}'?" if close else ""
+        lines.append(f"  '{key}'{hint}")
+
+    listed = "\n".join(lines)
+    single = len(unknown) == 1
+    raise ValueError(
+        f"{where} kennt {'diesen Schluessel' if single else 'diese Schluessel'} nicht:\n"
+        f"{listed}\n"
+        f"Erlaubt sind: {', '.join(sorted(known))}.\n"
+        f"Eigene Felder gibt es nur unter 'document:' -- dort erreichen sie das "
+        f"Theme und erscheinen im Dokument. Auf einem Kapitel oder Teil bliebe "
+        f"ein freies Feld wirkungslos."
+    )
+
+
 class ChapterItem(BaseModel):
     """
     Represents a single chapter (content markdown file).
@@ -273,10 +315,20 @@ class ChapterItem(BaseModel):
     autonum_prefix: Optional[str] = Field(default=None, description="Optional prefix for generated numbers; inherited downwards")
     autonum_reset: Optional[bool] = Field(default=None, description="Whether to reset counter at chapter start; inherited downwards")
     pagenum_reset: Optional[bool] = Field(default=None, description="Reset page numbers at chapter start")
+    # Unterkapitel. Bis eben trug sie `extra: allow` unbemerkt mit -- als rohe
+    # Dicts, an jeder Pruefung vorbei: ein Tippfehler in einem Unterkapitel
+    # fiel damit nirgends auf. Deklariert werden sie rekursiv geprueft wie
+    # die oberste Ebene auch.
+    chapters: List["ChapterItem"] = Field(
+        default_factory=list, description="Nested sub-chapters"
+    )
 
-    model_config = {
-        "extra": "allow"
-    }
+    model_config = ConfigDict(extra="forbid")
+
+    @model_validator(mode="before")
+    @classmethod
+    def reject_unknown_chapter_keys(cls, data: Any) -> Any:
+        return reject_unknown_keys(data, cls, "chapters")
 
     @field_validator("chapter_toc", mode="before")
     @classmethod
@@ -347,9 +399,12 @@ class PartItem(BaseModel):
     pagenum_reset: Optional[bool] = Field(default=None, description="Reset page numbers at the start of this part; inherited downwards")
     chapters: List[ChapterItem] = Field(default_factory=list, description="List of chapters in this part")
 
-    model_config = {
-        "extra": "allow"
-    }
+    model_config = ConfigDict(extra="forbid")
+
+    @model_validator(mode="before")
+    @classmethod
+    def reject_unknown_part_keys(cls, data: Any) -> Any:
+        return reject_unknown_keys(data, cls, "parts")
 
     @model_validator(mode="before")
     @classmethod

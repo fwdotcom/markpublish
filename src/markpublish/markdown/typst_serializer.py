@@ -29,6 +29,38 @@ def typst_string(value: Any) -> str:
     return text.replace("\\", "\\\\").replace('"', '\\"')
 
 
+def typst_value(value: Any) -> str:
+    """
+    Renders a Python value as the Typst literal of the *same* type.
+
+    `str()` on everything would ship Python spellings into the PDF: a YAML
+    `reviewed: true` printed as "True" -- English, capitalised, and a
+    programming-language token in the middle of a typeset page. A theme cannot
+    repair that, because by then the type is gone. So the type survives the
+    trip and the theme decides how to word it.
+    """
+    if value is None:
+        return "none"
+    if isinstance(value, bool):
+        # Before int: bool is a subclass of int in Python.
+        return "true" if value else "false"
+    if isinstance(value, int):
+        return str(value)
+    if isinstance(value, float):
+        # Typst has no NaN/inf literal; those fall back to text.
+        if value == value and value not in (float("inf"), float("-inf")):
+            return repr(value)
+        return f'"{typst_string(value)}"'
+    if isinstance(value, (list, tuple)):
+        items = [typst_value(item) for item in value]
+        if len(items) == 1:
+            # A one-element Typst array needs the trailing comma, or the
+            # parentheses read as grouping.
+            return f"({items[0]},)"
+        return "(" + ", ".join(items) + ")"
+    return f'"{typst_string(value)}"'
+
+
 def escape_typst_text(text: str) -> str:
     """
     Escapes plain text so that Typst does not interpret special markup characters.

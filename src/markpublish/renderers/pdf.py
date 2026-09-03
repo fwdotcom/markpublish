@@ -14,10 +14,16 @@ import typst
 
 from markpublish.i18n import (
     UndefinedLabelError,
+    UndefinedMetadataError,
     build_document_metadata,
     undefined_label_message,
+    undefined_metadata_message,
 )
-from markpublish.markdown.typst_serializer import TypstSerializer, typst_string
+from markpublish.markdown.typst_serializer import (
+    TypstSerializer,
+    typst_string,
+    typst_value,
+)
 from markpublish.renderers.base import BaseRenderer, DocumentContext
 from markpublish.templates.contract import (
     ThemeContractWarning,
@@ -125,6 +131,16 @@ class PDFRenderer(BaseRenderer):
             ]
             raise UndefinedLabelError("\n\n".join(blocks))
 
+        if report.missing_metadata:
+            # Eigene Meldung, nicht die der Labels: ein fehlendes Metadatum
+            # wird unter `document:` ergaenzt, nicht in einer i18n.yaml. Die
+            # Label-Meldung wuerde hier einen Weg weisen, der nicht hilft.
+            blocks = [
+                undefined_metadata_message(key, places, known_keys=meta_entries.keys())
+                for key, places in sorted(report.missing_metadata.items())
+            ]
+            raise UndefinedMetadataError("\n\n".join(blocks))
+
         if report.errors:
             raise RuntimeError(
                 "Theme und Aufruf passen nicht zusammen:\n"
@@ -144,24 +160,6 @@ class PDFRenderer(BaseRenderer):
         labels = context.labels
         lang_code = (doc.language or "de").split("-")[0].split("_")[0].lower()
 
-        authors_list: List[str] = []
-        if isinstance(doc.author, list):
-            authors_list = [str(a) for a in doc.author]
-        elif doc.author:
-            authors_list = [str(doc.author)]
-
-        authors_typst = ", ".join(f'"{typst_string(a)}"' for a in authors_list)
-        if len(authors_list) == 1:
-            authors_typst += ","
-
-        title_esc = typst_string(doc.title)
-        subtitle_esc = typst_string(doc.subtitle or "")
-        version_esc = typst_string(doc.version or "")
-        date_esc = typst_string(doc.date or "")
-        copyright_esc = typst_string(doc.copyright or "")
-        summary_esc = typst_string(doc.summary or "")
-        status_esc = typst_string(doc.status or "")
-
         show_header = getattr(doc, "header", True)
         show_footer = getattr(doc, "footer", True)
 
@@ -175,21 +173,19 @@ class PDFRenderer(BaseRenderer):
             labels_entries.append(f'    "{k_clean}": "{typst_string(v)}",')
         labels_str = "\n".join(labels_entries)
 
-        # Assemble unified metadata dict
+        # Saemtliche Dokumentangaben -- Kernfelder wie freie -- gehen als ein
+        # Woerterbuch an das Theme. Nicht zusaetzlich als Einzelparameter: zwei
+        # Wege zur selben Angabe koennen auseinanderlaufen, und jedes neue Feld
+        # muesste sonst wieder entscheiden, ob es auch einen Parameter bekommt.
         meta_entries = build_document_metadata(doc, labels)
         metadata_lines: List[str] = []
         for k, entry in meta_entries.items():
             k_clean = typst_string(str(k).replace("-", "_"))
-            val = entry.value
-            if isinstance(val, list):
-                val_escaped = "(" + ", ".join(f'"{typst_string(str(x))}"' for x in val) + ("," if len(val) == 1 else "") + ")"
-            elif val is None:
-                val_escaped = "none"
-            else:
-                val_escaped = f'"{typst_string(str(val))}"'
             lbl_escaped = f'"{typst_string(entry.label)}"' if entry.label else "none"
             metadata_lines.append(
-                f'    "{k_clean}": (key: "{k_clean}", label: {lbl_escaped}, value: {val_escaped}),'
+                f'    "{k_clean}": (key: "{k_clean}", label: {lbl_escaped}, '
+                f"value: {typst_value(entry.value)}, "
+                f"in-grid: {str(entry.in_grid).lower()}),"
             )
         metadata_str = "\n".join(metadata_lines)
 
@@ -197,16 +193,8 @@ class PDFRenderer(BaseRenderer):
             '#import "template.typ": *',
             "",
             "#show: doc => setup-document(",
-            f'  title: "{title_esc}",',
-            f'  subtitle: "{subtitle_esc}",',
-            f'  authors: ({authors_typst}),',
-            f'  version: "{version_esc}",',
-            f'  date: "{date_esc}",',
-            f'  copyright: "{copyright_esc}",',
-            f'  status: "{status_esc}",',
             f'  language: "{lang_code}",',
             f'  show-cover: {str(doc.cover).lower()},',
-            f'  summary: "{summary_esc}",',
             f'  show-toc: {str(doc.document_toc.enabled).lower()},',
             f'  toc-title: "{toc_title_esc}",',
             f'  toc-depth: {doc.document_toc.max_depth or 3},',

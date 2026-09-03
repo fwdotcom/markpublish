@@ -10,12 +10,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- **Unified Document Metadata Model (`meta`)**: All document metadata fields are grouped and passed as a structured Typst dictionary `meta: (key: (key: "...", label: "...", value: "..."))` to `setup-document`, allowing dynamic metadata rendering on title pages and support for custom extra fields without schema changes.
-- **Enhanced `markpublish labels` Diagnostics**: Extended 7-column diagnosis table showing theme usage (`key`, `wert`, `key/wert`), fallback values from templates, and pre-build detection of missing keys or undeclared metadata fields.
+- **Unified Document Metadata Model (`meta`)**: All document metadata is grouped into a structured Typst dictionary passed to `setup-document`. Each entry is a record — `(key, label, value, in-grid)` — so a theme can enumerate the metadata instead of knowing every field by name. Custom fields under `document:` reach the cover page without a schema change.
+- **Typed metadata values**: Values keep their YAML type on the way to Typst. A `reviewed: true` arrives as a Typst boolean, and the theme words it through the cascade (`bool_true` / `bool_false`, new in `i18n.yaml`) instead of printing Python's `True`.
+- **Project level in the i18n cascade**: An `i18n.yaml` next to `markpublish.yaml` is now the last and winning level. It is where a document names the captions of its own free metadata fields (`abteilung: "F&E"` under `document:` → `abteilung: "Abteilung"`), and it can override a theme text for a single document without forking the theme.
+- **Enhanced `markpublish labels` diagnostics**: The table now shows theme usage (`key`, `wert`, `key/wert`), the fallback a theme has notated, the document value, and a per-key diagnosis. It also reports a theme whose `setup-document` does not declare an argument markpublish sends — before the build, not during it.
+- **`UndefinedMetadataError`**: A theme reading a metadata key the document does not define now aborts with its own message, naming the exact file and line in the theme and pointing at `document:` in `markpublish.yaml`. Previously this ran through the label message and advised editing an `i18n.yaml`, which does not fix it.
 
 ### Changed
-- **Breaking: Theme Contract Signature**: Custom Typst themes now accept `meta: (:)` in `setup-document` (or use `..rest`).
-- **Heading Numbers in Headers**: Running headers now display chapter titles cleanly without leading numerical prefixes (e.g. `Introduction` instead of `1 Introduction`), while preserving leading acronyms like `API` or `CLI`.
+- **Breaking: theme contract signature**: Document metadata now reaches a theme *only* through `meta`. The individual parameters `title`, `subtitle`, `authors`, `version`, `date`, `copyright`, `status` and `summary` are no longer sent; `setup-document` must accept `meta: (:)` (or use `..rest`) and read them as `meta.at("title").value`. Two routes to the same value could drift apart, and every new field would otherwise have had to decide whether it also gets a parameter.
+- **Cover metadata order lives in the theme**: `cover-order` in `template.typ` decides the order of the metadata grid; keys it does not list — your own fields — follow behind in configuration order. The shipped order is unchanged (version, date, author, copyright, status), but it is now one editable line in the theme rather than a side effect of a constant in `i18n.py`.
+- **Heading numbers**: Headings carry their number in Typst's `numbering` property instead of inside the heading text. Running headers therefore show the plain chapter title, and no acronym (`API`, `CLI`) is mistaken for a numeral.
+- **`markpublish labels` shows the cascade again**: The `i18n-Quelle` column names the level that supplied each text — `mpub`, `theme`, `target`, `projekt` — and highlights the ones a theme or the project overrode. The language block is appended only where it differs from the document language (`(*)`, or a fall back to English). The footer resolves the short names to full paths. `--overridden` filters for exactly those overrides again — it had come to mean "hide what the theme does not read".
+- **`markpublish labels` summary**: Warnings are counted and reported; the all-clear line appears only when there is genuinely nothing to report.
+- **Unknown keys on `parts:` and `chapters:` are rejected**: Both accepted any field and dropped it — including `break_befor` instead of `break_before`, which silently set the chapter with the default break. Unknown keys now abort with the closest declared name as a suggestion. Free fields remain available under `document:`, where they reach the theme.
+- **`build_manuals.py` builds German only**: `--lang` selects the languages (`de` by default, `all` for every shipped translation), and the summary marks which documents this run actually wrote. A translation that is not currently maintained no longer gets rebuilt on every run and thereby made to look fresher than it is.
+
+### Fixed
+- **Nested sub-chapters are validated**: `chapters:` inside a chapter was carried along as an undeclared extra, so its contents passed unchecked — a typo in a sub-chapter reached nothing and was reported nowhere. It is now a declared field, validated recursively like the top level.
+- **A code sample is no longer read as a call**: The theme-contract check scanned the whole generated Typst source, so a ```` ```typst ```` block in a chapter — the manual has one showing `setup-document(...)` — was taken for a real call and produced phantom "undeclared parameter" errors. Raw blocks are now excluded.
+
+### Removed
+- **English manual sources**: The manual ships in German only for now; the English edition will be derived from it once the German one has settled. `manual/markpublish_user_guide.pdf` stays in the repository as the last built state.
+- **`label_overview()` / `LabelUsage`**: Superseded by `diagnose_labels_and_metadata()`, which the CLI actually uses.
+- **Legacy parameter detection in the theme contract**: The heuristic that guessed which core fields a theme set through its own parameters is gone with the parameters themselves.
 
 ## [2.0.0] - 2026-09-02
 

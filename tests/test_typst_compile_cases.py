@@ -293,3 +293,49 @@ parts:
     assert 'value with "quotes"' in text
 
 
+def test_the_theme_decides_the_order_of_the_cover_metadata(tmp_path: Path):
+    """
+    Die Reihenfolge im Metadatenraster ist Gestaltung und steht im Theme
+    (`cover-order` in template.typ) -- nicht in der Reihenfolge einer
+    Python-Konstante, wo sie niemand vermutet.
+
+    Geprueft wird am gesetzten Dokument, nicht am Quelltext: nur so faellt auf,
+    wenn die Sortierung wirkungslos wird.
+    """
+    yaml_text = """\
+document:
+  title: "Reihenfolge"
+  language: "de"
+  cover: true
+  document_toc: "none"
+  author: "AUTORNAME"
+  version: "VERSIONSNUMMER"
+  date: "DATUMSWERT"
+  copyright: "COPYRIGHTZEILE"
+  status: "STATUSWERT"
+  eigenes_feld: "FREIERWERT"
+parts:
+  - title: "P"
+    break_before: "none"
+    chapters:
+      - file: "a.md"
+        title: "A"
+"""
+    out_pdf = _compile_pdf(tmp_path, yaml_text, {"a.md": "# A\n\nText.\n"})
+    cover = pdfium.PdfDocument(out_pdf)[0].get_textpage().get_text_range()
+
+    # cover-order im mitgelieferten Theme: version, date, author, copyright,
+    # status -- und alles Freie dahinter.
+    expected = [
+        "VERSIONSNUMMER",
+        "DATUMSWERT",
+        "AUTORNAME",
+        "COPYRIGHTZEILE",
+        "STATUSWERT",
+        "FREIERWERT",
+    ]
+    positions = [cover.find(value) for value in expected]
+    assert all(p >= 0 for p in positions), f"nicht alle Werte gesetzt: {positions}"
+    assert positions == sorted(positions), (
+        f"Reihenfolge weicht ab: {list(zip(expected, positions, strict=True))}"
+    )

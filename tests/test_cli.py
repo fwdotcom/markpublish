@@ -141,20 +141,26 @@ def test_cli_cheatsheet_ignores_a_broken_project_theme(tmp_path: Path, monkeypat
     assert broken.exit_code != 0
 
 
-def test_cli_manual_renders_in_both_languages(tmp_path: Path, monkeypatch):
+def test_cli_manual_renders_in_every_shipped_language(tmp_path: Path, monkeypatch):
     """
-    Das Handbuch wird in beiden gepflegten Sprachen ausgeliefert. Bricht eine
-    davon, faellt es sonst erst auf, wenn jemand sie anfordert.
-    """
-    monkeypatch.chdir(tmp_path)
+    Jede mitgelieferte Uebersetzung muss durchlaufen. Bricht eine, faellt es
+    sonst erst auf, wenn jemand sie anfordert.
 
-    for lang in ("en", "de"):
+    Gefragt wird das Paket, nicht eine Liste hier: welche Sprachen es gibt,
+    entscheidet der Inhalt von docs/manual/.
+    """
+    from markpublish.cli import _available_doc_languages
+
+    monkeypatch.chdir(tmp_path)
+    shipped = _available_doc_languages("manual")
+    assert shipped, "kein mitgeliefertes Handbuch gefunden"
+
+    for lang in shipped:
         res = runner.invoke(app, ["manual", "--lang", lang])
         assert res.exit_code == 0, f"{lang}: {res.stdout}"
 
-    # Zwei Sprachen, zwei verschieden benannte Ergebnisse - der Dateiname kommt
-    # aus dem Titel, und der ist uebersetzt.
-    assert len(list(tmp_path.glob("*.pdf"))) == 2
+    # Je Sprache ein eigener Dateiname - er kommt aus dem uebersetzten Titel.
+    assert len(list(tmp_path.glob("*.pdf"))) == len(shipped)
 
 
 def test_cli_cheatsheet_renders_in_both_languages(tmp_path: Path, monkeypatch):
@@ -172,7 +178,6 @@ def test_cli_cheatsheet_renders_in_both_languages(tmp_path: Path, monkeypatch):
     "system_locale,expected",
     [
         ("de_DE.UTF-8", "benutzerhandbuch"),
-        ("en_US.UTF-8", "user_guide"),
         # Regionale Form ohne eigene Uebersetzung: die Basissprache greift.
         ("de_AT", "benutzerhandbuch"),
     ],
@@ -195,6 +200,22 @@ def test_cli_manual_follows_the_system_language(
     assert expected in produced[0].name
 
 
+def test_cli_cheatsheet_follows_the_system_language(tmp_path: Path, monkeypatch):
+    """
+    Dieselbe Erkennung an der Kurzreferenz, die in beiden Sprachen vorliegt --
+    seit das Handbuch nur noch auf Deutsch mitgeliefert wird, ist sie das
+    Dokument, an dem sich der englische Weg noch pruefen laesst.
+    """
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("LANGUAGE", "en_US.UTF-8")
+
+    assert runner.invoke(app, ["cheatsheet"]).exit_code == 0
+
+    produced = list(tmp_path.glob("*.pdf"))
+    assert len(produced) == 1
+    assert "benutzer" not in produced[0].name.lower()
+
+
 def test_cli_manual_falls_back_silently_for_an_unshipped_system_language(
     tmp_path: Path, monkeypatch
 ):
@@ -209,9 +230,7 @@ def test_cli_manual_falls_back_silently_for_an_unshipped_system_language(
     res = runner.invoke(app, ["manual"])
     assert res.exit_code == 0, res.stdout
 
-    produced = list(tmp_path.glob("*.pdf"))
-    assert len(produced) == 1
-    assert "user_guide" in produced[0].name
+    assert len(list(tmp_path.glob("*.pdf"))) == 1
     assert "not available in" not in res.stdout, (
         "Ein Hinweis gehoert nur zum ausdruecklichen --lang, nicht zur Erkennung"
     )
@@ -250,7 +269,9 @@ def test_bundled_documents_declare_the_languages_they_ship(tmp_path: Path):
     """
     from markpublish.cli import _available_doc_languages, get_bundled_doc_dir
 
-    assert _available_doc_languages("manual") == ["de", "en"]
+    # Das Handbuch wird auf Deutsch geschrieben; die englische Fassung
+    # entsteht daraus, wenn die deutsche steht.
+    assert _available_doc_languages("manual") == ["de"]
     assert _available_doc_languages("cheatsheet") == ["de", "en"]
 
     # Jede gemeldete Sprache hat auch wirklich Kapitel neben ihrem Manifest.

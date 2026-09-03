@@ -28,20 +28,29 @@ if sys.platform == "win32":
 from markpublish import __version__
 from markpublish.config.loader import load_config
 from markpublish.i18n import (
+    BUILTIN_I18N_PATH,
     I18N_FILENAME,
+    LEVEL_BUILTIN,
     LabelFileError,
     UndefinedLabelError,
+    UndefinedMetadataError,
     default_document_language,
     describe_labels,
     detect_system_language,
+    normalize_language,
 )
 from markpublish.markdown.engine import MarkdownPipeline
 from markpublish.markdown.toc import slugify
 from markpublish.renderers.base import DocumentContext
 from markpublish.renderers.pdf import PDFRenderer
 from markpublish.templates.contract import (
+    DiagnosisStatus,
+    Severity,
     ThemeContractWarning,
+    ThemeUsage,
+    check_theme_contract,
     diagnose_labels_and_metadata,
+    parse_sent_arguments,
     parse_theme_contract,
 )
 from markpublish.templates.resolver import (
@@ -317,6 +326,10 @@ def _render_document(
                 # samt durchsuchten Dateien nennt - die gehoert nicht hinter ein
                 # "Rendering error:" auf dieselbe Zeile gequetscht.
                 console.print(f"[bold red]Undefined label ({tgt}):[/bold red]")
+                console.print(str(e))
+                raise typer.Exit(code=1) from e
+            except UndefinedMetadataError as e:
+                console.print(f"[bold red]Undefined metadata ({tgt}):[/bold red]")
                 console.print(str(e))
                 raise typer.Exit(code=1) from e
             except Exception as e:
@@ -665,6 +678,31 @@ def export_template_cmd(
             console.print(f"[bold green][OK][/bold green] Exported [cyan]{theme}/{I18N_FILENAME}[/cyan] to [yellow]{dest_i18n}[/yellow]")
 
 
+
+#: Wie ein Befund in der Tabelle heisst. Der Text steht hier und nicht in
+#: contract.py: dort geht es darum, *was* der Fall ist, hier darum, wie es
+#: dasteht. Die Bilanz zaehlt ueber `Severity`, nicht ueber diese Zeichenketten.
+_STATUS_TEXT = {
+    DiagnosisStatus.OK: "[green]OK[/green]",
+    DiagnosisStatus.UNUSED: "[dim]ungenutzt[/dim]",
+    DiagnosisStatus.LABEL_MISSING: "[yellow]Label fehlt[/yellow]",
+    DiagnosisStatus.LABEL_FALLBACK: '[yellow]Label fehlt (Fallback: "{detail}")[/yellow]',
+    DiagnosisStatus.VALUE_MISSING: "[dim]Wert nicht gesetzt[/dim]",
+    DiagnosisStatus.VALUE_FALLBACK: '[yellow]Wert fehlt (Fallback: "{detail}")[/yellow]',
+    DiagnosisStatus.LABEL_AND_VALUE_FALLBACK: "[yellow]Label und Wert fehlen (Fallbacks greifen)[/yellow]",
+    DiagnosisStatus.LABEL_FALLBACK_VALUE_MISSING: '[yellow]Label fehlt (Fallback: "{detail}"), Wert fehlt[/yellow]',
+    DiagnosisStatus.LABEL_BREAKS: "[bold red]FEHLT: Label ohne Fallback![/bold red]",
+    DiagnosisStatus.META_KEY_UNKNOWN: "[bold red]FEHLT: Schlüssel unbekannt![/bold red]",
+    DiagnosisStatus.LABEL_AND_META_BREAK: "[bold red]FEHLT: Label und Schlüssel ohne Fallback![/bold red]",
+}
+
+
+def _status_text(row) -> str:
+    """Formuliert einen Befund fuer die Tabelle."""
+    template = _STATUS_TEXT.get(row.status, str(row.status.value))
+    return template.format(detail=row.status_detail or "")
+
+
 @app.command(name="labels")
 def labels_cmd(
     config_file: Path = typer.Argument(
@@ -685,15 +723,16 @@ def labels_cmd(
     only_overridden: bool = typer.Option(
         False,
         "--overridden",
-        help="Show only labels that a template or the document changed.",
+        help="Show only texts a theme layer overrode (errors stay visible).",
     ),
 ):
     """
     Shows the resolved static texts and which layer supplied each one.
 
     Cascade, later wins: markpublish/i18n.yaml -> <theme>/i18n.yaml ->
-    <theme>/<target>/i18n.yaml. The theme is the one the template
-    resolution picked; a document cannot override texts.
+    <theme>/<target>/i18n.yaml -> i18n.yaml next to markpublish.yaml. The
+    theme is the one the template resolution picked; the project level has
+    the last word and is where a document names its own free metadata fields.
     """
     if not config_file.exists():
         console.print(f"[bold red]Error:[/bold red] Configuration file '{config_file}' not found.")
@@ -737,9 +776,11 @@ def labels_cmd(
     )
 
     try:
+        levels = context.label_levels
         resolved = describe_labels(
             config.document.language,
-            template_dirs=context.label_source_dirs,
+            template_dirs=[directory for _, directory in levels],
+            level_names=[name for name, _ in levels],
         )
     except LabelFileError as e:
         console.print(f"[bold red]Label file error:[/bold red] {e}")
@@ -756,70 +797,116 @@ def labels_cmd(
 
     contract = parse_theme_contract(tmpl_path)
     rows = diagnose_labels_and_metadata(contract, config.document, resolved)
+    document_language = normalize_language(config.document.language)
+
+    # Ein Theme, das `meta:` nicht deklariert, bricht beim Bauen ab. Dieser
+    # Befehl soll das *vor* dem Bauen sagen. Geprueft wird gegen den echten
+    # Aufruf -- derselbe Weg wie im Renderer, damit hier keine zweite,
+    # nachzupflegende Parameterliste entsteht.
+    probe = PDFRenderer()._assemble_typst_document(context, tmpl_path)
+    signature_errors = check_theme_contract(contract, parse_sent_arguments(probe)).errors
 
     table = Table(show_header=True, header_style="bold blue")
     table.add_column("Key", style="bold", no_wrap=True)
     table.add_column("Theme-Nutzung", justify="center", no_wrap=True)
-    table.add_column("i18n-Label")
+    table.add_column("Label")
+    table.add_column("i18n-Quelle", no_wrap=True)
     table.add_column("Label-Fallback", style="dim")
     table.add_column("Wert")
     table.add_column("Wert-Fallback", style="dim")
-    table.add_column("Status", no_wrap=True)
+    table.add_column("Status")
 
-    breaking: List[str] = [row.key for row in rows if row.breaks_build]
-    warnings_list: List[str] = [
-        row.key for row in rows if "[yellow]" in row.status and not row.breaks_build and row.theme_usage != "-"
-    ]
-    unused: List[str] = [row.key for row in rows if row.theme_usage == "-"]
+    breaking = [row.key for row in rows if row.severity is Severity.ERROR]
+    warned = [row.key for row in rows if row.severity is Severity.WARNING]
+    unused = [row.key for row in rows if row.status is DiagnosisStatus.UNUSED]
 
     for row in rows:
-        if only_overridden and row.theme_usage == "-" and not row.breaks_build:
+        entry = resolved.get(row.key)
+        overridden = bool(entry) and entry["path"] != str(BUILTIN_I18N_PATH)
+
+        # `--overridden` heisst wieder, was es sagt: nur Zeilen, bei denen eine
+        # Theme-Ebene den Programmstandard ersetzt. Fehler bleiben immer
+        # sichtbar -- ein Filter, der einen Abbruch verschweigt, waere eine
+        # Falle.
+        if only_overridden and not overridden and row.severity is not Severity.ERROR:
             continue
 
-        lbl_display = row.i18n_label if row.i18n_label is not None else r"[red]\[fehlt!][/red]"
-        lbl_fallback_display = f'"{row.label_fallback}"' if row.label_fallback else "-"
-
-        val_display = row.value if row.value is not None else "[dim](nicht gesetzt)[/dim]"
-        val_fallback_display = row.value_fallback if row.value_fallback else "-"
-
-        if row.theme_usage in ("key", "wert", "key/wert"):
-            usage_display = f"[cyan]{row.theme_usage}[/cyan]"
+        if not row.applies_label:
+            lbl_display = "[dim]n/a[/dim]"
+        elif row.i18n_label is not None:
+            lbl_display = row.i18n_label
         else:
-            usage_display = "[dim]-[/dim]"
+            lbl_display = r"[red]\[fehlt!][/red]"
+
+        if not entry:
+            source_display = "[dim]-[/dim]"
+        else:
+            # Der Sprachblock steht nur dabei, wo er von der Dokumentsprache
+            # abweicht -- also beim Rueckfall auf die Fallback-Sprache oder bei
+            # "*". Sonst wiederholte jede Zeile, was im Kopf der Ausgabe steht.
+            name = entry["source"]
+            block = entry.get("language")
+            if block and block != document_language:
+                name = f"{name} ({block})"
+            style = "green" if overridden else "dim"
+            source_display = f"[{style}]{name}[/{style}]"
+
+        if not row.applies_value:
+            val_display = "[dim]n/a[/dim]"
+        elif row.value is not None:
+            val_display = row.value
+        else:
+            val_display = "[dim](nicht gesetzt)[/dim]"
+
+        usage_display = (
+            "[dim]-[/dim]"
+            if row.theme_usage is ThemeUsage.NONE
+            else f"[cyan]{row.theme_usage.value}[/cyan]"
+        )
 
         table.add_row(
             row.key,
             usage_display,
             lbl_display,
-            lbl_fallback_display,
+            source_display,
+            f'"{row.label_fallback}"' if row.label_fallback else "-",
             val_display,
-            val_fallback_display,
-            row.status,
+            row.value_fallback or "-",
+            _status_text(row),
         )
 
     console.print(table)
 
+    if signature_errors:
+        console.print("\n[bold red]Kritisch: Theme und Aufruf passen nicht zusammen:[/bold red]")
+        for message in signature_errors:
+            console.print(f"  {message}")
     if breaking:
         console.print(
-            f"\n[bold red]Kritisch: {len(breaking)} Schlüssel ohne Fallback im Theme -- Typst bricht ab:[/bold red] "
-            f"{', '.join(breaking)}"
+            f"\n[bold red]Kritisch: {len(breaking)} "
+            f"{'Schlüssel bricht' if len(breaking) == 1 else 'Schlüssel brechen'} "
+            f"den Build ab:[/bold red] {', '.join(breaking)}"
         )
-    if warnings_list:
+    if warned:
         console.print(
-            f"\n[yellow]Hinweis: {len(warnings_list)} Schlüssel/Labels haben Warnungen (Fallbacks greifen oder Label fehlt):[/yellow] "
-            f"{', '.join(warnings_list)}"
+            f"\n[yellow]Hinweis: bei {len(warned)} "
+            f"{'Schlüssel' if len(warned) == 1 else 'Schlüsseln'} greift ein Fallback "
+            f"oder fehlt die Beschriftung:[/yellow] {', '.join(warned)}"
         )
     if unused:
         console.print(
-            f"\n[dim]{len(unused)} Schlüssel werden vom Theme nicht verwendet:[/dim] "
+            f"\n[dim]{len(unused)} Schlüssel "
+            f"{'wird' if len(unused) == 1 else 'werden'} vom Theme nicht verwendet:[/dim] "
             f"{', '.join(unused)}"
         )
-    if not breaking and not warnings_list and not unused:
+    if not signature_errors and not breaking and not warned and not unused:
         console.print("\n[green]Alle Schlüssel und Labels sind vollständig aufeinander abgestimmt.[/green]")
 
-
-    searched = [str(d / I18N_FILENAME) for d in context.label_source_dirs]
-    console.print("\n[dim]Gesucht nach Overrides in:[/dim]")
-    for path_str in searched:
-        marker = "[green]gefunden[/green]" if Path(path_str).is_file() else "[dim]nicht vorhanden[/dim]"
-        console.print(f"  {path_str}  {marker}")
+    # Mit dem Ebenennamen davor: die Spalte oben nennt nur "theme" oder
+    # "projekt", hier steht, welche Datei das jeweils ist.
+    console.print("\n[dim]Die Kaskade, spätere Ebenen gewinnen:[/dim]")
+    console.print(f"  [bold]{LEVEL_BUILTIN:<8}[/bold] {BUILTIN_I18N_PATH}  [dim](Programmstandard)[/dim]")
+    for name, directory in levels:
+        path = directory / I18N_FILENAME
+        marker = "[green]gefunden[/green]" if path.is_file() else "[dim]nicht vorhanden[/dim]"
+        console.print(f"  [bold]{name:<8}[/bold] {path}  {marker}")

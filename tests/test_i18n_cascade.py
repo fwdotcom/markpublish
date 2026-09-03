@@ -185,10 +185,16 @@ def test_describe_labels_names_each_layer(tmp_path: Path):
     write_i18n(theme, 'de:\n  part: "Theme"\n')
     write_i18n(target, 'de:\n  chapter: "PDF"\n')
 
-    described = describe_labels("de", template_dirs=[theme, target])
-    assert described["toc_title"]["source"] == "i18n.yaml (de)"
+    described = describe_labels(
+        "de", template_dirs=[theme, target], level_names=["theme", "target"]
+    )
+    # Ebene und Sprachblock getrennt: die Anzeige nennt den Block nur, wo er
+    # von der Dokumentsprache abweicht.
+    assert described["toc_title"]["source"] == "mpub"
+    assert described["toc_title"]["language"] == "de"
+    assert described["part"]["source"] == "theme"
+    assert described["chapter"]["source"] == "target"
     assert described["toc_title"]["path"] == str(BUILTIN_I18N_PATH)
-    assert "i18n.yaml" in described["part"]["source"]
     assert described["part"]["path"] == str(theme / "i18n.yaml")
     assert described["chapter"]["path"] == str(target / "i18n.yaml")
     # Nicht ueberschriebene Texte bleiben beim Programm - jede Zeile der
@@ -265,7 +271,11 @@ def _render(tmp_path: Path, target: str = "pdf", extra: str = "") -> str:
     return "\n".join(doc[i].get_textpage().get_text_range() for i in range(len(doc)))
 
 
-def test_label_source_dirs_are_theme_then_target(tmp_path: Path):
+def test_label_source_dirs_are_theme_then_target_then_project(tmp_path: Path):
+    """
+    Die Kaskade endet im Projekt: dort und nur dort kann ein Dokument die
+    Beschriftung seiner eigenen freien Metadatenfelder hinschreiben.
+    """
     theme_dir = _project_with_theme(tmp_path)
     (tmp_path / "markpublish.yaml").write_text(
         YAML.format(theme="mytheme", extra=""), encoding="utf-8"
@@ -281,7 +291,7 @@ def test_label_source_dirs_are_theme_then_target(tmp_path: Path):
         base_dir=tmp_path,
         target="pdf",
     )
-    assert ctx.label_source_dirs == [theme_dir, theme_dir / "pdf"]
+    assert ctx.label_source_dirs == [theme_dir, theme_dir / "pdf", tmp_path.resolve()]
 
 
 def test_theme_labels_reach_the_rendered_pdf(tmp_path: Path):
@@ -432,9 +442,10 @@ def test_mapping_methods_are_not_mistaken_for_labels(tmp_path: Path):
 #: sonst waere jede Pruefung dagegen zirkulaer und eine leere Tabelle bestuende
 #: den Test.
 EXPECTED_KEYS = {
-    "toc_title", "toc_sidebar", "chapter_toc_title", "part_toc_title",
+    "toc_title", "chapter_toc_title", "part_toc_title",
     "chapter", "part",
     "author", "status", "version", "date", "copyright",
+    "bool_true", "bool_false",
     "page", "page_of",
     "alert_note", "alert_tip", "alert_important", "alert_warning", "alert_caution",
 }

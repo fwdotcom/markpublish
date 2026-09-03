@@ -27,6 +27,7 @@ from __future__ import annotations
 import difflib
 import re
 from dataclasses import dataclass, field
+from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple
 
@@ -76,9 +77,33 @@ _META_AT_RE = re.compile(
 #: `meta.foo` ohne `.at(`
 _META_FIELD_RE = re.compile(r"meta\s*\.\s*(?!at\b)(?P<key>[A-Za-z_][A-Za-z0-9_]*)")
 
+#: `meta.at(schluessel)` -- der Schluessel steht in einer Variablen, nicht als
+#: Literal. Welches Feld gemeint ist, laesst sich dann nicht mehr ablesen.
+#: Typisch fuer einen eigenen Helfer: `#let hole(meta, key) = meta.at(key)`.
+_META_AT_DYNAMIC_RE = re.compile(r"""meta\s*\.\s*at\s*\(\s*(?!["'])""")
+
+#: Was hinter einem `meta`-Zugriff steht: `.value` oder `.label`. Ohne diese
+#: Unterscheidung gaelte jeder Zugriff als Bedarf an *beidem*, und ein Theme,
+#: das nur den Wert setzt, bekaeme eine Warnung ueber eine Beschriftung, die es
+#: gar nicht liest.
+_META_FIELD_SUFFIX_RE = re.compile(r"^\s*\)?\s*\.\s*(?P<field>value|label)\b")
+
 _TYPST_DICT_METHODS = frozenset(
     {"len", "values", "keys", "at", "insert", "remove", "filter", "map"}
 )
+
+
+def _read_fields(line: str, after: int) -> Tuple[bool, bool]:
+    """
+    Sagt, ob ein `meta`-Zugriff die Beschriftung, den Wert oder beides nimmt.
+
+    Steht hinter dem Zugriff kein `.value`/`.label`, nimmt die Stelle den
+    ganzen Datensatz -- dann gilt beides.
+    """
+    match = _META_FIELD_SUFFIX_RE.match(line[after:])
+    if not match:
+        return True, True
+    return match.group("field") == "label", match.group("field") == "value"
 
 
 def _balanced(text: str, open_idx: int) -> Tuple[str, int]:
@@ -159,6 +184,27 @@ class LabelReference:
 
 
 @dataclass
+class MetaReference:
+    """
+    Eine Stelle im Theme, die eine Dokumentangabe liest.
+
+    Gleiche Form wie LabelReference und aus demselben Grund: ohne Datei und
+    Zeile kann die Abbruchmeldung die Fundstelle nur behaupten. Vorher war das
+    eine blosse Schluesselmenge, und die Meldung nannte pauschal `template.typ:1`.
+    """
+    key: str
+    path: Path
+    line: int
+    has_default: bool
+    default_value: Optional[str] = None
+    #: Liest die Stelle `.label`? Ohne erkennbares Feld gilt beides als
+    #: moeglich -- die Stelle nimmt den ganzen Datensatz.
+    reads_label: bool = True
+    #: Liest die Stelle `.value`?
+    reads_value: bool = True
+
+
+@dataclass
 class ThemeContract:
     """Was ein Theme anbietet: Funktionen samt Parametern und Label-Bedarf."""
     #: Pfad zum Theme-Verzeichnis oder zur Template-Datei
@@ -168,13 +214,53 @@ class ThemeContract:
     #: Funktionsname -> nimmt die Funktion beliebige weitere Argumente (`..rest`)?
     accepts_extra: Dict[str, bool] = field(default_factory=dict)
     label_references: List[LabelReference] = field(default_factory=list)
+    #: Zaehlt das Theme das `meta`-Dict auf, statt einzelne Schluessel zu nennen?
     has_meta_iteration: bool = False
-    meta_key_references: Set[str] = field(default_factory=set)
-    meta_val_references: Set[str] = field(default_factory=set)
-    meta_defaults: Dict[str, str] = field(default_factory=dict)
-
+    #: Greift das Theme mit einem Schluessel zu, der im Quelltext nicht steht
+    #: (`meta.at(key)` in einem eigenen Helfer)? Dann ist nicht ablesbar,
+    #: welche Angaben es liest -- "ungenutzt" waere dann eine Behauptung.
+    has_dynamic_meta_access: bool = False
+    #: Stellen, die einen Schluessel des `meta`-Dicts namentlich lesen.
+    meta_references: List[MetaReference] = field(default_factory=list)
     def declares(self, function: str) -> bool:
         return function in self.parameters
+
+    @property
+    def meta_keys(self) -> Set[str]:
+        """Jeder Schluessel, den das Theme namentlich aus `meta` liest."""
+        return {reference.key for reference in self.meta_references}
+
+    @property
+    def meta_label_keys(self) -> Set[str]:
+        """Schluessel, deren Beschriftung das Theme liest."""
+        return {r.key for r in self.meta_references if r.reads_label}
+
+    @property
+    def meta_value_keys(self) -> Set[str]:
+        """Schluessel, deren Wert das Theme liest."""
+        return {r.key for r in self.meta_references if r.reads_value}
+
+    @property
+    def meta_defaults(self) -> Dict[str, str]:
+        """Schluessel -> im Theme notierter Fallback, wo einer notiert ist."""
+        return {
+            reference.key: reference.default_value
+            for reference in self.meta_references
+            if reference.default_value
+        }
+
+    def meta_reads_without_default(self, key: str) -> List[MetaReference]:
+        """
+        Die Fundstellen, an denen `key` ohne Fallback gelesen wird.
+
+        Eine genuegt fuer den Abbruch -- gemeldet werden trotzdem alle, damit
+        niemand eine Stelle repariert und ueber die naechste stolpert.
+        """
+        return [
+            reference
+            for reference in self.meta_references
+            if reference.key == key and not reference.has_default
+        ]
 
 
 @dataclass
@@ -186,13 +272,19 @@ class ContractReport:
     warnings: List[str] = field(default_factory=list)
     #: Labels ohne Fallback, die keine Ebene aufloest -- fuer UndefinedLabelError.
     missing_labels: Dict[str, List[Tuple[Path, int]]] = field(default_factory=dict)
+    #: Metadatenschluessel ohne Fallback, die das Dokument nicht kennt.
+    #: Getrennt von `missing_labels`, weil die Abhilfe eine andere ist: hier
+    #: die markpublish.yaml, dort die i18n.yaml des Themes.
+    missing_metadata: Dict[str, List[Tuple[Path, int]]] = field(default_factory=dict)
 
     def __bool__(self) -> bool:
-        return bool(self.errors or self.warnings or self.missing_labels)
+        return bool(
+            self.errors or self.warnings or self.missing_labels or self.missing_metadata
+        )
 
     @property
     def passed(self) -> bool:
-        return not self.errors and not self.missing_labels
+        return not self.errors and not self.missing_labels and not self.missing_metadata
 
 
 def parse_theme_contract(template_path: Path) -> ThemeContract:
@@ -230,13 +322,13 @@ def parse_theme_contract(template_path: Path) -> ThemeContract:
             contract.parameters[name] = named
             contract.accepts_extra[name] = takes_extra
 
-        # Check if theme iterates dynamically over meta
+        # Zaehlt das Theme `meta` auf, statt Schluessel zu nennen?
         if re.search(r"\bmeta\s*\.\s*(?:values|filter|map|len)\b", source) or re.search(r"for\s+[^\n]+in\s+meta\b", source):
             contract.has_meta_iteration = True
 
-        for core_key in CORE_METADATA_KEYS:
-            if re.search(r"#(?:\([^\)]*\)\s*)?" + core_key + r"\b", source) or re.search(r"\b" + core_key + r"\s*!=\s*[\"']", source):
-                contract.meta_val_references.add(core_key)
+        # Greift es mit einem Schluessel zu, der hier nicht steht?
+        if _META_AT_DYNAMIC_RE.search(source):
+            contract.has_dynamic_meta_access = True
 
         for number, line in enumerate(source.splitlines(), start=1):
             for match in _LABEL_AT_RE.finditer(line):
@@ -267,19 +359,53 @@ def parse_theme_contract(template_path: Path) -> ThemeContract:
                 key = match.group("key")
                 if key in _TYPST_DICT_METHODS:
                     continue
-                contract.meta_val_references.add(key)
-                contract.meta_key_references.add(key)
                 def_val = match.group("def") or match.group("bare_def")
-                if def_val:
-                    contract.meta_defaults[key] = def_val.strip().strip("\"'")
+                reads_label, reads_value = _read_fields(line, match.end())
+                contract.meta_references.append(
+                    MetaReference(
+                        key=key,
+                        path=path,
+                        line=number,
+                        has_default=bool(match.group("rest")),
+                        default_value=def_val.strip().strip("\"'") if def_val else None,
+                        reads_label=reads_label,
+                        reads_value=reads_value,
+                    )
+                )
             for match in _META_FIELD_RE.finditer(line):
                 key = match.group("key")
                 if key in _TYPST_DICT_METHODS:
                     continue
-                contract.meta_val_references.add(key)
-                contract.meta_key_references.add(key)
+                reads_label, reads_value = _read_fields(line, match.end())
+                contract.meta_references.append(
+                    MetaReference(
+                        key=key,
+                        path=path,
+                        line=number,
+                        has_default=False,
+                        reads_label=reads_label,
+                        reads_value=reads_value,
+                    )
+                )
 
     return contract
+
+
+#: Typst-Codeblocks: ```...``` und `...`. Was darin steht, ist Text im
+#: fertigen PDF und kein Aufruf.
+_RAW_BLOCK_RE = re.compile(r"```.*?```|`[^`\n]*`", re.DOTALL)
+
+
+def strip_raw_blocks(source: str) -> str:
+    """
+    Entfernt Typst-Rohtextblocks, laesst die Zeilenzahl aber unveraendert.
+
+    Ein Dokument darf ueber markpublish schreiben. Das Handbuch tut es: sein
+    Theme-Kapitel zeigt eine `setup-document(...)`-Signatur in einem
+    Codeblock. Ohne diesen Schritt liest die Vertragspruefung das Beispiel als
+    echten Aufruf und meldet Parameter, die niemand sendet.
+    """
+    return _RAW_BLOCK_RE.sub(lambda m: re.sub(r"[^\n]", " ", m.group(0)), source)
 
 
 def parse_sent_arguments(main_typ: str) -> Dict[str, Set[str]]:
@@ -289,7 +415,11 @@ def parse_sent_arguments(main_typ: str) -> Dict[str, Set[str]]:
     Ausgewertet wird der tatsaechliche Aufruf statt einer zweiten, gepflegten
     Liste im Code -- eine solche Liste waere genau die Stelle, die beim
     naechsten neuen Parameter vergessen wird.
+
+    Codeblocks bleiben aussen vor: dort steht Inhalt des Dokuments, nicht
+    Aufruf an das Theme.
     """
+    main_typ = strip_raw_blocks(main_typ)
     sent: Dict[str, Set[str]] = {}
     for function in CONTRACT_FUNCTIONS:
         names: Set[str] = set()
@@ -415,12 +545,11 @@ def check_theme_contract(
                 )
 
     if meta_keys is not None:
-        for key in sorted(contract.meta_key_references):
-            if key in meta_keys or key in contract.meta_defaults:
+        for reference in contract.meta_references:
+            if reference.key in meta_keys or reference.has_default:
                 continue
-            file_loc = (contract.theme_path / "template.typ") if contract.theme_path else Path("template.typ")
-            report.missing_labels.setdefault(f"meta.{key}", []).append(
-                (file_loc, 1)
+            report.missing_metadata.setdefault(reference.key, []).append(
+                (reference.path, reference.line)
             )
 
     return report
@@ -463,69 +592,110 @@ def engine_labels() -> Set[str]:
     return set(ENGINE_LABELS) | alerts
 
 
-@dataclass
-class LabelUsage:
-    """Eine Zeile der Uebersicht."""
-    key: str
-    defined: bool
-    readers: Set[str] = field(default_factory=set)
-    #: Nur fuer Theme-Zugriffe: haengt ein `default:` dran?
-    has_fallback: bool = True
+# --------------------------------------------------------------------------
+# Diagnose: Theme, i18n-Kaskade und Dokument gegeneinander
+# --------------------------------------------------------------------------
+
+
+class ThemeUsage(str, Enum):
+    """Wofuer das Theme einen Schluessel braucht."""
+    NONE = "-"
+    KEY = "key"
+    VALUE = "wert"
+    BOTH = "key/wert"
+
+
+class Severity(str, Enum):
+    """Wie schwer ein Befund wiegt."""
+    OK = "ok"
+    INFO = "info"
+    WARNING = "warning"
+    ERROR = "error"
+
+
+class DiagnosisStatus(str, Enum):
+    """
+    Der Befund einer Zeile -- ein Wert, kein Satz.
+
+    Vorher stand hier fertiges Rich-Markup, und die Bilanz in der CLI musste
+    `"[yellow]" in status` fragen, um die Warnungen zu zaehlen. Eine
+    Farbaenderung haette damit die Zaehlung verschoben. Der Text gehoert in die
+    Anzeige, die Schwere hierher.
+    """
+    OK = "ok"
+    UNUSED = "unused"
+    LABEL_MISSING = "label_missing"
+    LABEL_FALLBACK = "label_fallback"
+    VALUE_MISSING = "value_missing"
+    VALUE_FALLBACK = "value_fallback"
+    LABEL_AND_VALUE_FALLBACK = "label_and_value_fallback"
+    LABEL_FALLBACK_VALUE_MISSING = "label_fallback_value_missing"
+    LABEL_BREAKS = "label_breaks"
+    META_KEY_UNKNOWN = "meta_key_unknown"
+    LABEL_AND_META_BREAK = "label_and_meta_break"
 
     @property
-    def used(self) -> bool:
-        return bool(self.readers)
+    def severity(self) -> "Severity":
+        if self in _ERROR_STATES:
+            return Severity.ERROR
+        if self in _WARNING_STATES:
+            return Severity.WARNING
+        if self in (DiagnosisStatus.UNUSED, DiagnosisStatus.VALUE_MISSING):
+            return Severity.INFO
+        return Severity.OK
 
-    @property
-    def breaks_build(self) -> bool:
-        """Ein gelesenes Label ohne Definition und ohne Fallback bricht ab."""
-        return self.used and not self.defined and not self.has_fallback
 
-
-def label_overview(
-    contract: ThemeContract,
-    defined_keys: Set[str],
-) -> List[LabelUsage]:
-    """
-    Fuehrt Kaskade und Verwendung zusammen.
-
-    Vier Faelle, und alle vier sind interessant:
-      definiert + gelesen    -> in Ordnung
-      definiert + ungelesen  -> Leerlauf; eine Uebersetzung, die niemand liest
-      gelesen + undefiniert  -> Luecke; leer im PDF oder Abbruch
-      weder noch             -> kommt nicht vor
-    """
-    rows: Dict[str, LabelUsage] = {
-        key: LabelUsage(key=key, defined=True) for key in defined_keys
+#: Befunde, bei denen Typst abbricht.
+_ERROR_STATES = frozenset(
+    {
+        DiagnosisStatus.LABEL_BREAKS,
+        DiagnosisStatus.META_KEY_UNKNOWN,
+        DiagnosisStatus.LABEL_AND_META_BREAK,
     }
+)
 
-    for key in engine_labels():
-        rows.setdefault(key, LabelUsage(key=key, defined=False))
-        rows[key].readers.add(READER_ENGINE)
-
-    for reference in contract.label_references:
-        row = rows.setdefault(
-            reference.key, LabelUsage(key=reference.key, defined=False)
-        )
-        row.readers.add(READER_THEME)
-        if not reference.has_default:
-            # Eine Fundstelle ohne Fallback genuegt fuer den Abbruch.
-            row.has_fallback = False
-
-    return [rows[key] for key in sorted(rows)]
+#: Befunde, bei denen der Build laeuft, aber etwas anderes im PDF steht als
+#: gedacht.
+_WARNING_STATES = frozenset(
+    {
+        DiagnosisStatus.LABEL_MISSING,
+        DiagnosisStatus.LABEL_FALLBACK,
+        DiagnosisStatus.VALUE_FALLBACK,
+        DiagnosisStatus.LABEL_AND_VALUE_FALLBACK,
+        DiagnosisStatus.LABEL_FALLBACK_VALUE_MISSING,
+    }
+)
 
 
 @dataclass
 class LabelDiagnosisRow:
-    """Eine Zeile der 7-Spalten Diagnose-Tabelle."""
+    """Eine Zeile der Diagnose -- Befund, nicht Darstellung."""
     key: str
-    theme_usage: str              # "key", "wert", "key/wert", "-"
-    i18n_label: Optional[str]     # z. B. "Autor" oder None
-    label_fallback: Optional[str] # z. B. "Autor" oder None
-    value: Optional[str]          # z. B. "Frank Winter" oder None
-    value_fallback: Optional[str] # z. B. "03.09.2026 (auto)" oder None
-    status: str                   # Diagnose-Meldung
-    breaks_build: bool = False    # Ob Typst abbrechen würde
+    theme_usage: ThemeUsage
+    #: Der aufgeloeste i18n-Text, oder None, wenn keine Ebene ihn kennt.
+    i18n_label: Optional[str]
+    #: Der im Theme notierte `default:` fuer das Label.
+    label_fallback: Optional[str]
+    #: Der Dokumentwert, oder None.
+    value: Optional[str]
+    value_fallback: Optional[str]
+    status: DiagnosisStatus
+    #: Der Fallback-Text, auf den sich der Status bezieht -- fuer die Anzeige.
+    status_detail: Optional[str] = None
+    #: Hat dieser Schluessel ueberhaupt einen Dokumentwert? Ein Label wie
+    #: `page_of` hat keinen; die Spalte bleibt dann leer statt "fehlt".
+    applies_value: bool = True
+    #: Hat dieser Schluessel eine Beschriftung? `title` wird nur als Wert
+    #: gesetzt, nicht beschriftet.
+    applies_label: bool = True
+
+    @property
+    def breaks_build(self) -> bool:
+        return self.status.severity is Severity.ERROR
+
+    @property
+    def severity(self) -> Severity:
+        return self.status.severity
 
 
 def diagnose_labels_and_metadata(
@@ -534,178 +704,188 @@ def diagnose_labels_and_metadata(
     resolved_labels: Dict[str, Dict[str, str]],
 ) -> List[LabelDiagnosisRow]:
     """
-    Diagnostiziert das Zusammenspiel von Theme, i18n-Labels und Dokument-Metadaten.
-    Erzeugt alle Zeilen fuer die 7-Spalten-Tabelle.
+    Haelt Theme, i18n-Kaskade und Dokument gegeneinander -- eine Zeile je
+    Schluessel, den mindestens eine der drei Seiten kennt.
+
+    Liefert Befunde. Wie sie heissen und welche Farbe sie tragen, entscheidet
+    die CLI.
     """
-    from markpublish.i18n import CORE_METADATA_KEYS, build_document_metadata
+    from markpublish.i18n import build_document_metadata
 
     flat_labels = {k: v.get("value", "") for k, v in resolved_labels.items()}
     meta_entries = build_document_metadata(document, flat_labels) if document else {}
 
-    # 1. Sammle alle Keys:
-    # - Alle Dokumenten-Metadaten (Kern- und Extra-Felder)
-    # - Alle definierten i18n-Labels
-    # - Alle vom Theme referenzierten Keys (auch wenn nirgends definiert!)
-    all_keys = set(meta_entries.keys()) | set(resolved_labels.keys())
-    for ref in contract.label_references:
-        all_keys.add(ref.key)
-    all_keys |= contract.meta_key_references
-    all_keys |= contract.meta_val_references
+    label_keys = {reference.key for reference in contract.label_references}
+    label_defaults = {
+        reference.key: reference.default_value
+        for reference in contract.label_references
+        if reference.default_value
+    }
+    meta_label_keys = contract.meta_label_keys
+    meta_value_keys = contract.meta_value_keys
+    meta_keys = contract.meta_keys
+    meta_defaults = contract.meta_defaults
+    engine = engine_labels()
+
+    all_keys = (
+        set(meta_entries)
+        | set(resolved_labels)
+        | label_keys
+        | meta_keys
+    )
 
     rows: List[LabelDiagnosisRow] = []
-
-    # Map von label_defaults aus dem Theme
-    label_defaults: Dict[str, str] = {}
-    for ref in contract.label_references:
-        if ref.default_value:
-            label_defaults[ref.key] = ref.default_value
-
     for key in sorted(all_keys):
-        # A. Theme-Nutzung: "key", "wert", "key/wert", "-"
-        uses_key = False
-        uses_val = False
+        entry = meta_entries.get(key)
+        # Ein Kernfeld ist auch dann bekannt, wenn dieses Dokument es nicht
+        # setzt: `meta.at("version")` findet den Schluessel, der Wert ist leer.
+        known_metadata = key in meta_entries or key in CORE_METADATA_KEYS
 
-        # Theme nutzt das Label/Key?
-        if any(r.key == key for r in contract.label_references):
-            uses_key = True
-        if key in contract.meta_key_references:
-            uses_key = True
-        if key in engine_labels():
-            uses_key = True
-        if contract.has_meta_iteration and key in meta_entries and key not in ("title", "subtitle", "summary"):
-            uses_key = True
+        # Zaehlt das Theme `meta` auf, erreicht es jede Angabe des Rasters --
+        # aber keine, die das Titelblatt oben setzt.
+        reached_by_iteration = (
+            contract.has_meta_iteration and entry is not None and entry.in_grid
+        )
 
-        # Theme nutzt den Dokumentwert?
-        if key in contract.meta_val_references:
-            uses_val = True
-        if contract.has_meta_iteration and key in meta_entries and key not in ("title", "subtitle", "summary"):
-            uses_val = True
+        uses_key = (
+            key in label_keys
+            or key in meta_label_keys
+            or key in engine
+            or reached_by_iteration
+        )
+        uses_value = (
+            key in meta_value_keys
+            or reached_by_iteration
+            # Der Zugriff steht im Theme, nur der Schluessel nicht. Lieber
+            # nichts behaupten als faelschlich "ungenutzt" melden.
+            or (contract.has_dynamic_meta_access and known_metadata)
+        )
 
-        if uses_key and uses_val:
-            theme_usage = "key/wert"
+        if uses_key and uses_value:
+            usage = ThemeUsage.BOTH
         elif uses_key:
-            theme_usage = "key"
-        elif uses_val:
-            theme_usage = "wert"
+            usage = ThemeUsage.KEY
+        elif uses_value:
+            usage = ThemeUsage.VALUE
         else:
-            theme_usage = "-"
+            usage = ThemeUsage.NONE
 
-        # B. i18n-Label
-        i18n_lbl = resolved_labels.get(key, {}).get("value")
+        i18n_label = resolved_labels.get(key, {}).get("value")
+        label_fallback = label_defaults.get(key)
 
-        # C. Label-Fallback
-        lbl_fallback = label_defaults.get(key)
+        value: Optional[str] = None
+        value_fallback: Optional[str] = meta_defaults.get(key)
+        if entry is not None and entry.value is not None and entry.value != "":
+            value = _format_value(entry.value, flat_labels)
+        if entry is not None and entry.is_default and value:
+            value_fallback = value
 
-        # D. Wert & Wert-Fallback
-        val: Optional[str] = None
-        val_fallback: Optional[str] = None
-        is_metadata_field = key in meta_entries or key in CORE_METADATA_KEYS
-
-        if is_metadata_field and meta_entries:
-            entry = meta_entries.get(key)
-            if entry and entry.value is not None and entry.value != "":
-                if isinstance(entry.value, list):
-                    val = ", ".join(str(x) for x in entry.value)
-                else:
-                    val = str(entry.value)
-            else:
-                val = None
-
-            if entry and entry.is_default:
-                val_fallback = f"{val} (auto)"
-            elif key in contract.meta_defaults:
-                val_fallback = contract.meta_defaults[key]
-        elif key in contract.meta_defaults:
-            val_fallback = contract.meta_defaults[key]
-
-        # E. Status-Berechnung
-        breaks_build = False
-
-        has_label_without_default = any(
-            r.key == key and not r.has_default for r in contract.label_references
+        # Bricht Typst ab, wenn die Seite fehlt? Nur ein Zugriff *ohne*
+        # `default:` tut das -- fuer Labels wie fuer Metadaten.
+        label_breaks = not i18n_label and any(
+            reference.key == key and not reference.has_default
+            for reference in contract.label_references
         )
-        has_meta_without_default = (
-            key in contract.meta_key_references and key not in contract.meta_defaults
+        meta_breaks = not known_metadata and bool(
+            contract.meta_reads_without_default(key)
         )
 
-        if theme_usage == "-":
-            status = "[dim]ungenutzt[/dim]"
-        elif theme_usage == "key":
-            if i18n_lbl:
-                status = "[green]OK[/green]"
-            elif lbl_fallback:
-                status = f'[yellow]Label fehlt (Fallback: "{lbl_fallback}")[/yellow]'
-            else:
-                status = "[bold red]FEHLT: Label ohne Fallback![/bold red]"
-                breaks_build = True
-        elif theme_usage == "wert":
-            if val is not None:
-                status = "[green]OK[/green]"
-            elif val_fallback:
-                status = f'[yellow]Wert fehlt (Fallback: "{val_fallback}")[/yellow]'
-            elif not is_metadata_field or has_meta_without_default:
-                status = "[bold red]FEHLT: Schluessel unbekannt![/bold red]"
-                breaks_build = True
-            else:
-                status = "[dim]Wert fehlt (bleibt leer)[/dim]"
-        else:  # "key/wert"
-            if (has_label_without_default and not i18n_lbl) and (has_meta_without_default and not is_metadata_field):
-                status = "[bold red]FEHLT: Key & Label ohne Fallback![/bold red]"
-                breaks_build = True
-            elif has_label_without_default and not i18n_lbl:
-                status = "[bold red]FEHLT: Label ohne Fallback![/bold red]"
-                breaks_build = True
-            elif has_meta_without_default and not is_metadata_field:
-                status = "[bold red]FEHLT: Schluessel unbekannt![/bold red]"
-                breaks_build = True
-            elif i18n_lbl and val is not None:
-                status = "[green]OK[/green]"
-            elif not i18n_lbl and val is not None:
-                if lbl_fallback:
-                    status = f'[yellow]Label fehlt (Fallback: "{lbl_fallback}")[/yellow]'
-                else:
-                    status = "[yellow]Label fehlt[/yellow]"
-            elif i18n_lbl and val is None:
-                if val_fallback:
-                    status = f'[yellow]Wert fehlt (Fallback: "{val_fallback}")[/yellow]'
-                else:
-                    status = "[dim]Wert fehlt (bleibt leer)[/dim]"
-            else:
-                if lbl_fallback and val_fallback:
-                    status = "[yellow]Key & Wert fehlen (Fallbacks greifen)[/yellow]"
-                elif lbl_fallback:
-                    status = f'[yellow]Label fehlt (Fallback: "{lbl_fallback}"), Wert fehlt[/yellow]'
-                elif val_fallback:
-                    status = f'[yellow]Wert fehlt (Fallback: "{val_fallback}"), Label fehlt[/yellow]'
-                elif not is_metadata_field:
-                    status = "[bold red]FEHLT: Schluessel unbekannt![/bold red]"
-                    breaks_build = True
-                else:
-                    status = "[dim]Wert nicht gesetzt[/dim]"
-
-        # Erst jetzt: Tabellen-Darstellung vorbereiten
-        if theme_usage == "key" or (not is_metadata_field and theme_usage == "-"):
-            display_val = "n/a"
-        else:
-            display_val = val
-
-        if theme_usage == "wert" and not i18n_lbl:
-            display_lbl = "n/a"
-        else:
-            display_lbl = i18n_lbl
+        status, detail = _classify(
+            usage=usage,
+            i18n_label=i18n_label,
+            label_fallback=label_fallback,
+            value=value,
+            value_fallback=value_fallback,
+            known_metadata=known_metadata,
+            label_breaks=label_breaks,
+            meta_breaks=meta_breaks,
+        )
 
         rows.append(
             LabelDiagnosisRow(
                 key=key,
-                theme_usage=theme_usage,
-                i18n_label=display_lbl,
-                label_fallback=lbl_fallback,
-                value=display_val,
-                value_fallback=val_fallback,
+                theme_usage=usage,
+                i18n_label=i18n_label,
+                label_fallback=label_fallback,
+                value=value,
+                value_fallback=value_fallback,
                 status=status,
-                breaks_build=breaks_build,
+                status_detail=detail,
+                applies_value=known_metadata and usage is not ThemeUsage.KEY,
+                applies_label=usage is not ThemeUsage.VALUE,
             )
         )
 
     return rows
 
+
+def _format_value(value: Any, labels: Dict[str, str]) -> str:
+    """
+    Bringt einen Dokumentwert in die Form, in der ihn das PDF zeigt.
+
+    Insbesondere Wahrheitswerte: seit sie ihren Typ behalten, druckt das Theme
+    "Ja"/"Yes" statt "True". Die Diagnose muss dasselbe zeigen -- sonst stuende
+    in der Tabelle etwas anderes als auf dem Titelblatt.
+    """
+    if isinstance(value, bool):
+        key = "bool_true" if value else "bool_false"
+        return labels.get(key) or ("Ja" if value else "Nein")
+    if isinstance(value, (list, tuple)):
+        return ", ".join(_format_value(item, labels) for item in value)
+    return str(value)
+
+
+def _classify(
+    *,
+    usage: ThemeUsage,
+    i18n_label: Optional[str],
+    label_fallback: Optional[str],
+    value: Optional[str],
+    value_fallback: Optional[str],
+    known_metadata: bool,
+    label_breaks: bool,
+    meta_breaks: bool,
+) -> Tuple[DiagnosisStatus, Optional[str]]:
+    """
+    Ordnet einer Zeile ihren Befund zu.
+
+    Die harten Faelle zuerst: was Typst abbrechen laesst, ueberdeckt jeden
+    weicheren Befund. Danach die beiden Haelften -- Beschriftung und Wert --
+    einzeln, statt in einer Kaskade aus Sonderfaellen, in der sich ein toter
+    Zweig verstecken kann.
+    """
+    if label_breaks and meta_breaks:
+        return DiagnosisStatus.LABEL_AND_META_BREAK, None
+    if label_breaks:
+        return DiagnosisStatus.LABEL_BREAKS, None
+    if meta_breaks:
+        return DiagnosisStatus.META_KEY_UNKNOWN, None
+
+    if usage is ThemeUsage.NONE:
+        return DiagnosisStatus.UNUSED, None
+
+    # "In Ordnung" heisst je Haelfte: entweder vorhanden, oder von diesem
+    # Schluessel gar nicht verlangt.
+    label_ok = bool(i18n_label) or usage is ThemeUsage.VALUE
+    value_ok = value is not None or usage is ThemeUsage.KEY or not known_metadata
+
+    if label_ok and value_ok:
+        return DiagnosisStatus.OK, None
+
+    if not label_ok and not value_ok:
+        if label_fallback and value_fallback:
+            return DiagnosisStatus.LABEL_AND_VALUE_FALLBACK, None
+        if label_fallback:
+            return DiagnosisStatus.LABEL_FALLBACK_VALUE_MISSING, label_fallback
+        if value_fallback:
+            return DiagnosisStatus.VALUE_FALLBACK, value_fallback
+        return DiagnosisStatus.LABEL_MISSING, None
+
+    if not label_ok:
+        if label_fallback:
+            return DiagnosisStatus.LABEL_FALLBACK, label_fallback
+        return DiagnosisStatus.LABEL_MISSING, None
+
+    if value_fallback:
+        return DiagnosisStatus.VALUE_FALLBACK, value_fallback
+    return DiagnosisStatus.VALUE_MISSING, None

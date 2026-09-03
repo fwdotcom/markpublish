@@ -85,6 +85,9 @@ Die Liste `chapters:` definiert die Inhaltsdateien. Kapitel können unter `parts
 | `pagenum_reset` | Boolean | `None` | Setzt die Seitennummerierung zu Beginn dieses Kapitels auf 1 zurück. |
 | `chapters` | Liste | `[]` | Optionale Liste von hierarchisch untergeordneten Unterkapiteln. |
 
+> [!IMPORTANT]
+> Auf `parts:` und `chapters:` sind **nur** die hier aufgeführten Schlüssel erlaubt. Ein unbekannter Schlüssel bricht den Build ab und nennt, falls vorhanden, den ähnlich geschriebenen — `break_befor` also, bevor das Kapitel still mit dem falschen Umbruch gesetzt wird. Freie Felder gibt es ausschließlich unter `document:`; dort erreichen sie das Theme, hier blieben sie wirkungslos.
+
 ---
 
 ## Verzeichnis-Steuerung (Scope-Werte)

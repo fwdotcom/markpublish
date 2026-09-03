@@ -23,7 +23,7 @@ templates/
     ├── i18n.yaml            # Übergreifende Beschriftungen des Themes
     └── pdf/
         ├── template.typ     # Typst-Layoutvorlage für das PDF
-        ├── i18n.yaml        # Formatspezifische Beschriftungen (höchste Priorität)
+        ├── i18n.yaml        # Formatspezifische Beschriftungen des Themes
         ├── fonts/           # Optionale Schriftdateien (z. B. .ttf, .otf)
         └── assets/          # Statische Grafiken, Logos und Icons
             └── icons/
@@ -44,15 +44,15 @@ Die Datei `template.typ` definiert das Gesamterscheinungsbild des Dokuments. Ein
 // template.typ (Auszug)
 
 #let setup-document(
-  title: "",
-  subtitle: "",
-  authors: (),
-  version: "",
-  date: "",
+  language: "de",
+  show-cover: true,
+  show-toc: true,
+  toc-title: "Inhaltsverzeichnis",
   meta: (:),
   labels: (:),
   body
 ) = {
+  let title = meta.at("title").value
   // Grundlegende Seiteneigenschaften
   set page(
     paper: "a4",
@@ -77,6 +77,57 @@ Die Datei `template.typ` definiert das Gesamterscheinungsbild des Dokuments. Ein
 }
 ```
 
+### Das `meta`-Wörterbuch
+
+Sämtliche Dokumentangaben erreichen `setup-document` über das Wörterbuch `meta` — Titel und Version genauso wie ein frei ergänztes `abteilung:`. Eigene Parameter dafür gibt es nicht: zwei Wege zur selben Angabe können auseinanderlaufen. Jeder Eintrag ist ein Datensatz mit vier Feldern:
+
+```typst
+meta.at("author")
+// -> (key: "author", label: "Autor", value: "Frank Winter", in-grid: true)
+```
+
+| Feld | Bedeutung |
+|---|---|
+| `key` | Der Schlüssel aus der `markpublish.yaml` |
+| `label` | Die Beschriftung aus der i18n-Kaskade, oder `none` |
+| `value` | Der Wert — **mit seinem Typ**: Text, Zahl, Wahrheitswert oder Liste |
+| `in-grid` | `false` für Titel, Untertitel und Summary; sie stehen oben auf dem Deckblatt und gehören nicht noch einmal ins Metadatenraster |
+
+Der Vorteil: Das Theme muss nicht wissen, welche Felder es gibt. Es zählt auf, was da ist — und erreicht damit auch die eigenen Felder, die ein Dokument unter `document:` ergänzt:
+
+```typst
+for item in meta.values().filter(it => it.in-grid and it.value != none) {
+  [#if item.label != none { item.label } else { item.key }: #item.value]
+}
+```
+
+### Reihenfolge auf dem Titelblatt
+
+Welche Angabe im Metadatenraster zuerst steht, entscheidet das Theme — eine Zeile in `template.typ`:
+
+```typst
+#let cover-order = ("version", "date", "author", "copyright", "status")
+```
+
+Schlüssel, die dort nicht vorkommen — Ihre eigenen Felder aus der `markpublish.yaml` —, folgen dahinter in der Reihenfolge der Konfiguration. Ändern Sie die Zeile, ändert sich das Titelblatt; markpublish reicht die Angaben nur weiter und mischt sich nicht ein.
+
+> [!IMPORTANT]
+> `meta.at("kunde")` **ohne** `default:` bricht den Build ab, wenn das Dokument den Schlüssel nicht kennt. markpublish meldet das vorher mit Fundstelle und Abhilfe; `markpublish labels` zeigt es ebenfalls an. Wer eine Angabe optional halten will, notiert einen Fallback: `meta.at("kunde", default: (value: ""))`.
+
+Weil der Typ erhalten bleibt, entscheidet das Theme über die Schreibweise. Ein Wahrheitswert wird über die Kaskade formuliert statt als `true` gedruckt:
+
+```typst
+#let meta-value(value, labels) = {
+  if type(value) == bool {
+    if value { labels.at("bool_true", default: "Ja") } else { labels.at("bool_false", default: "Nein") }
+  } else if type(value) == array {
+    value.map(v => str(v)).join(", ")
+  } else {
+    str(value)
+  }
+}
+```
+
 ## Eigene Themes erstellen und anpassen
 
 Der einfachste und sicherste Weg zur Erstellung eines eigenen Corporate Designs ist der Export des integrierten Standard-Themes:
@@ -95,13 +146,16 @@ Professionelle Dokumente enthalten eine Vielzahl statischer Texte, die nicht aus
 
 markpublish verwaltet diese Texte über ein Kaskadensystem in `i18n.yaml`-Dateien.
 
-### Die 3-stufige Beschriftungskaskade
+### Die 4-stufige Beschriftungskaskade
 
 Bei der Auflösung eines Textschlüssels (z. B. `toc_title`) sucht markpublish in folgender Reihenfolge – spätere Fundstellen überschreiben frühere:
 
 1. **Paket-Basis (`markpublish/i18n.yaml`):** Vollständige Standardbeschriftungen für alle unterstützten Sprachen.
 2. **Theme-Ebene (`<theme>/i18n.yaml`):** Themes können eigene Formulierungen oder Bezeichnungen definieren.
-3. **Format-Ebene (`<theme>/pdf/i18n.yaml`):** Formatspezifische Anpassungen mit höchster Priorität.
+3. **Format-Ebene (`<theme>/pdf/i18n.yaml`):** Formatspezifische Anpassungen des Themes.
+4. **Projekt-Ebene (`i18n.yaml` neben der `markpublish.yaml`):** Texte dieses einen Dokuments — mit höchster Priorität.
+
+Die Projekt-Ebene ist der Ort für die Beschriftung eigener Metadatenfelder: Wer unter `document:` ein `abteilung: "F&E"` notiert, schreibt hier `abteilung: "Abteilung"` dazu. Ohne diesen Eintrag druckt das Deckblatt den Schlüssel selbst. Sie können damit auch einen Text des Themes für ein einzelnes Dokument ersetzen, ohne das Theme zu kopieren.
 
 ### Aufbau der i18n.yaml
 

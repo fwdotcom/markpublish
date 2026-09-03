@@ -1,20 +1,27 @@
 """
 Aufloesung der statischen Texte (Labels) fuer Templates und Stylesheets.
 
-Ein Schluessel pro Text, aufgeloest ueber eine Kaskade aus drei Ebenen. Jede
+Ein Schluessel pro Text, aufgeloest ueber eine Kaskade aus vier Ebenen. Jede
 tiefere Ebene ueberschreibt die daruber liegende -- und zwar nur die
 Schluessel, die sie tatsaechlich setzt:
 
     1. Programm      markpublish/i18n.yaml
     2. Theme         <templates>/<theme>/i18n.yaml
     3. Zielformat    <templates>/<theme>/<target>/i18n.yaml
+    4. Projekt       i18n.yaml neben der markpublish.yaml
 
 Die Ebenen 2 und 3 stammen immer aus genau einem Theme: welches Template gilt,
 entscheidet vorher die Aufloesung (User > Projekt > Paket). Gemischt wird nur
 dieses eine Theme mit dem Programmstandard -- ein Projekt-Theme erbt nicht die
 Texte des gleichnamigen Paket-Themes.
 
-Alle drei Ebenen sind identisch aufgebaut: Sprachcode auf oberster Ebene,
+Ebene 4 gehoert dem Dokument. Sie ist da, weil `document:` beliebige eigene
+Felder aufnimmt (`abteilung: "F&E"`) und deren Beschriftung sonst nirgends
+stuende -- das Deckblatt druckte den rohen Schluessel. Sie darf auch Texte des
+Themes ersetzen: wer eine einzelne Ueberschrift fuer ein Dokument anders haben
+will, soll dafuer kein Theme forken muessen.
+
+Alle Ebenen sind identisch aufgebaut: Sprachcode auf oberster Ebene,
 darunter die Texte.
 
     de:
@@ -29,7 +36,7 @@ von der Sprache gleich heissen sollen.
 
 Ebene 1 muss vollstaendig sein; sie legt zusaetzlich die Fallback-Sprache unter
 die Dokumentsprache, damit jeder Programmtext garantiert aufloest. Die Ebenen 2
-und 3 greifen nur fuer die gewaehlte Sprache, damit die englischen Texte eines
+bis 4 greifen nur fuer die gewaehlte Sprache, damit die englischen Texte eines
 Themes nicht in eine deutsche Ausgabe durchschlagen.
 
 Ein Theme darf eigene Schluessel definieren, die das Programm nicht kennt --
@@ -45,6 +52,7 @@ das Stylesheet ebenso -- `styles.css` laeuft durch dieselbe Jinja-Umgebung.
 
 from __future__ import annotations
 
+import difflib
 import locale
 import os
 import re
@@ -61,7 +69,7 @@ import yaml
 #: niemals einen leeren Text erzeugt.
 FALLBACK_LANGUAGE = "en"
 
-#: Dateiname der Ebenen 1-3.
+#: Dateiname jeder Ebene der Kaskade.
 I18N_FILENAME = "i18n.yaml"
 
 #: Sprachcode, der auf jede Sprache angewendet wird.
@@ -69,6 +77,13 @@ ANY_LANGUAGE = "*"
 
 #: Ebene 1, mitgeliefert im Paket.
 BUILTIN_I18N_PATH = Path(__file__).resolve().parent / I18N_FILENAME
+
+#: Kurznamen der Ebenen -- fuer die Anzeige in `markpublish labels`. Kurz, weil
+#: die Spalte in jeder Zeile steht; der volle Pfad steht darunter im Fuss.
+LEVEL_BUILTIN = "mpub"
+LEVEL_THEME = "theme"
+LEVEL_TARGET = "target"
+LEVEL_PROJECT = "projekt"
 
 
 class LabelFileError(ValueError):
@@ -81,6 +96,17 @@ class UndefinedLabelError(ValueError):
 
     Aborting is the point: the alternative is an empty string in the finished
     PDF, which nobody notices until a reader does.
+    """
+
+
+class UndefinedMetadataError(ValueError):
+    """
+    Raised when a theme reads a metadata key the document does not define.
+
+    Separate from UndefinedLabelError because the remedy differs: a label is
+    added to a theme's i18n.yaml, a metadata key under `document:` in the
+    markpublish.yaml. One shared message would send half the readers the
+    wrong way.
     """
 
 
@@ -323,7 +349,7 @@ def build_labels(
     merged.update(LABELS.get(ANY_LANGUAGE, {}))
     merged.update(LABELS[normalize_language(language)])
 
-    # Ebene 2 und 3
+    # Ebene 2 bis 4
     for directory in template_dirs:
         _apply_level(merged, read_i18n_file(directory), candidates)
 
@@ -333,42 +359,61 @@ def build_labels(
 def describe_labels(
     language: Optional[str] = None,
     template_dirs: Iterable[Path] = (),
+    level_names: Optional[Iterable[str]] = None,
 ) -> Dict[str, Dict[str, str]]:
     """
     Like build_labels(), but records which level supplied each value.
 
-    Returns {key: {"value", "source", "path"}} where "source" is a short level
-    name for display and "path" the file it came from. Backs
+    Returns {key: {"value", "source", "language", "path"}}: "source" names the
+    level for display, "language" the block within it ("de", "*", or the
+    fallback language), "path" the file it came from. Backs
     `markpublish labels`, so the cascade stays debuggable.
+
+    Args:
+        level_names: Kurznamen fuer `template_dirs`, in derselben Reihenfolge
+            -- typischerweise LEVEL_THEME, LEVEL_TARGET, LEVEL_PROJECT. Ohne
+            Angabe steht der abgekuerzte Pfad da; ein Aufrufer, der die Ebenen
+            kennt, sollte sie benennen.
+
+    Datei und Sprachblock stehen getrennt, nicht als ein Anzeigetext
+    ("i18n.yaml (de)"): welche Sprache gilt, steht in der Ausgabe ohnehin
+    schon im Kopf. Interessant ist der Block nur, wo er davon abweicht -- ein
+    Text aus der Fallback-Sprache oder aus "*". Diese Entscheidung gehoert in
+    die Anzeige, nicht in eine hier zusammengesetzte Zeichenkette.
     """
     resolved: Dict[str, Dict[str, str]] = {}
 
-    def record(key: str, value: str, source: str, path: str = "") -> None:
-        resolved[str(key)] = {"value": str(value), "source": source, "path": path}
+    def record(key: str, value: str, source: str, lang: str, path: str = "") -> None:
+        resolved[str(key)] = {
+            "value": str(value),
+            "source": source,
+            "language": lang,
+            "path": path,
+        }
 
     def apply(table: Mapping[str, Mapping[str, str]], label: str, path: str) -> None:
         for lang in candidates:
             for key, value in table.get(lang, {}).items():
-                suffix = "" if lang == ANY_LANGUAGE else f" ({lang})"
-                record(key, value, f"{label}{suffix}", path)
+                record(key, value, label, lang, path)
 
     candidates = _language_candidates(language)
     builtin = str(BUILTIN_I18N_PATH)
 
     for key, value in LABELS[FALLBACK_LANGUAGE].items():
-        record(key, value, f"i18n.yaml ({FALLBACK_LANGUAGE})", builtin)
+        record(key, value, LEVEL_BUILTIN, FALLBACK_LANGUAGE, builtin)
     for key, value in LABELS.get(ANY_LANGUAGE, {}).items():
-        record(key, value, "i18n.yaml (*)", builtin)
+        record(key, value, LEVEL_BUILTIN, ANY_LANGUAGE, builtin)
     lang = normalize_language(language)
     for key, value in LABELS[lang].items():
-        record(key, value, f"i18n.yaml ({lang})", builtin)
+        record(key, value, LEVEL_BUILTIN, lang, builtin)
 
-    for directory in template_dirs:
+    names = list(level_names) if level_names is not None else []
+    for index, directory in enumerate(template_dirs):
         file_path = Path(directory) / I18N_FILENAME
-        # Nur die letzten Komponenten anzeigen - der volle Pfad steht in "path"
-        # und wuerde die Tabellenspalte sonst unlesbar machen.
-        short = "/".join(file_path.parts[-3:])
-        apply(read_i18n_file(directory), short, str(file_path))
+        # Ohne Ebenennamen die letzten Pfadkomponenten - der volle Pfad steht
+        # in "path" und wuerde die Tabellenspalte sonst unlesbar machen.
+        label = names[index] if index < len(names) else "/".join(file_path.parts[-3:])
+        apply(read_i18n_file(directory), label, str(file_path))
 
     return resolved
 
@@ -515,6 +560,9 @@ def validate_label_references(labels: "LabelMap", directory: Path) -> None:
     raise UndefinedLabelError("\n\n".join(blocks))
 
 
+#: Die Metadaten, die jedes Dokument kennt -- unabhaengig davon, ob sie gesetzt
+#: sind. Sie stehen immer im `meta`-Dict, damit ein Theme `meta.at("version")`
+#: schreiben darf, ohne zu wissen, ob dieses Dokument eine Version fuehrt.
 CORE_METADATA_KEYS = (
     "title",
     "subtitle",
@@ -526,14 +574,24 @@ CORE_METADATA_KEYS = (
     "copyright",
 )
 
+#: Die drei Angaben, die das Titelblatt gross oben setzt statt als Zeile im
+#: Metadatenraster. Eine Liste, nicht drei -- sie stand vorher dreimal
+#: hingeschrieben (zweimal in contract.py, einmal im Template) und ist damit
+#: dreimal zu pflegen gewesen.
+HEADLINE_METADATA_KEYS = ("title", "subtitle", "summary")
+
 
 @dataclass
 class MetadataEntry:
-    """Represents a document metadata item merged with i18n label."""
+    """Eine Dokumentangabe samt aufgeloester Beschriftung."""
     key: str
     label: Optional[str]
     value: Any
-    is_extra: bool = False
+    #: Steht die Angabe im Metadatenraster? Die Kopfangaben (Titel, Untertitel,
+    #: Summary) setzt das Titelblatt an eigener Stelle.
+    in_grid: bool = True
+    #: Wurde der Wert von markpublish erzeugt statt im Dokument notiert?
+    #: Heute nur `date: "auto"`.
     is_default: bool = False
 
 
@@ -556,27 +614,65 @@ def build_document_metadata(
 
             val = format_current_date(getattr(document, "language", None))
 
-        label = labels.get(key)
         entries[key] = MetadataEntry(
             key=key,
-            label=label,
+            label=labels.get(key),
             value=val,
-            is_extra=False,
+            in_grid=key not in HEADLINE_METADATA_KEYS,
             is_default=is_default,
         )
 
-    # Extra/custom fields (e.g. from Pydantic model_extra)
+    # Freie Felder aus `extra: allow` -- alles unter `document:`, was kein
+    # deklariertes Feld ist. Sie erreichen das Theme auf demselben Weg wie die
+    # Kernangaben; einen Sonderfall gibt es unterhalb dieser Funktion nicht.
     extra_fields = getattr(document, "model_extra", None) or {}
     for key, val in extra_fields.items():
-        label = labels.get(key)
         entries[key] = MetadataEntry(
             key=key,
-            label=label,
+            label=labels.get(key),
             value=val,
-            is_extra=True,
+            in_grid=True,
             is_default=False,
         )
 
     return entries
 
 
+def undefined_metadata_message(
+    key: str,
+    occurrences: Iterable[Tuple[Path, int]] = (),
+    known_keys: Iterable[str] = (),
+) -> str:
+    """
+    Baut die Abbruchmeldung fuer einen Metadatenschluessel, den das Theme
+    liest und das Dokument nicht kennt.
+
+    Bewusst nicht `undefined_label_message`: ein fehlendes Label wird in einer
+    i18n.yaml des Themes ergaenzt, ein fehlender Metadatenschluessel unter
+    `document:` in der markpublish.yaml. Dieselbe Meldung fuer beides zu
+    verwenden hiesse, in der Haelfte der Faelle den falschen Weg zu weisen.
+    """
+    lines = [
+        f"Metadatum '{key}' wird vom Theme gelesen, ist im Dokument aber nicht gesetzt.",
+    ]
+
+    found = list(occurrences)
+    if found:
+        lines.append("  Fundstelle:")
+        lines.extend(f"    {path}:{line}" for path, line in found)
+
+    candidates = sorted(k for k in known_keys if k)
+    if candidates:
+        close = difflib.get_close_matches(key, candidates, n=1, cutoff=0.8)
+        if close:
+            lines.append(
+                f"  Das Dokument fuehrt '{close[0]}' -- moeglicherweise ein Schreibfehler."
+            )
+        lines.append(f"  Bekannt sind: {', '.join(candidates)}")
+
+    lines.append(
+        f"  Abhilfe: '{key}' unter 'document:' in der markpublish.yaml ergaenzen "
+        f"(freie Felder sind erlaubt); oder im Theme einen Fallback notieren, "
+        f'z. B. meta.at("{key}", default: (value: "")).'
+    )
+    return "\n".join(lines)

@@ -187,6 +187,19 @@ markpublish labels [CONFIG_FILE] [OPTIONEN]
 
 Dieser Befehl ist besonders hilfreich bei der Erstellung eigener Themes oder neuer Übersetzungen, um zu prüfen, ob alle benötigten Textbausteine vollständig vorhanden sind.
 
+Die Spalte **i18n-Quelle** nennt die Ebene der Kaskade, aus der ein Text stammt:
+
+| Wert | Datei |
+| :--- | :--- |
+| `mpub` | Der Programmstandard, `markpublish/i18n.yaml` |
+| `theme` | `<theme>/i18n.yaml` |
+| `target` | `<theme>/<zielformat>/i18n.yaml` |
+| `projekt` | `i18n.yaml` neben Ihrer `markpublish.yaml` |
+
+Grün hervorgehoben sind die Ebenen, die den Programmstandard ersetzt haben — genau diese zeigt `--overridden` allein. Der Sprachblock steht nur dann in Klammern dabei, wenn er von der Dokumentsprache abweicht: `(*)` für einen sprachunabhängigen Eintrag, `(en)` für einen Rückfall auf die Fallback-Sprache. Am Fuß der Ausgabe stehen die vollständigen Pfade zu allen vier Ebenen.
+
+Zusätzlich prüft der Befehl das Theme gegen den Aufruf, den markpublish beim Rendern erzeugt. Ein Theme, dessen `setup-document` einen gesendeten Parameter nicht deklariert, wird hier gemeldet — vor dem Bauen statt währenddessen.
+
 ---
 
 ## Globale Optionen

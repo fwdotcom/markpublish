@@ -22,7 +22,6 @@
 en:
   # Inhaltsverzeichnis
   toc_title: "Table of Contents"
-  toc_sidebar: "Contents"
   chapter_toc_title: "In this chapter"
   part_toc_title: "In this part"
 
@@ -37,6 +36,11 @@ en:
   date: "Date"
   copyright: "Copyright"
 
+  # Wahrheitswerte in freien Metadatenfeldern: 'reviewed: true' im Dokument
+  # wird als Bool durchgereicht, damit hier das Wort steht und nicht "True".
+  bool_true: "Yes"
+  bool_false: "No"
+
   # Laufende Fusszeile: "Page 3 of 24"
   page: "Page"
   page_of: "of"
@@ -50,7 +54,6 @@ en:
 
 de:
   toc_title: "Inhaltsverzeichnis"
-  toc_sidebar: "Inhalt"
   chapter_toc_title: "Inhalt dieses Kapitels"
   part_toc_title: "Inhalt dieses Abschnitts"
 
@@ -62,6 +65,9 @@ de:
   version: "Version"
   date: "Datum"
   copyright: "Copyright"
+
+  bool_true: "Ja"
+  bool_false: "Nein"
 
   page: "Seite"
   page_of: "von"

@@ -8,6 +8,7 @@
 #   1. Programm      markpublish/i18n.yaml
 #   2. Theme         diese Datei                            <-- Sie sind hier
 #   3. Zielformat    default/pdf/i18n.yaml, default/html/i18n.yaml
+#   4. Projekt       i18n.yaml neben der markpublish.yaml
 #
 # Das mitgelieferte Theme kommt bewusst ohne eigene Texte aus: es soll exakt so
 # aussprechen wie der Standard. Die Datei ist als Muster gedacht -- kommentieren

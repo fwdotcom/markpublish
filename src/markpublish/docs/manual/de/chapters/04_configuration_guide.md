@@ -21,6 +21,34 @@ Die oberste Ebene `document:` beschreibt das Gesamtdokument:
 * **Globale Verzeichnisvorgaben:** Steuerung der Tiefe für das Gesamt-Inhaltsverzeichnis (`document_toc`), Abschnittsverzeichnisse (`part_toc`) und lokale Kapitelverzeichnisse (`chapter_toc`).
 * **Nummerierungsregeln:** Vorgaben zur automatischen Nummerierung von Überschriften (`autonum_style`, `autonum_from_level`, `autonum_prefix`).
 
+#### Eigene Metadatenfelder
+
+Unter `document:` sind über die bekannten Schlüssel hinaus **beliebige eigene Felder** erlaubt. Sie erscheinen ohne weiteres Zutun im Metadatenraster des Deckblatts:
+
+```yaml
+document:
+  title: "Projektbericht"
+  abteilung: "Controlling"
+  kunde: "Musterunternehmen GmbH"
+  freigegeben: true
+```
+
+Drei Dinge sind dabei zu wissen:
+
+* **Die Beschriftung kommt aus der i18n-Kaskade.** Findet sich dort kein Eintrag für den Schlüssel, druckt das Deckblatt den Schlüssel selbst — also `abteilung` statt `Abteilung`. Legen Sie dafür eine `i18n.yaml` neben Ihre `markpublish.yaml`:
+
+  ```yaml
+  # i18n.yaml, im Projektverzeichnis
+  de:
+    abteilung: "Abteilung"
+    kunde: "Kunde"
+    freigegeben: "Freigegeben"
+  ```
+
+  Diese Datei ist die letzte Stufe der Kaskade und gewinnt damit gegen Programm und Theme (siehe Kapitel *Template- und Designsystem*).
+* **Der Typ bleibt erhalten.** Ein `true` ist ein Wahrheitswert und kein Text: das Deckblatt setzt `Ja` beziehungsweise `Yes`, je nach Dokumentsprache. Die beiden Wörter stehen als `bool_true` und `bool_false` in der i18n-Kaskade.
+* **Ein Tippfehler wird gedruckt, nicht gemeldet.** `titel:` statt `title:` ergibt kein Fehlerbild, sondern eine zusätzliche Zeile auf dem Deckblatt. `markpublish labels` zeigt jedes Feld mit seinem Befund an — ein Blick dorthin vor dem ersten Bauen erspart die Suche.
+
 ### Parts (Abschnitte)
 
 Ein Dokument wird durch `parts:` in übergeordnete Abschnitte gegliedert (z. B. „Hauptteil“, „Fallstudien“, „Anhänge“). 

@@ -58,18 +58,38 @@
   body
 }
 
+// Reihenfolge der Angaben im Metadatenraster des Titelblatts.
+//
+// Gestaltung gehoert ins Theme: markpublish reicht die Angaben als
+// Woerterbuch, welche zuerst steht, entscheidet diese Zeile. Was hier fehlt --
+// jedes frei ergaenzte Feld -- folgt dahinter in der Reihenfolge der
+// markpublish.yaml.
+#let cover-order = ("version", "date", "author", "copyright", "status")
+
+// Wie ein Metadatenwert im Titelblatt erscheint.
+//
+// Der Typ kommt aus der markpublish.yaml unveraendert an -- ein `reviewed: true`
+// ist hier ein Bool, keine Zeichenkette "True". Die Wortwahl entscheidet damit
+// das Theme ueber die i18n-Kaskade, nicht der Renderer ueber str().
+#let meta-value(value, labels) = {
+  if type(value) == bool {
+    if value { labels.at("bool_true", default: "Ja") } else { labels.at("bool_false", default: "Nein") }
+  } else if type(value) == array {
+    value.map(v => str(v)).join(", ")
+  } else {
+    str(value)
+  }
+}
+
 // Global Document Setup
+//
+// Saemtliche Dokumentangaben kommen in `meta` -- Titel und Version genauso wie
+// ein frei ergaenztes `abteilung:`. Eigene Parameter dafuer gibt es nicht mehr:
+// zwei Wege zur selben Angabe koennen auseinanderlaufen, und ein neues Feld
+// haette sonst jedes Mal auch einen neuen Parameter gebraucht.
 #let setup-document(
-  title: "",
-  subtitle: "",
-  authors: (),
-  version: "",
-  date: "",
-  copyright: "",
-  status: "",
   language: "de",
   show-cover: true,
-  summary: "",
   show-toc: true,
   toc-title: "Inhaltsverzeichnis",
   toc-depth: 3,
@@ -79,6 +99,16 @@
   labels: (:),
   body,
 ) = {
+  // Namentlich gelesen, nicht ueber einen Helfer mit variablem Schluessel:
+  // `markpublish labels` liest diese Zeilen und kann nur benennen, was hier
+  // auch benannt steht. Ein Kernfeld liegt immer in `meta`, auch ungesetzt --
+  // ein `default:` braucht es deshalb nur fuer freie Felder.
+  let title = meta.at("title").value
+  let subtitle = meta.at("subtitle").value
+  let summary = meta.at("summary").value
+  let version = meta.at("version").value
+  let date = meta.at("date").value
+  let copyright = meta.at("copyright").value
   // Page settings: Cover and Dividers have no header/footer; TOC and content have header/footer
   set page(
     paper: "a4",
@@ -230,14 +260,14 @@
     v(2cm)
     text(size: 26pt, weight: "bold", fill: rgb("#0f172a"))[#title]
     v(0.5em)
-    if subtitle != "" {
+    if subtitle != none and subtitle != "" {
       text(size: 13pt, fill: rgb("#64748b"))[#subtitle]
       v(1.5em)
     }
     line(length: 100%, stroke: 2pt + rgb("#2563eb"))
     v(1.5em)
 
-    if summary != "" {
+    if summary != none and summary != "" {
       block(
         fill: rgb("#f8fafc"),
         stroke: (left: 4pt + rgb("#2563eb")),
@@ -251,17 +281,24 @@
 
     // Metadata Grid
     v(1fr)
-    let meta-items = if meta.len() > 0 {
-      meta.values().filter(it => not (it.key in ("title", "subtitle", "summary")) and it.value != "" and it.value != none and it.value != ())
-    } else {
-      (
-        if version != "" { (key: "version", label: labels.at("version", default: "Version"), value: version) },
-        if date != "" { (key: "date", label: labels.at("date", default: "Datum"), value: date) },
-        if authors != () and authors != "" { (key: "author", label: labels.at("author", default: "Autor"), value: authors) },
-        if copyright != "" { (key: "copyright", label: labels.at("copyright", default: "Copyright"), value: copyright) },
-        if status != "" and status != none { (key: "status", label: labels.at("status", default: "Status"), value: status) },
-      ).filter(it => it != none)
-    }
+    // `in-grid` kommt aus markpublish: Titel, Untertitel und Summary stehen
+    // oben auf dieser Seite und gehoeren nicht noch einmal ins Raster. Welche
+    // das sind, steht an einer Stelle im Programm statt hier abgeschrieben.
+    //
+    // Aufgezaehlt statt aufgelistet: so erscheint ein frei ergaenztes Feld aus
+    // der markpublish.yaml ohne Aenderung an diesem Theme.
+    let meta-items = meta.values().filter(
+      it => it.in-grid and it.value != "" and it.value != none and it.value != ()
+    )
+
+    // Die Reihenfolge auf dem Titelblatt ist Gestaltung und steht deshalb hier,
+    // nicht im Programm. Bearbeiten Sie diese Zeile, um sie zu aendern.
+    // Schluessel, die nicht darin vorkommen -- die eigenen Felder aus der
+    // markpublish.yaml -- folgen dahinter in der Reihenfolge der Konfiguration.
+    let meta-items = meta-items.enumerate().sorted(key: pair => {
+      let rank = cover-order.position(k => k == pair.at(1).key)
+      if rank == none { cover-order.len() + pair.at(0) } else { rank }
+    }).map(pair => pair.at(1))
 
     grid(
       columns: (auto, 1fr),
@@ -269,7 +306,7 @@
       column-gutter: 20pt,
       ..meta-items.map(it => (
         text(weight: "bold", fill: rgb("#64748b"))[#if it.label != none and it.label != "" { it.label } else { it.key }],
-        text(fill: rgb("#0f172a"))[#if type(it.value) == array { it.value.join(", ") } else { str(it.value) }],
+        text(fill: rgb("#0f172a"))[#meta-value(it.value, labels)],
       )).flatten()
     )
     v(1cm)
