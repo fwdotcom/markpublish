@@ -110,7 +110,7 @@ Typst
 
 ## Aufgabenlisten (Tasklists)
 
-Zur Darstellung von Checklisten, To-Do-Listen oder Meilensteinen stehen Aufgabenlisten zur Verfügung.
+Zur Darstellung von Checklisten, To-Do-Listen oder Meilensteinen stehen Aufgabenlisten zur Verfügung. markpublish setzt Aufgabenlisten typografisch sauber ohne vorangestellte Aufzählungspunkte (Bullets) direkt mit der Checkbox und dem Text; mehrzeilige Beschreibungen brechen bündig unter der ersten Zeile um.
 
 ### Syntax
 

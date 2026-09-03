@@ -23,14 +23,12 @@ markpublish export-template default ./templates
 ```
 
 Kopiert das eingebaute Theme ins Projekt, wo Stufe 2 es beim nächsten Build
-aufgreift. Ein Theme enthält `layout.html`, `styles.css`, `cover.html`,
-`toc.html`, `chapter_divider.html`, `part_divider.html` und `i18n.yaml`.
-Markup und Stylesheet laufen beide durch Jinja2 und sehen `document`,
-`content_items`, `toc_tree` und `labels`.
+aufgreift. Für PDF enthält das Theme die Typst-Vorlage `template.typ`,
+optionale Schriftarten in `fonts/` und Grafiken in `assets/`.
 
 ## Statische Texte
 
-Labels lösen über drei Ebenen auf; eine tiefere überschreibt nur die Schlüssel,
+Labels lösen über vier Ebenen auf; eine tiefere überschreibt nur die Schlüssel,
 die sie tatsächlich setzt.
 
 | Ebene | Datei |
@@ -38,7 +36,9 @@ die sie tatsächlich setzt.
 | 1. Programm | `markpublish/i18n.yaml` |
 | 2. Theme | `<templates>/<theme>/i18n.yaml` |
 | 3. Zielformat | `<templates>/<theme>/<pdf\|html>/i18n.yaml` |
+| 4. Projekt | `./i18n.yaml` neben der `markpublish.yaml` |
 
 Jede Datei ist nach Sprachcode gegliedert; der Schlüssel `"*"` gilt für jede
-Sprache. Ein Dokument kann Labels nicht überschreiben — dafür ist das Theme da.
-Was ein Theme geändert hat, zeigt `markpublish labels --overridden`.
+Sprache. Ebene 4 gehört dem Dokument: Sie erlaubt das Überschreiben von Texten
+und das Lokalisieren freier Metadatenfelder (`abteilung: "Abteilung"`).
+Was geändert wurde, zeigt `markpublish labels --overridden`.

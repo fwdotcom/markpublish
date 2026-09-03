@@ -42,8 +42,8 @@ Metadaten und globale Layout-Schalter. Pflicht ist allein `title`.
 | `autonum_from_level` | `1` | Ab welcher Überschriftenebene gezählt wird |
 | `autonum_reset` / `pagenum_reset` | `false` | Zähler bzw. Seitenzahl neu beginnen |
 
-Außerdem `summary` (Deckblatt), `status`, `copyright` (Fußzeile). Unbekannte
-Schlüssel gehen als `{{ document.mein_schluessel }}` ans Theme.
+Außerdem `summary` (Deckblatt), `status`, `copyright` (Fußzeile). Eigene
+Zusatzfelder gehen über das Wörterbuch `meta` (`meta.at("mein_schluessel").value`) ans Theme.
 
 ## parts und chapters
 

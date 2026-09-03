@@ -126,30 +126,4 @@ parts:
         title: "Glossar"
 ```
 
-### Eigene Metadatenfelder und Lokalisierung im Projekt (`i18n.yaml`)
-
-Unter dem Block `document:` können Sie beliebige eigene Metadatenfelder definieren, die automatisch an das Theme weitergereicht und im Metadatenraster des Deckblatts gerendert werden:
-
-```yaml
-document:
-  title: "Projekthandbuch"
-  department: "F&E"
-  classification: "Vertraulich"
-```
-
-Damit solche freien Zusatzfelder auf dem Deckblatt nicht mit ihrem technischen Schlüsselnamen erscheinen, unterstützt markpublish eine **projektlokale `i18n.yaml`** direkt neben der `markpublish.yaml`. Diese Datei bildet die 4. Ebene der Lokalisierungs-Kaskade:
-
-```yaml
-# ./i18n.yaml
-de:
-  department: "Abteilung"
-  classification: "Klassifizierung"
-
-en:
-  department: "Department"
-  classification: "Classification"
-```
-
-Wird das Dokument mit `markpublish labels` geprüft, erkennt markpublish die Projektdatei automatisch als Quelle `projekt` an. Auf dem Deckblatt des PDFs wird das Feld sauber mit seinem lokalisierten Namen (z. B. **Abteilung: F&E**) gesetzt.
-
 Eine vollständige Übersicht aller verfügbaren Schlüssel, Datentypen, Standardwerte und Kombinationsmöglichkeiten für jede der drei Ebenen finden Sie in **Anhang A: Schema-Referenz markpublish.yaml** am Ende dieses Handbuchs.

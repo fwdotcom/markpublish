@@ -43,7 +43,7 @@ Sollte ein Kompiliervorgang mit einer Fehlermeldung der Typst-Engine abbrechen, 
 
 **Lösung:**
 * Führen Sie `markpublish labels` aus, um alle aufgelösten Textvariablen und deren Herkunftsebene anzuzeigen.
-* Ergänzen oder überschreiben Sie die gewünschten Schlüssel in der `i18n.yaml` Ihres Themes.
+* Ergänzen oder überschreiben Sie die gewünschten Schlüssel entweder direkt in einer projektlokalen `i18n.yaml` (im Ordner neben der `markpublish.yaml`) oder in der `i18n.yaml` Ihres Themes.
 
 ### Schriften und Schriftfamilien
 
