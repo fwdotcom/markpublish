@@ -389,7 +389,6 @@ class MarkdownPipeline:
         file_base_dir = self.base_dir
 
         # 1. Read the chapter file
-        title = chapter_cfg.title
         subtitle = chapter_cfg.subtitle
         summary = chapter_cfg.summary
         break_before = chapter_cfg.break_before
@@ -468,7 +467,11 @@ class MarkdownPipeline:
             autonum_prefix=effective_prefix,
         )
 
-        display_title = title or (toc_nodes[0].title if toc_nodes else "Chapter")
+        display_title = (
+            toc_nodes[0].title
+            if toc_nodes
+            else (chapter_cfg.chapter or (str(chapter_cfg.title) if chapter_cfg.title else "Chapter"))
+        )
         slug = toc_nodes[0].slug if toc_nodes else self.numbering_ctx.unique_slug(display_title)
         number_prefix = toc_nodes[0].number if toc_nodes else None
 

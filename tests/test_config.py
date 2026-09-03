@@ -164,3 +164,44 @@ def test_pagenum_reset_configuration():
     assert config.parts[1].chapters[0].pagenum_reset is False
 
 
+def test_part_and_chapter_naming_and_title_tolerance():
+    """
+    Prueft die Vereinheitlichung auf 'part' und 'chapter':
+    - 'part' ist der primaere Schluessel fuer Abschnitte.
+    - 'chapter' ist der Bezeichner fuer Kapitel.
+    - 'title' auf Part oder Chapter wird wie ein Custom-Feld toleriert (kein Fehler).
+    """
+    raw = {
+        "document": {"title": "Testdoc"},
+        "parts": [
+            {
+                "part": "Erster Abschnitt",
+                "title": "Ignorierter Part-Titel",
+                "chapters": [
+                    {
+                        "file": "01.md",
+                        "chapter": "Einstieg",
+                        "title": "Ignorierter Kapitel-Titel",
+                    }
+                ],
+            },
+            {
+                # Legacy: nur title auf Part ohne part-Schluessel
+                "title": "Zweiter Abschnitt",
+                "chapters": [{"file": "02.md"}],
+            },
+        ],
+    }
+    config = load_config(raw)
+    p0 = config.parts[0]
+    assert p0.part == "Erster Abschnitt"
+    assert p0.display_title == "Erster Abschnitt"
+    assert p0.chapters[0].chapter == "Einstieg"
+
+    p1 = config.parts[1]
+    assert p1.part == "Zweiter Abschnitt"
+    assert p1.display_title == "Zweiter Abschnitt"
+    assert p1.chapters[0].chapter is None
+
+
+

@@ -30,10 +30,10 @@ ausschließlich aus den Überschriften der jeweiligen Markdown-Dateien.
 
 | Schlüssel | Gilt für | Bedeutung |
 | :--- | :--- | :--- |
-| `title` / `part` | Part | Name des Parts, Pflicht |
+| `part` | Part | Name des Parts, Pflicht |
 | `chapters` | Part | Liste der Kapitel, mindestens eines |
 | `file` | Kapitel | Pfad zur Markdown-Datei |
-| `title` | Kapitel | Rein informativ in der YAML (ändert nichts am Dokument) |
+| `chapter` | Kapitel | Name des Kapitels in der YAML (optional) |
 | `subtitle` / `summary` | beide | Untertitel und Kurzbeschreibung auf Trennseiten |
 | `break_before` | beide | `page`, `divider` (Trennseite) oder `none` |
 | `document_toc` | beide | Anteil am Verzeichnis vorn |

@@ -295,7 +295,8 @@ class ChapterItem(BaseModel):
     Represents a single chapter (content markdown file).
     """
     file: Optional[str] = Field(default=None, description="Path to markdown file")
-    title: Optional[str] = Field(default=None, description="Chapter title")
+    chapter: Optional[str] = Field(default=None, description="Chapter identifier/name in YAML")
+    title: Optional[Any] = Field(default=None, description="Legacy/custom field, ignored")
     subtitle: Optional[str] = Field(default=None, description="Chapter subtitle")
     summary: Optional[str] = Field(default=None, description="Chapter summary")
     break_before: BreakBefore = Field(
@@ -365,15 +366,15 @@ class ChapterItem(BaseModel):
 
     @property
     def display_title(self) -> str:
-        return self.title or ""
+        return self.chapter or (str(self.title) if self.title else "")
 
 
 class PartItem(BaseModel):
     """
     Represents an overarching Part / Section containing a flat list of chapters.
     """
-    title: Optional[str] = Field(default=None, description="Part title")
-    part: Optional[str] = Field(default=None, description="Alternative key for part title")
+    part: Optional[str] = Field(default=None, description="Part name")
+    title: Optional[Any] = Field(default=None, description="Legacy/custom field, fallback for part name")
     subtitle: Optional[str] = Field(default=None, description="Part subtitle")
     summary: Optional[str] = Field(default=None, description="Part summary for divider page")
     break_before: Optional[BreakBefore] = Field(
@@ -412,12 +413,14 @@ class PartItem(BaseModel):
         if isinstance(data, dict):
             if not data.get("part") and not data.get("title"):
                 raise ValueError(
-                    "Jeder Part in 'parts' muss einen Namen tragen (Schlüssel 'title' oder 'part'). "
-                    "Ein unbenannter Block ohne Titel ist nicht zulässig."
+                    "Jeder Part in 'parts' muss einen Namen tragen (Schlüssel 'part'). "
+                    "Ein unbenannter Block ohne Part-Name ist nicht zulässig."
                 )
+            if not data.get("part") and data.get("title"):
+                data["part"] = data.get("title")
             if "chapters" not in data or not data["chapters"]:
                 raise ValueError(
-                    f"Der Part '{data.get('title') or data.get('part')}' muss mindestens ein Kapitel unter 'chapters' enthalten."
+                    f"Der Part '{data.get('part')}' muss mindestens ein Kapitel unter 'chapters' enthalten."
                 )
         return data
 
@@ -471,7 +474,7 @@ class PartItem(BaseModel):
 
     @property
     def display_title(self) -> str:
-        return self.title or self.part or ""
+        return self.part or (str(self.title) if self.title else "")
 
 
 class MarkpublishConfig(BaseModel):

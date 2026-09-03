@@ -7,7 +7,7 @@
 # gleiche Tabellen. Nur die Sprache unterscheidet sich.
 document:
   title: "markpublish Kurzreferenz"
-  subtitle: "Konfiguration und Templates auf zwei Seiten"
+  subtitle: "Konfiguration und Templates"
   author: null
   date: "auto"
   language: "de"
@@ -21,12 +21,11 @@ document:
 theme: "default"
 
 parts:
-  - title: "Kurzreferenz"
+  - part: "Kurzreferenz"
     break_before: "none"
-    document_toc: "none"
     chapters:
       - file: "01_config.md"
-        title: "markpublish.yaml"
+        chapter: "markpublish.yaml"
 
       - file: "02_templates.md"
-        title: "Templates und Themes"
+        chapter: "Templates und Themes"

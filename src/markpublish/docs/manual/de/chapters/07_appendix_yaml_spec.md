@@ -50,7 +50,7 @@ Die Liste `parts:` unterteilt das Dokument in übergeordnete Abschnitte. Ein Abs
 
 | Schlüssel | Typ | Default | Beschreibung |
 | :--- | :--- | :--- | :--- |
-| `title` / `part` | String | *(Pflichtfeld)* | Name oder Titel des Abschnitts (z. B. „Hauptteil“, „Anhänge“). |
+| `part` | String | *(Pflichtfeld)* | Name des Abschnitts (z. B. „Hauptteil“, „Anhänge“). |
 | `subtitle` | String | `None` | Untertitel des Abschnitts (erscheint auf der Trennseite). |
 | `summary` | String | `None` | Kurzbeschreibung des Abschnitts (erscheint auf der Trennseite). |
 | `break_before` | String | `"divider"` | Umbruchverhalten vor dem Abschnitt: `"divider"` (Trennseite), `"page"` (Seitenwechsel) oder `"none"`. |
@@ -73,7 +73,7 @@ Die Liste `chapters:` definiert die Inhaltsdateien. Kapitel können unter `parts
 | Schlüssel | Typ | Default | Beschreibung |
 | :--- | :--- | :--- | :--- |
 | `file` | String | `None` | Relativer Pfad zur Markdown-Datei (z. B. `"chapters/01_intro.md"`). |
-| `title` | String | `None` | Kapiteltitel (rein informativ in der YAML zur Orientierung; hat keinen Einfluss auf das generierte Dokument). |
+| `chapter` | String | `None` | Name oder Bezeichner des Kapitels in der YAML (optional; rein informativ zur Orientierung). |
 | `subtitle` | String | `None` | Untertitel des Kapitels (erscheint auf Trennseiten). |
 | `summary` | String | `None` | Kurzbeschreibung (wird auf Trennseiten genutzt). |
 | `break_before` | String | `"page"` | Umbruch vor dem Kapitel: `"page"` (neue Seite), `"divider"` (Trennseite) oder `"none"`. |

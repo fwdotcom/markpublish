@@ -273,13 +273,41 @@ def test_bundled_documents_declare_the_languages_they_ship(tmp_path: Path):
     # entsteht daraus, wenn die deutsche steht.
     assert _available_doc_languages("manual") == ["de"]
     assert _available_doc_languages("cheatsheet") == ["de", "en"]
+    assert _available_doc_languages("init") == ["de", "en"]
 
     # Jede gemeldete Sprache hat auch wirklich Kapitel neben ihrem Manifest.
-    for name in ("manual", "cheatsheet"):
+    for name in ("manual", "cheatsheet", "init"):
         for lang in _available_doc_languages(name):
             base = get_bundled_doc_dir(name) / lang
             assert (base / "markpublish.yaml").is_file()
             assert list(base.rglob("*.md")), f"{name}/{lang} hat keine Kapitel"
+
+
+def test_cli_init_lang_de_and_en(tmp_path: Path):
+    """Prueft, dass init mit Sprachschalter die passende Vorlage kopiert."""
+    # 1. Deutsch
+    p_de = tmp_path / "proj_de"
+    res_de = runner.invoke(app, ["init", str(p_de), "--lang", "de", "--title", "Mein Dokument"])
+    assert res_de.exit_code == 0
+    yaml_de = (p_de / "markpublish.yaml").read_text(encoding="utf-8")
+    assert 'title: "Mein Dokument"' in yaml_de
+    assert 'language: "de"' in yaml_de
+    assert 'part: "Hauptteil"' in yaml_de
+    assert 'chapter: "Nächste Schritte"' in yaml_de
+    steps_de = (p_de / "next-steps.md").read_text(encoding="utf-8")
+    assert "# Nächste Schritte" in steps_de
+
+    # 2. Englisch
+    p_en = tmp_path / "proj_en"
+    res_en = runner.invoke(app, ["init", str(p_en), "--lang", "en", "--title", "My Document"])
+    assert res_en.exit_code == 0
+    yaml_en = (p_en / "markpublish.yaml").read_text(encoding="utf-8")
+    assert 'title: "My Document"' in yaml_en
+    assert 'language: "en"' in yaml_en
+    assert 'part: "Main"' in yaml_en
+    assert 'chapter: "Next steps"' in yaml_en
+    steps_en = (p_en / "next-steps.md").read_text(encoding="utf-8")
+    assert "# Next steps" in steps_en
 
 
 def test_cli_templates_list():

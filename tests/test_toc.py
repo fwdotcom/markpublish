@@ -762,3 +762,45 @@ parts:
     assert "outlined: false" in lines_c2[1]      # Unter 2.1
 
 
+def test_chapter_keyword_and_h1_priority(tmp_path: Path):
+    """
+    Stellt sicher, dass:
+    1. Die H1 aus der Markdown-Datei immer den Titel bestimmt (auch wenn chapter oder title im YAML steht).
+    2. Wenn die Datei keine H1 enthaelt, 'chapter' als Fallback dient.
+    3. 'part' als primaerer Schluessel den Part-Titel setzt.
+    """
+    (tmp_path / "c1.md").write_text("# Echte Datei H1\n\nText", encoding="utf-8")
+    (tmp_path / "c2.md").write_text("Nur Text ohne Ueberschrift", encoding="utf-8")
+
+    (tmp_path / "markpublish.yaml").write_text(
+        """\
+document:
+  title: "Doc"
+parts:
+  - part: "Mein Abschnitt"
+    chapters:
+      - file: "c1.md"
+        chapter: "YAML Bezeichner"
+        title: "Ignorierter YAML Titel"
+      - file: "c2.md"
+        chapter: "Fallback Name"
+""",
+        encoding="utf-8",
+    )
+
+    config = load_config(tmp_path / "markpublish.yaml")
+    items, toc = MarkdownPipeline(config, base_dir=tmp_path, labels={}).process_document()
+
+    # items[0] ist der Part
+    assert items[0].is_part is True
+    assert items[0].display_title == "Mein Abschnitt"
+
+    # c1: H1 der Datei gewinnt
+    assert items[1].display_title == "Echte Datei H1"
+    assert "Echte Datei H1" in items[1].typst_content
+
+    # c2: keine H1 vorhanden -> 'chapter' dient als Name
+    assert items[2].display_title == "Fallback Name"
+
+
+

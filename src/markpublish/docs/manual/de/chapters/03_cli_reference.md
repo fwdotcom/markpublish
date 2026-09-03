@@ -63,15 +63,16 @@ markpublish init [ZIELORDNER] [OPTIONEN]
 | :--- | :--- | :--- |
 | `ZIELORDNER` *(Argument)* | `.` *(aktueller Ordner)* | Zielverzeichnis, in dem das Projekt initialisiert werden soll. |
 | `--title`, `-t` | `New Document` | Titel des neuen Dokuments in der erzeugten Konfiguration. |
+| `--lang`, `-l` | *(Systemsprache)* | Sprache der Vorlage (`de`, `en`). |
 
 ### Erläuterungen
 
-Die erzeugte `markpublish.yaml` enthält eine minimale, übersichtliche Konfiguration. Die Systemsprache des Autors wird automatisch ermittelt und in die Konfiguration eingetragen, sodass das Projekt auf jedem Rechner konsistent kompiliert.
+Die erzeugte `markpublish.yaml` und das Einstiegskapitel stammen aus den mitgelieferten Vorlagen. Mit `--lang` (z. B. `--lang de`) lässt sich die Sprache der Vorlage explizit vorgeben; ohne Angabe wird automatisch die Systemsprache ermittelt und eingetragen, sodass das Projekt auf jedem Rechner konsistent kompiliert.
 
 Beispiel:
 
 ```bash
-markpublish init mein-handbuch --title "Benutzerhandbuch System X"
+markpublish init mein-handbuch --lang de --title "Benutzerhandbuch System X"
 ```
 
 ---
