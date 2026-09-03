@@ -13,6 +13,7 @@ from markpublish.config.models import (
     AutonumStyle,
     BreakBefore,
     ChapterItem,
+    ConfigurationError,
     MarkpublishConfig,
     TocScope,
 )
@@ -134,6 +135,9 @@ class ContentItem:
         element_tree: Any = None,
         file_base_dir: Optional[Path] = None,
         base_level: int = 1,
+        toc_title: Optional[str] = None,
+        divider_title: Optional[str] = None,
+        has_h1: bool = False,
     ):
         self.title = title
         self.display_title = display_title
@@ -153,6 +157,9 @@ class ContentItem:
         self.typst_content = typst_content
         self.element_tree = element_tree
         self.file_base_dir = file_base_dir
+        self.toc_title = toc_title
+        self.divider_title = divider_title
+        self.has_h1 = has_h1
         # Verschachtelungstiefe des Kapitels, 1 = oberste Ebene. Der Renderer
         # serialisiert den element_tree selbst neu und braucht denselben Offset,
         # den auch typst_content bekommen hat -- sonst laufen Fallback und
@@ -274,6 +281,8 @@ class MarkdownPipeline:
                     part_toc=effective_part_toc if (effective_part_toc and effective_part_toc.enabled) else None,
                     pagenum_reset=effective_part_pagenum_reset,
                     document_toc=part_cfg.document_toc,
+                    toc_title=part_cfg.toc_title,
+                    divider_title=part_cfg.divider_title,
                 )
                 content_items.append(part_item)
 
@@ -302,6 +311,7 @@ class MarkdownPipeline:
                 cfg_list: List[ChapterItem],
                 level: int,
                 doc_toc=inherited_document_toc,
+                part_toc=effective_part_toc,
                 ch_toc=inherited_chapter_toc,
                 autonum=inherited_autonum,
                 from_level=inherited_autonum_from_level,
@@ -316,6 +326,7 @@ class MarkdownPipeline:
                         ch_cfg,
                         base_level=level,
                         inherited_document_toc=doc_toc,
+                        inherited_part_toc=part_toc,
                         inherited_chapter_toc=ch_toc,
                         inherited_autonum=autonum,
                         inherited_autonum_from_level=from_level,
@@ -335,6 +346,7 @@ class MarkdownPipeline:
                             sub_chapters,
                             level + 1,
                             doc_toc=doc_toc,
+                            part_toc=part_toc,
                             ch_toc=ch_toc,
                             autonum=autonum,
                             from_level=from_level,
@@ -375,6 +387,7 @@ class MarkdownPipeline:
         chapter_cfg: ChapterItem,
         base_level: int = 1,
         inherited_document_toc: Optional[TocScope] = None,
+        inherited_part_toc: Optional[TocScope] = None,
         inherited_chapter_toc: Optional[TocScope] = None,
         inherited_autonum: Optional[AutonumStyle] = None,
         inherited_autonum_from_level: Optional[int] = None,
@@ -458,6 +471,26 @@ class MarkdownPipeline:
 
         # Parse HTML into ElementTree and process headings / numbering directly in the AST
         tree = html_to_tree(raw_html)
+
+        # Pruefe vorab, ob die Datei mit einer H1 (Level 1) beginnt
+        import re
+        has_file_h1 = False
+        if raw_md:
+            for elem in tree.iter():
+                m = re.match(r"^h([1-6])$", elem.tag.lower())
+                if m:
+                    has_file_h1 = (int(m.group(1)) == 1)
+                    break
+
+        chapter_number: Optional[str] = None
+        if not has_file_h1 and chapter_cfg.toc_title:
+            chapter_number = self.numbering_ctx.advance_counter(
+                base_level,
+                autonum_override,
+                from_level=effective_from_level,
+                prefix=effective_prefix,
+            )
+
         toc_nodes = process_tree_headings_and_toc(
             tree,
             self.numbering_ctx,
@@ -467,13 +500,60 @@ class MarkdownPipeline:
             autonum_prefix=effective_prefix,
         )
 
-        display_title = (
+        file_h1 = (
             toc_nodes[0].title
-            if toc_nodes
-            else (chapter_cfg.chapter or (str(chapter_cfg.title) if chapter_cfg.title else "Chapter"))
+            if (toc_nodes and toc_nodes[0].level == base_level)
+            else None
         )
-        slug = toc_nodes[0].slug if toc_nodes else self.numbering_ctx.unique_slug(display_title)
-        number_prefix = toc_nodes[0].number if toc_nodes else None
+        effective_toc_title = chapter_cfg.toc_title or file_h1
+        effective_divider_title = chapter_cfg.divider_title or file_h1
+
+        file_desc = f"in '{chapter_cfg.file}'" if chapter_cfg.file else "ohne Dateiangabe"
+
+        # Validierung 1: Trennseite verlangt
+        if break_before == BreakBefore.DIVIDER and not effective_divider_title:
+            raise ConfigurationError(
+                f"Kapitel {file_desc} erfordert eine Trennseite (break_before: 'divider'), "
+                f"besitzt aber weder eine '#'-Überschrift in der Markdown-Datei noch ein 'divider_title' in markpublish.yaml."
+            )
+
+        # Validierung 2: Inhaltsverzeichnis (Haupt-TOC oder Part-TOC) verlangt
+        in_doc_toc = _document_toc_enabled(effective_document_toc)
+        in_part_toc = bool(inherited_part_toc and _document_toc_enabled(inherited_part_toc))
+        if (in_doc_toc or in_part_toc) and not effective_toc_title:
+            raise ConfigurationError(
+                f"Kapitel {file_desc} soll in einem Inhaltsverzeichnis (Haupt- oder Abschnittsverzeichnis) "
+                f"aufgeführt werden, besitzt aber weder eine '#'-Überschrift in der Markdown-Datei noch ein 'toc_title' in markpublish.yaml."
+            )
+
+        display_title = effective_toc_title or effective_divider_title or "Chapter"
+        slug = (
+            toc_nodes[0].slug
+            if (toc_nodes and toc_nodes[0].level == base_level)
+            else self.numbering_ctx.unique_slug(display_title)
+        )
+        number_prefix = (
+            toc_nodes[0].number
+            if (toc_nodes and toc_nodes[0].level == base_level)
+            else chapter_number
+        )
+
+        # Wenn die Datei keine H1 besitzt, aber ins TOC soll:
+        # Fuege einen synthetischen TOCNode fuer das Kapitel an den Anfang
+        if not file_h1 and effective_toc_title and (in_doc_toc or in_part_toc):
+            synthetic_node = TOCNode(
+                title=effective_toc_title,
+                slug=slug,
+                level=base_level,
+                number=chapter_number,
+                summary=summary,
+            )
+            toc_nodes.insert(0, synthetic_node)
+            number_prefix = chapter_number
+        elif file_h1 and chapter_cfg.toc_title:
+            # Datei-H1 existiert, aber toc_title weicht ab:
+            # Im TOCNode steht der toc_title!
+            toc_nodes[0].title = chapter_cfg.toc_title
 
         # Filter local TOC items if enabled.
         local_toc_items: List[TOCNode] = []
@@ -496,7 +576,12 @@ class MarkdownPipeline:
             max_level = base_level + effective_document_toc.max_depth - 1
             global_toc_nodes = [n for n in toc_nodes if n.level <= max_level]
 
+        # Wenn chapter_cfg.toc_title gesetzt ist und von file_h1 abweicht,
+        # soll die H1 im Text nicht als Outlined-Heading gerendert werden (sondern ueber
+        # das separate hidden TOC-Heading im Renderer).
         allowed_toc_slugs = {n.slug for n in global_toc_nodes} if toc_nodes else None
+        if chapter_cfg.toc_title and file_h1 and allowed_toc_slugs:
+            allowed_toc_slugs = {s for s in allowed_toc_slugs if s != slug}
 
         # Convert ElementTree to Typst markup using the clean AST serializer
         serializer = TypstSerializer(
@@ -531,7 +616,15 @@ class MarkdownPipeline:
             element_tree=tree,
             file_base_dir=file_base_dir,
             base_level=base_level,
+            toc_title=effective_toc_title,
+            divider_title=effective_divider_title,
+            has_h1=bool(file_h1),
         )
+
+        item.needs_synthetic_toc_heading = bool(
+            in_doc_toc and effective_toc_title and (not file_h1 or bool(chapter_cfg.toc_title))
+        )
+        item.allowed_toc_slugs = allowed_toc_slugs
 
         return item, global_toc_nodes
 

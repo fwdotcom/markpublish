@@ -27,6 +27,7 @@ if sys.platform == "win32":
 
 from markpublish import __version__
 from markpublish.config.loader import load_config
+from markpublish.config.models import ConfigurationError
 from markpublish.i18n import (
     BUILTIN_I18N_PATH,
     I18N_FILENAME,
@@ -289,8 +290,12 @@ def _render_document(
                 console.print(f"[bold red]Label file error ({tgt}):[/bold red] {e}")
                 raise typer.Exit(code=1) from e
 
-            pipeline = MarkdownPipeline(config, base_dir=base_dir, labels=labels)
-            context.content_items, context.toc_tree = pipeline.process_document()
+            try:
+                pipeline = MarkdownPipeline(config, base_dir=base_dir, labels=labels)
+                context.content_items, context.toc_tree = pipeline.process_document()
+            except ConfigurationError as e:
+                console.print(f"[bold red]Configuration error:[/bold red] {e}")
+                raise typer.Exit(code=1) from e
 
             # Determine output file path
             doc_slug = slugify(config.document.title, separator="_")

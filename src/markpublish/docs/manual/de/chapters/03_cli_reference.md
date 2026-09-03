@@ -82,6 +82,7 @@ markpublish init mein-handbuch --lang de --title "Benutzerhandbuch System X"
 markpublish bringt seine vollständige Dokumentation direkt im Paket mit. Beide Befehle erzeugen die Dokumentation on-demand aus den installierten Quellen – das Ergebnis beschreibt somit immer exakt die aktuell installierte Version.
 
 * `markpublish manual`: Rendert dieses umfassende Benutzerhandbuch.
+
 * `markpublish cheatsheet`: Rendert eine kompakte Schnellreferenz.
 
 ```bash

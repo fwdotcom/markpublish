@@ -1,4 +1,4 @@
-# Einleitung
+<!-- Einleitung -->
 
 ## Motivation und Zielsetzung
 
@@ -13,12 +13,19 @@ Das Ziel von markpublish ist es, Entwicklern, technischen Redakteuren und Autore
 markpublish zeichnet sich durch einen klaren Fokus auf Dokumentenqualität, Geschwindigkeit und Verlässlichkeit aus:
 
 * **Moderne Satzqualität durch Typst:** Durch die Verwendung der innovativen Satz-Engine Typst entstehen Dokumente mit herausragender typografischer Präzision, perfektem Randausgleich und ästhetischem Layout.
+
 * **Extrem hohe Kompiliergeschwindigkeit:** Selbst umfangreiche Dokumente mit dutzenden Seiten, Abbildungen und Tabellen werden in rund ein bis zwei Sekunden vollständig gesetzt.
+
 * **Einfache Installation und Portabilität:** Als reguläres Python-Paket lässt sich markpublish plattformübergreifend auf Windows, macOS und Linux ohne komplizierte Einrichtung betreiben.
+
 * **Deklarative Projektkonfiguration:** Eine einzige Datei (`markpublish.yaml`) steuert das gesamte Dokument – von Metadaten über Gliederungsebenen bis hin zu Kopf- und Fußzeilen.
+
 * **Mehrstufige Dokumentenarchitektur:** Unterstützung einer klaren Zweiteilung in übergeordnete Abschnitte (*Parts*) und inhaltstragende Kapitel (*Chapters*) mit flexibler Trennseiten-Steuerung.
+
 * **Präzise Verzeichnisse und Nummerierung:** Vollautomatische Generierung von Gesamtinhaltsverzeichnissen, Abschnittsverzeichnissen und lokalen Kapitelverzeichnissen sowie flexibel konfigurierbare Kapitel- und Überschriftennummerierung.
+
 * **Umfassende Markdown-Erweiterungen:** Standardmäßige Unterstützung von GitHub-konformen Hinweisboxen (Admonitions/Callouts), Tabellen, Definitionslisten, Fußnoten, Aufgabenlisten und Quellcode mit Syntax-Highlighting.
+
 * **Kaskadierende Mehrsprachigkeit (i18n):** Integrierte Unterstützung für mehrsprachige Dokumente mit automatischer Spracherkennung und anpassbaren Beschriftungen.
 
 ## Architektur im Überblick
@@ -42,6 +49,9 @@ Eingaben:
 ```
 
 1. **Konfigurations- und Dokumentenanalyse:** markpublish liest die `markpublish.yaml` ein, validiert sämtliche Einstellungen und baut die Gliederungshierarchie aus Abschnitten und Kapiteln auf.
+
 2. **Inhaltsaufbereitung:** Die Markdown-Dateien der Kapitel werden eingelesen und strukturiert aufbereitet. Überschriften erhalten ihre exakte Nummerierung, Sprungmarken werden gesetzt und Verzeichniseinträge synchron erfasst.
+
 3. **Template-Zusammenstellung:** Das gewählte Theme (standardmäßig das integrierte Standard-Theme) stellt die Layout-Vorgaben bereit. Metadaten, konfigurierte Kopf- und Fußzeilen, Trennseiten und Textinhalte werden präzise in die Typst-Umgebung übergeben.
+
 4. **Kompilierung zum PDF:** Die Typst-Engine kompiliert das Gesamtdokument in einem einzigen, hocheffizienten Durchlauf direkt in die fertige PDF-Datei.

@@ -13,6 +13,11 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 from markpublish.i18n import default_document_language
 
 
+class ConfigurationError(ValueError):
+    """Raised when a configuration or document structure rule is violated."""
+    pass
+
+
 class AutonumStyle(str, Enum):
     DECIMAL = "decimal"    # 1, 1.1, 1.1.1
     ROMAN = "roman"        # I, I.1, I.1.1
@@ -295,7 +300,9 @@ class ChapterItem(BaseModel):
     Represents a single chapter (content markdown file).
     """
     file: Optional[str] = Field(default=None, description="Path to markdown file")
-    chapter: Optional[str] = Field(default=None, description="Chapter identifier/name in YAML")
+    toc_title: Optional[str] = Field(default=None, description="Title for document TOC, part TOC and running headers")
+    divider_title: Optional[str] = Field(default=None, description="Title on chapter divider page")
+    chapter: Optional[Any] = Field(default=None, description="Legacy/custom field, ignored")
     title: Optional[Any] = Field(default=None, description="Legacy/custom field, ignored")
     subtitle: Optional[str] = Field(default=None, description="Chapter subtitle")
     summary: Optional[str] = Field(default=None, description="Chapter summary")
@@ -366,7 +373,7 @@ class ChapterItem(BaseModel):
 
     @property
     def display_title(self) -> str:
-        return self.chapter or (str(self.title) if self.title else "")
+        return ""
 
 
 class PartItem(BaseModel):
@@ -374,6 +381,8 @@ class PartItem(BaseModel):
     Represents an overarching Part / Section containing a flat list of chapters.
     """
     part: Optional[str] = Field(default=None, description="Part name")
+    toc_title: Optional[str] = Field(default=None, description="Title for document TOC and running headers")
+    divider_title: Optional[str] = Field(default=None, description="Title on part divider page")
     title: Optional[Any] = Field(default=None, description="Legacy/custom field, fallback for part name")
     subtitle: Optional[str] = Field(default=None, description="Part subtitle")
     summary: Optional[str] = Field(default=None, description="Part summary for divider page")
@@ -474,7 +483,7 @@ class PartItem(BaseModel):
 
     @property
     def display_title(self) -> str:
-        return self.part or (str(self.title) if self.title else "")
+        return self.toc_title or self.part or (str(self.title) if self.title else "")
 
 
 class MarkpublishConfig(BaseModel):

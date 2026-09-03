@@ -25,7 +25,5 @@ parts:
     break_before: "none"
     chapters:
       - file: "01_config.md"
-        chapter: "markpublish.yaml"
 
       - file: "02_templates.md"
-        chapter: "Templates und Themes"

@@ -163,15 +163,18 @@ def test_cli_manual_renders_in_every_shipped_language(tmp_path: Path, monkeypatc
     assert len(list(tmp_path.glob("*.pdf"))) == len(shipped)
 
 
-def test_cli_cheatsheet_renders_in_both_languages(tmp_path: Path, monkeypatch):
-    """Wie beim Handbuch: beide gepflegten Sprachen muessen durchlaufen."""
+def test_cli_cheatsheet_renders_in_declared_languages(tmp_path: Path, monkeypatch):
+    """Wie beim Handbuch: alle deklarierten Sprachen muessen durchlaufen."""
     monkeypatch.chdir(tmp_path)
 
-    for lang in ("en", "de"):
+    from markpublish.cli import _available_doc_languages
+    shipped = _available_doc_languages("cheatsheet")
+
+    for lang in shipped:
         res = runner.invoke(app, ["cheatsheet", "--lang", lang])
         assert res.exit_code == 0, f"{lang}: {res.stdout}"
 
-    assert len(list(tmp_path.glob("*.pdf"))) == 2
+    assert len(list(tmp_path.glob("*.pdf"))) == len(shipped)
 
 
 @pytest.mark.parametrize(
@@ -269,11 +272,11 @@ def test_bundled_documents_declare_the_languages_they_ship(tmp_path: Path):
     """
     from markpublish.cli import _available_doc_languages, get_bundled_doc_dir
 
-    # Das Handbuch wird auf Deutsch geschrieben; die englische Fassung
-    # entsteht daraus, wenn die deutsche steht.
+    # Alle Dokumente werden auf Deutsch gepflegt; englische Fassungen
+    # entstehen daraus, wenn die deutsche freigegeben ist.
     assert _available_doc_languages("manual") == ["de"]
-    assert _available_doc_languages("cheatsheet") == ["de", "en"]
-    assert _available_doc_languages("init") == ["de", "en"]
+    assert _available_doc_languages("cheatsheet") == ["de"]
+    assert _available_doc_languages("init") == ["de"]
 
     # Jede gemeldete Sprache hat auch wirklich Kapitel neben ihrem Manifest.
     for name in ("manual", "cheatsheet", "init"):
@@ -283,9 +286,8 @@ def test_bundled_documents_declare_the_languages_they_ship(tmp_path: Path):
             assert list(base.rglob("*.md")), f"{name}/{lang} hat keine Kapitel"
 
 
-def test_cli_init_lang_de_and_en(tmp_path: Path):
-    """Prueft, dass init mit Sprachschalter die passende Vorlage kopiert."""
-    # 1. Deutsch
+def test_cli_init_lang_de(tmp_path: Path):
+    """Prueft, dass init mit Sprachschalter die deutsche Vorlage kopiert."""
     p_de = tmp_path / "proj_de"
     res_de = runner.invoke(app, ["init", str(p_de), "--lang", "de", "--title", "Mein Dokument"])
     assert res_de.exit_code == 0
@@ -293,21 +295,20 @@ def test_cli_init_lang_de_and_en(tmp_path: Path):
     assert 'title: "Mein Dokument"' in yaml_de
     assert 'language: "de"' in yaml_de
     assert 'part: "Hauptteil"' in yaml_de
-    assert 'chapter: "Nächste Schritte"' in yaml_de
+    assert 'next-steps.md' in yaml_de
     steps_de = (p_de / "next-steps.md").read_text(encoding="utf-8")
     assert "# Nächste Schritte" in steps_de
 
-    # 2. Englisch
-    p_en = tmp_path / "proj_en"
-    res_en = runner.invoke(app, ["init", str(p_en), "--lang", "en", "--title", "My Document"])
-    assert res_en.exit_code == 0
-    yaml_en = (p_en / "markpublish.yaml").read_text(encoding="utf-8")
-    assert 'title: "My Document"' in yaml_en
-    assert 'language: "en"' in yaml_en
-    assert 'part: "Main"' in yaml_en
-    assert 'chapter: "Next steps"' in yaml_en
-    steps_en = (p_en / "next-steps.md").read_text(encoding="utf-8")
-    assert "# Next steps" in steps_en
+
+def test_cli_init_uses_system_language(tmp_path: Path, monkeypatch):
+    """Prueft, dass init ohne --lang die Systemsprache zur Vorlagenauswahl nutzt."""
+    monkeypatch.setenv("LC_ALL", "de_DE.UTF-8")
+    p = tmp_path / "proj_sys"
+    res = runner.invoke(app, ["init", str(p), "--title", "System Doc"])
+    assert res.exit_code == 0
+    yaml_text = (p / "markpublish.yaml").read_text(encoding="utf-8")
+    assert 'language: "de"' in yaml_text
+    assert 'part: "Hauptteil"' in yaml_text
 
 
 def test_cli_templates_list():

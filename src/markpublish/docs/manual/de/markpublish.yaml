@@ -23,35 +23,37 @@ parts:
   - part: "Hauptteil"
     break_before: "none"
     document_toc: "none"
+
     chapters:
       - file: "chapters/01_introduction.md"
-        chapter: "Einleitung"
         summary: "Motivation, Kernfeatures und die Architektur von markpublish."
         break_before: "divider"
-        chapter_toc: "none"
+        divider_title: "Einleitung"
+        toc_title: "Einleitung"
 
       - file: "chapters/02_quickstart.md"
-        chapter: "Installation und Schnellstart"
         summary: "Der direkte Weg von der Installation bis zum ersten fertigen PDF."
         break_before: "divider"
+        divider_title: "Installation und Schnellstart"
+        toc_title: "Installation und Schnellstart"
 
       - file: "chapters/03_cli_reference.md"
-        chapter: "Kommandozeilen-Schnittstelle (CLI)"
         summary: "Detaillierte Befehlsübersicht und vollständige Optionen-Referenz aller Befehle."
         break_before: "divider"
+        divider_title: "Kommandozeilen-Schnittstelle (CLI)"
+        toc_title: "Kommandozeilen-Schnittstelle (CLI)"
 
       - file: "chapters/04_configuration_guide.md"
-        chapter: "Projektkonfiguration mit markpublish.yaml"
         summary: "Strukturierung in Document, Parts und Chapters anhand praktischer Beispiele."
         break_before: "divider"
+        divider_title: "Projektkonfiguration mit markpublish.yaml"
+        toc_title: "Projektkonfiguration mit markpublish.yaml"
 
       - file: "chapters/05_template_system.md"
-        chapter: "Templates und Mehrsprachigkeit"
         summary: "Theme-Struktur mit Typst, 3-stufige Auflösungshierarchie und Textkaskade (i18n)."
         break_before: "divider"
 
       - file: "chapters/06_markdown_features.md"
-        chapter: "Besondere Markdown-Features"
         summary: "Auszeichnung und typografische Darstellung von Hinweisboxen, Definitionslisten, Aufgaben und mathematischen Formeln."
         break_before: "divider"
 
@@ -62,9 +64,7 @@ parts:
     
     chapters:
       - file: "chapters/07_appendix_yaml_spec.md"
-        chapter: "Anhang A: Schema-Referenz markpublish.yaml"
         autonum_prefix: "A."
 
       - file: "chapters/08_appendix_troubleshooting.md"
-        chapter: "Anhang B: Fehlerbehebung und FAQ"
         autonum_prefix: "B."

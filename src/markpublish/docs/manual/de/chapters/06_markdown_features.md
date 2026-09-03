@@ -123,7 +123,9 @@ Zur Darstellung von Checklisten, To-Do-Listen oder Meilensteinen stehen Aufgaben
 ### Live-Darstellung im Dokument
 
 - [x] Python 3.10 oder neuer bereitstellen
+
 - [x] markpublish installieren
+
 - [ ] Erstes eigenes Dokument veröffentlichen
 
 ---
@@ -162,6 +164,9 @@ $$ A = \pi \cdot r^2 \quad \text{und} \quad x = \frac{-b \pm \sqrt{b^2 - 4 a c}}
 Viele Dokumentationswerkzeuge erfordern das umständliche Maskieren bestimmter Symbole. markpublish verarbeitet gebräuchliche Zeichen im Fließtext vollautomatisch und kollisionsfrei:
 
 * **Währungsbeträge:** `$5.00` oder `10.50 $` werden nicht versehentlich als mathematische Formeln interpretiert.
+
 * **Programmiersprachen:** Namen wie `C#` lösen keine Typst-Sonderbefehle aus.
+
 * **Benutzernamen und Erwähnungen:** `@author` oder `user@domain.com` werden sicher gedruckt.
+
 * **Spitze Klammern:** Technische Platzhalter wie `<zielverzeichnis>` bleiben im Text erhalten.

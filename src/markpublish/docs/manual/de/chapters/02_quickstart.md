@@ -1,5 +1,3 @@
-# Installation und Schnellstart
-
 Dieses Kapitel beschreibt den direkten Weg von der Installation bis zum ersten fertig erstellten PDF-Dokument.
 
 ## Voraussetzungen
@@ -7,6 +5,7 @@ Dieses Kapitel beschreibt den direkten Weg von der Installation bis zum ersten f
 Für den Betrieb von markpublish wird eine funktionierende Python-Installation benötigt:
 
 * **Python-Version:** 3.10 oder neuer
+
 * **Betriebssystem:** Windows, macOS oder Linux
 
 ## Installation

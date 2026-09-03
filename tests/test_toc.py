@@ -762,28 +762,28 @@ parts:
     assert "outlined: false" in lines_c2[1]      # Unter 2.1
 
 
-def test_chapter_keyword_and_h1_priority(tmp_path: Path):
+def test_chapter_title_from_file_h1_with_toc_and_divider_overrides(tmp_path: Path):
     """
     Stellt sicher, dass:
-    1. Die H1 aus der Markdown-Datei immer den Titel bestimmt (auch wenn chapter oder title im YAML steht).
-    2. Wenn die Datei keine H1 enthaelt, 'chapter' als Fallback dient.
-    3. 'part' als primaerer Schluessel den Part-Titel setzt.
+    1. Die H1 aus der Markdown-Datei standardmaessig den Titel fuer Seite, TOC und Divider liefert.
+    2. toc_title gezielt den Verzeichniseintrag ueberschreibt, waehrend die H1 auf der Seite bleibt.
+    3. divider_title gezielt den Trennseitentitel steuert.
     """
-    (tmp_path / "c1.md").write_text("# Echte Datei H1\n\nText", encoding="utf-8")
-    (tmp_path / "c2.md").write_text("Nur Text ohne Ueberschrift", encoding="utf-8")
+    (tmp_path / "c1.md").write_text("# Sehr lange Ueberschrift auf der Textseite\n\nText 1", encoding="utf-8")
+    (tmp_path / "c2.md").write_text("# Normales Kapitel\n\nText 2", encoding="utf-8")
 
     (tmp_path / "markpublish.yaml").write_text(
         """\
 document:
   title: "Doc"
 parts:
-  - part: "Mein Abschnitt"
+  - part: "Hauptabschnitt"
     chapters:
       - file: "c1.md"
-        chapter: "YAML Bezeichner"
-        title: "Ignorierter YAML Titel"
+        toc_title: "Kurztitel im TOC"
+        divider_title: "Trennseiten-Titel"
+        break_before: "divider"
       - file: "c2.md"
-        chapter: "Fallback Name"
 """,
         encoding="utf-8",
     )
@@ -791,16 +791,190 @@ parts:
     config = load_config(tmp_path / "markpublish.yaml")
     items, toc = MarkdownPipeline(config, base_dir=tmp_path, labels={}).process_document()
 
-    # items[0] ist der Part
+    # Part
     assert items[0].is_part is True
-    assert items[0].display_title == "Mein Abschnitt"
+    assert items[0].display_title == "Hauptabschnitt"
 
-    # c1: H1 der Datei gewinnt
-    assert items[1].display_title == "Echte Datei H1"
-    assert "Echte Datei H1" in items[1].typst_content
+    # c1: Textseite hat originale H1, TOC hat Kurztitel, Divider hat Trennseiten-Titel
+    assert items[1].display_title == "Kurztitel im TOC"
+    assert items[1].toc_title == "Kurztitel im TOC"
+    assert items[1].divider_title == "Trennseiten-Titel"
+    assert "Sehr lange Ueberschrift auf der Textseite" in items[1].typst_content
+    # Im TOC steht der Kurztitel
+    assert items[1].local_toc_items == []  # Keine Unterebenen
+    assert toc[0].children[0].title == "Kurztitel im TOC"
 
-    # c2: keine H1 vorhanden -> 'chapter' dient als Name
-    assert items[2].display_title == "Fallback Name"
+    # c2: erbt alles aus Datei-H1
+    assert items[2].display_title == "Normales Kapitel"
+    assert items[2].toc_title == "Normales Kapitel"
+    assert items[2].divider_title == "Normales Kapitel"
+    assert "Normales Kapitel" in items[2].typst_content
+
+
+def test_h1_less_chapter_with_titles(tmp_path: Path):
+    """
+    Ein Kapitel ohne '#' in der Datei ist gueltig, wenn toc_title und divider_title gesetzt sind:
+    - Textseite enthaelt absolut keine Ueberschrift.
+    - TOC und Divider erhalten die definierten Titel.
+    """
+    (tmp_path / "dedication.md").write_text("Fuer meine Familie.\n\nReiner Text ohne H1.", encoding="utf-8")
+
+    (tmp_path / "markpublish.yaml").write_text(
+        """\
+document:
+  title: "Doc"
+parts:
+  - part: "Vorspann"
+    break_before: "none"
+    chapters:
+      - file: "dedication.md"
+        toc_title: "Widmung"
+        divider_title: "Widmungsblatt"
+        break_before: "divider"
+""",
+        encoding="utf-8",
+    )
+
+    config = load_config(tmp_path / "markpublish.yaml")
+    items, toc = MarkdownPipeline(config, base_dir=tmp_path, labels={}).process_document()
+
+    # Da part break_before: none hat, gibt es kein Part-Item, items[0] ist das Kapitel
+    assert len(items) == 1
+    ch = items[0]
+    assert ch.toc_title == "Widmung"
+    assert ch.divider_title == "Widmungsblatt"
+    assert ch.display_title == "Widmung"
+    # Keine Ueberschrift im typst_content
+    assert "#heading" not in ch.typst_content
+    # Aber synthetischer Eintrag im TOC vorhanden
+    assert len(toc[0].children) == 1
+    assert toc[0].children[0].title == "Widmung"
+
+
+def test_validation_error_missing_divider_title(tmp_path: Path):
+    """
+    Wenn break_before: 'divider' gefordert ist, die Datei aber kein '#' hat und kein divider_title
+    konfiguriert ist, bricht der Build mit ConfigurationError ab.
+    """
+    from markpublish.config.models import ConfigurationError
+
+    (tmp_path / "empty_heading.md").write_text("Nur Fließtext ohne Ueberschrift", encoding="utf-8")
+
+    (tmp_path / "markpublish.yaml").write_text(
+        """\
+document:
+  title: "Doc"
+parts:
+  - part: "Abschnitt"
+    chapters:
+      - file: "empty_heading.md"
+        break_before: "divider"
+        toc_title: "TOC Titel Vorhanden"
+""",
+        encoding="utf-8",
+    )
+
+    config = load_config(tmp_path / "markpublish.yaml")
+    import pytest
+    with pytest.raises(ConfigurationError) as exc_info:
+        MarkdownPipeline(config, base_dir=tmp_path, labels={}).process_document()
+
+    assert "erfordert eine Trennseite" in str(exc_info.value)
+    assert "divider_title" in str(exc_info.value)
+
+
+def test_validation_error_missing_toc_title(tmp_path: Path):
+    """
+    Wenn ein Kapitel im Inhaltsverzeichnis gelistet werden soll, die Datei aber kein '#' hat
+    und kein toc_title konfiguriert ist, bricht der Build mit ConfigurationError ab.
+    """
+    from markpublish.config.models import ConfigurationError
+
+    (tmp_path / "no_h1.md").write_text("Nur Fließtext ohne Ueberschrift", encoding="utf-8")
+
+    (tmp_path / "markpublish.yaml").write_text(
+        """\
+document:
+  title: "Doc"
+parts:
+  - part: "Abschnitt"
+    chapters:
+      - file: "no_h1.md"
+""",
+        encoding="utf-8",
+    )
+
+    config = load_config(tmp_path / "markpublish.yaml")
+    import pytest
+    with pytest.raises(ConfigurationError) as exc_info:
+        MarkdownPipeline(config, base_dir=tmp_path, labels={}).process_document()
+
+    assert "Inhaltsverzeichnis" in str(exc_info.value)
+    assert "toc_title" in str(exc_info.value)
+
+
+def test_h1_less_chapter_excluded_from_toc_and_divider_is_valid(tmp_path: Path):
+    """
+    Eine Datei ohne '#' darf existieren, wenn sie weder Trennseite noch Verzeichniseintrag verlangt.
+    """
+    (tmp_path / "notes.md").write_text("Reine Notizen, nirgends gelistet.", encoding="utf-8")
+
+    (tmp_path / "markpublish.yaml").write_text(
+        """\
+document:
+  title: "Doc"
+parts:
+  - part: "Abschnitt"
+    break_before: "none"
+    part_toc: "none"
+    chapters:
+      - file: "notes.md"
+        break_before: "none"
+        document_toc: "none"
+""",
+        encoding="utf-8",
+    )
+
+    config = load_config(tmp_path / "markpublish.yaml")
+    items, toc = MarkdownPipeline(config, base_dir=tmp_path, labels={}).process_document()
+    assert len(items) == 1
+    assert "#heading" not in items[0].typst_content
+
+
+def test_validation_error_missing_toc_title_with_part_toc(tmp_path: Path):
+    """
+    Auch wenn document_toc 'none' ist, aber part_toc auf der Part-Trennseite aktiv ist,
+    muss ein Kapitel ohne '#' ein toc_title besitzen, da es sonst ohne Titel im Part-TOC stuende.
+    """
+    import pytest
+
+    from markpublish.config.models import ConfigurationError
+
+    (tmp_path / "no_h1.md").write_text("Nur Fließtext ohne Ueberschrift", encoding="utf-8")
+
+    (tmp_path / "markpublish.yaml").write_text(
+        """\
+document:
+  title: "Doc"
+  document_toc: "none"
+parts:
+  - part: "Abschnitt"
+    break_before: "divider"
+    part_toc: "full"
+    chapters:
+      - file: "no_h1.md"
+""",
+        encoding="utf-8",
+    )
+
+    config = load_config(tmp_path / "markpublish.yaml")
+    with pytest.raises(ConfigurationError) as exc_info:
+        MarkdownPipeline(config, base_dir=tmp_path, labels={}).process_document()
+
+    assert "Inhaltsverzeichnis" in str(exc_info.value)
+    assert "toc_title" in str(exc_info.value)
+
+
 
 
 

@@ -25,15 +25,16 @@ Zusatzfelder gehen über das Wörterbuch `meta` (`meta.at("mein_schluessel").val
 
 ## parts und chapters
 
-Genau zwei Stufen: `parts:` gliedert, `chapters:` trägt den Inhalt. Tiefe entsteht
-ausschließlich aus den Überschriften der jeweiligen Markdown-Dateien.
+Genau zwei Stufen: `parts:` gliedert, `chapters:` trägt den Inhalt. Seitentitel
+stammen aus der Datei-H1, Verzeichnis- und Trennseitentitel lassen sich steuern.
 
 | Schlüssel | Gilt für | Bedeutung |
 | :--- | :--- | :--- |
 | `part` | Part | Name des Parts, Pflicht |
 | `chapters` | Part | Liste der Kapitel, mindestens eines |
 | `file` | Kapitel | Pfad zur Markdown-Datei |
-| `chapter` | Kapitel | Name des Kapitels in der YAML (optional) |
+| `toc_title` | beide | Titel für Inhaltsverzeichnis und Kopfzeilen |
+| `divider_title` | beide | Titel auf der Trennseite |
 | `subtitle` / `summary` | beide | Untertitel und Kurzbeschreibung auf Trennseiten |
 | `break_before` | beide | `page`, `divider` (Trennseite) oder `none` |
 | `document_toc` | beide | Anteil am Verzeichnis vorn |

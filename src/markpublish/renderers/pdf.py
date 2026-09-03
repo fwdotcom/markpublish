@@ -227,7 +227,7 @@ class PDFRenderer(BaseRenderer):
                     if has_content:
                         parts.append("#pagebreak()\n")
                     summary_typ = typst_string(item.summary or "")
-                    part_title_esc = typst_string(item.title)
+                    part_title_esc = typst_string(getattr(item, "divider_title", None) or getattr(item, "display_title", None) or item.title)
                     part_sub_esc = typst_string(item.subtitle or "")
                     part_tag_esc = typst_string(labels.get("part", "Part" if lang_code == "en" else "Abschnitt"))
                     part_toc_title_esc = typst_string(labels.get("part_toc_title", "Table of Contents" if lang_code == "en" else "Inhalt dieses Abschnitts"))
@@ -257,7 +257,7 @@ class PDFRenderer(BaseRenderer):
                         parts.append("#pagebreak()\n")
                         has_content = False
                     if part_in_toc:
-                        part_heading_title = typst_string(item.title)
+                        part_heading_title = typst_string(getattr(item, "toc_title", None) or getattr(item, "display_title", None) or item.title)
                         parts.append(f'#heading(level: 1, outlined: true, numbering: none)[{part_heading_title}] <part-entry>\n')
 
                 if getattr(item, "pagenum_reset", False):
@@ -281,14 +281,33 @@ class PDFRenderer(BaseRenderer):
 
         bb_val = chapter_item.break_before.value if getattr(chapter_item, "break_before", None) else "page"
 
+        has_file_h1 = getattr(chapter_item, "has_h1", False)
+        needs_synth = getattr(chapter_item, "needs_synthetic_toc_heading", False)
+
+        def _synthetic_heading() -> str:
+            t_esc = typst_string(getattr(chapter_item, "toc_title", None) or chapter_item.display_title)
+            num_prefix = getattr(chapter_item, "number_prefix", None)
+            eff_level = max(1, getattr(chapter_item, "base_level", 1))
+            ch_slug = getattr(chapter_item, "slug", "")
+            lbl_str = f" <{ch_slug}>" if (ch_slug and not has_file_h1) else ""
+            if num_prefix:
+                num_esc = typst_string(num_prefix)
+                return f'#place(top + left)[#hide[#heading(level: {eff_level}, outlined: true, numbering: (..nums) => "{num_esc}")[{t_esc}]{lbl_str}]]\n'
+            else:
+                return f'#place(top + left)[#hide[#heading(level: {eff_level}, outlined: true, numbering: none)[{t_esc}]{lbl_str}]]\n'
+
+        synth_placed_on_divider = False
         if bb_val == "divider":
             if has_content:
                 res.append("#pagebreak()\n")
+            if needs_synth and not has_file_h1:
+                res.append(_synthetic_heading())
+                synth_placed_on_divider = True
             tag_label = labels.get("chapter", "Chapter" if lang_code == "en" else "Kapitel")
             num_prefix = getattr(chapter_item, "number_prefix", None)
             full_tag = typst_string(f"{tag_label} {num_prefix}".strip() if num_prefix else tag_label)
             summary_esc = typst_string(chapter_item.summary or "")
-            ch_title_esc = typst_string(chapter_item.display_title)
+            ch_title_esc = typst_string(getattr(chapter_item, "divider_title", None) or chapter_item.display_title)
             ch_sub_esc = typst_string(chapter_item.subtitle or "")
             ch_toc_title_esc = typst_string(labels.get("chapter_toc_title", "Chapter Contents" if lang_code == "en" else "Inhalt dieses Kapitels"))
 
@@ -316,6 +335,9 @@ class PDFRenderer(BaseRenderer):
         if getattr(chapter_item, "pagenum_reset", False):
             res.append("#counter(page).update(1)\n")
 
+        if needs_synth and not synth_placed_on_divider:
+            res.append(_synthetic_heading())
+
         images_dir = build_dir / "images"
         element_tree = getattr(chapter_item, "element_tree", None)
         file_base_dir = getattr(chapter_item, "file_base_dir", None)
@@ -331,6 +353,7 @@ class PDFRenderer(BaseRenderer):
                 file_base_dir=file_base_dir,
                 images_dir=images_dir,
                 labels=labels,
+                allowed_toc_slugs=getattr(chapter_item, "allowed_toc_slugs", None),
             )
             ch_typst = serializer.serialize(element_tree)
             if ch_typst.strip():

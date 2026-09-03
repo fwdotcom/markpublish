@@ -1,0 +1,30 @@
+# markpublish.yaml
+#
+# Minimaler Einstieg. Die vollständige Referenz aller Schlüssel
+# und zur Funktionsweise von Themes erhalten Sie mit:
+#
+#     markpublish cheatsheet
+#
+document:
+  title: "{title}"
+  author: "Ihr Name"
+  date: "auto"
+  language: "de"
+
+  # Ein einseitiger Entwurf benötigt weder Deckblatt noch Inhaltsverzeichnis.
+  # Aktivieren Sie beides, sobald Ihr Dokument umfangreicher wird.
+  cover: false
+  document_toc: "none"
+
+theme: "default"
+
+# Kapitel liegen immer unter einem Abschnitt (part) -- das ist die zweistufige
+# Struktur von markpublish. Ein Abschnitt genügt hier; break_before: "none"
+# verhindert eine eigene Trennseite.
+parts:
+  - part: "Hauptteil"
+    break_before: "none"
+    document_toc: "none"
+    chapters:
+      - file: "next-steps.md"
+

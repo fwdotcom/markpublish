@@ -182,3 +182,68 @@ def test_pdf_theme_without_fonts_dir_renders_successfully(tmp_path: Path):
     PDFRenderer().render(context, out)
     assert out.is_file()
     assert out.stat().st_size > 1000
+
+
+def test_pdf_toc_title_and_divider_title_rendering(tmp_path: Path):
+    """Verifies that PDF renders toc_title in the TOC and divider_title on the divider page."""
+    pytest.importorskip("pypdfium2")
+    project = tmp_path / "proj"
+    project.mkdir()
+    (project / "c1.md").write_text("# Sehr lange Ueberschrift auf der Textseite\n\nFließtext.\n", encoding="utf-8")
+    (project / "c2.md").write_text("Text ohne H1.\n", encoding="utf-8")
+
+    (project / "markpublish.yaml").write_text(
+        """\
+document:
+  title: "TOC Test Dokument"
+  document_toc: "full"
+parts:
+  - part: "Hauptabschnitt"
+    break_before: "divider"
+    divider_title: "Trennseite Hauptabschnitt"
+    chapters:
+      - file: "c1.md"
+        toc_title: "Kurztitel im TOC"
+      - file: "c2.md"
+        break_before: "divider"
+        divider_title: "Trennseite C2"
+        toc_title: "Kapitel C2 im TOC"
+""",
+        encoding="utf-8",
+    )
+
+    config = load_config(project / "markpublish.yaml")
+    context = DocumentContext(
+        config=config,
+        content_items=[],
+        toc_tree=[],
+        template_path=resolve_template_path("pdf", "default"),
+        base_dir=project,
+        target="pdf",
+    )
+    context.content_items, context.toc_tree = MarkdownPipeline(
+        config, base_dir=project, labels=context.labels
+    ).process_document()
+
+    out = project / "test_out.pdf"
+    PDFRenderer().render(context, out)
+    assert out.is_file()
+
+    import pypdfium2 as pdfium
+    doc = pdfium.PdfDocument(str(out))
+    full_text = "\n".join(doc[i].get_textpage().get_text_range() for i in range(len(doc)))
+
+    # Trennseiten-Titel vorhanden
+    assert "Trennseite Hauptabschnitt" in full_text
+    assert "Trennseite C2" in full_text
+    # Kurztitel im TOC vorhanden
+    assert "Kurztitel im TOC" in full_text
+    assert "Kapitel C2 im TOC" in full_text
+    # Ausführliche H1 auf Textseite vorhanden
+    assert "Sehr lange Ueberschrift auf der Textseite" in full_text
+
+    # TOC-Eintrag fuer Kapitel C2 (ohne H1, aber mit Divider) verweist auf die Dividerseite (5), nicht Textseite (6)
+    toc_text = doc[1].get_textpage().get_text_range()
+    assert "Kapitel C2 im TOC" in toc_text
+    assert "5" in toc_text
+

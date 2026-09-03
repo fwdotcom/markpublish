@@ -187,6 +187,13 @@
   set par(
     justify: true,
     leading: 0.75em,
+    spacing: 1.2em,
+  )
+  set list(
+    spacing: 1.2em,
+  )
+  set enum(
+    spacing: 1.2em,
   )
 
   // Heading Styling

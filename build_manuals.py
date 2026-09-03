@@ -34,6 +34,9 @@ console = Console()
 DEFAULT_LANGUAGES = ("de",)
 
 
+SCRIPT_DIR = Path(__file__).resolve().parent
+
+
 @app.command()
 def main(
     target: Annotated[
@@ -67,7 +70,7 @@ def main(
     Ohne --lang nur Deutsch. Eine Fassung, die gerade nicht gepflegt wird,
     baut sonst bei jedem Lauf mit und sieht danach aktueller aus, als sie ist.
     """
-    out_dir = output_dir.resolve()
+    out_dir = (output_dir if output_dir.is_absolute() else (SCRIPT_DIR / output_dir)).resolve()
     out_dir.mkdir(parents=True, exist_ok=True)
 
     # Frueh pruefen, statt nach dem ersten gerenderten Dokument abzubrechen:
@@ -189,4 +192,13 @@ def _print_summary(
 
 
 if __name__ == "__main__":
+    # Falls ein lokales .venv existiert und nicht aktiv ist (z. B. beim Doppelklick im Explorer),
+    # fuehre das Skript transparent mit dem venv-Python aus:
+    import sys
+    venv_python = SCRIPT_DIR / ".venv" / "Scripts" / "python.exe"
+    if venv_python.is_file() and Path(sys.executable).resolve() != venv_python.resolve():
+        import subprocess
+        res = subprocess.run([str(venv_python), str(__file__)] + sys.argv[1:])
+        sys.exit(res.returncode)
+
     app()
