@@ -1,0 +1,76 @@
+# markpublish.yaml for the official user guide.
+#
+# Kept in step with ../de/markpublish.yaml: same chapters, same order, same
+# switches. Only the titles and the prose differ.
+
+document:
+  title: "markpublish User Guide"
+  subtitle: "Modern PDF and HTML publishing from Markdown"
+  summary: "A practical guide and complete reference for configuring, customising and generating documents with markpublish."
+  author: "Frank Winter"
+  status: "Released"
+  copyright: "© 2026 Frank Winter"
+  date: "auto"
+  version: "1.0.0"
+  language: "en"
+
+  cover: true
+  document_toc: 2
+  chapter_toc: 2
+  part_toc: 2
+
+  header: true
+  footer: true
+
+#theme: "default"
+
+parts:
+  - title: "Main"
+    break_before: "none"
+    document_toc: "none"
+    chapters:
+      - file: "chapters/01_introduction.md"
+        title: "Introduction & Architecture"
+        summary: "Goals, core concepts and the modular processing pipeline."
+        break_before: "divider"
+        chapter_toc: "none"
+
+      - file: "chapters/02_quickstart.md"
+        title: "Installation & Quickstart"
+        summary: "Step-by-step installation and your first document."
+        break_before: "divider"
+
+      - file: "chapters/03_cli_reference.md"
+        title: "The CLI Commands"
+        summary: "Every command in detail: build, init, cheatsheet, manual, templates, export-template and labels."
+        break_before: "divider"
+
+      - file: "chapters/04_configuration_guide.md"
+        title: "Configuration Guide"
+        summary: "Declarative definition of document metadata, chapters and hierarchies."
+        break_before: "divider"
+
+      - file: "chapters/05_template_system.md"
+        title: "The Template and Design System"
+        summary: "Three-level resolution, CSS Paged Media and multi-line running headers."
+        break_before: "divider"
+
+      - file: "chapters/06_markdown_features.md"
+        title: "Markdown Features & Syntax"
+        summary: "Tables, admonitions and callouts, Pygments highlighting and task lists."
+        break_before: "divider"
+        chapter_toc: "none"
+
+  - title: "Appendices"
+    summary: "Complete specification tables, troubleshooting and best practices."
+    break_before: "divider"
+    autonum_from_level: 2
+    
+    chapters:
+      - file: "chapters/07_appendix_yaml_spec.md"
+        title: "Appendix A: YAML Schema Reference"
+        autonum_prefix: "A."
+
+      - file: "chapters/08_appendix_troubleshooting.md"
+        title: "Appendix B: Troubleshooting & FAQ"
+        autonum_prefix: "B."
