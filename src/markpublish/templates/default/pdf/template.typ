@@ -42,20 +42,26 @@
 
 // Task Item Checkbox
 #let task-item(checked: false, body) = {
-  box(
-    width: 10pt,
-    height: 10pt,
-    stroke: 0.8pt + rgb("#64748b"),
-    radius: 2pt,
-    fill: if checked { rgb("#2563eb") } else { none },
-    baseline: 1pt,
-  )[
-    #if checked [
-      #align(center + horizon)[#text(size: 7pt, fill: white, weight: "bold")[✓]]
-    ]
+  block(spacing: 0.65em)[
+    #grid(
+      columns: (14pt, 1fr),
+      align: (left + top, left + top),
+      box(
+        width: 9.5pt,
+        height: 9.5pt,
+        stroke: 0.8pt + rgb("#64748b"),
+        radius: 2pt,
+        fill: if checked { rgb("#2563eb") } else { none },
+        baseline: 0pt,
+        inset: (top: 1pt),
+      )[
+        #if checked [
+          #align(center + horizon)[#text(size: 6.5pt, fill: white, weight: "bold")[✓]]
+        ]
+      ],
+      body,
+    )
   ]
-  h(6pt)
-  body
 }
 
 // Reihenfolge der Angaben im Metadatenraster des Titelblatts.

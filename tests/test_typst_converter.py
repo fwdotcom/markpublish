@@ -96,6 +96,7 @@ def test_convert_task_lists():
 - [x] Task 2 erledigt
 - Normaler Punkt"""
     typ = conv.convert(md)
-    assert "- #task-item(checked: false)[Task 1 offen]" in typ
-    assert "- #task-item(checked: true)[Task 2 erledigt]" in typ
+    assert "#task-item(checked: false)[Task 1 offen]" in typ
+    assert "#task-item(checked: true)[Task 2 erledigt]" in typ
+    assert "- #task-item" not in typ
     assert "- Normaler Punkt" in typ

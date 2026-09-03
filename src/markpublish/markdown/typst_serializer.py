@@ -384,7 +384,7 @@ class TypstSerializer:
 
             if is_task:
                 chk_str = "true" if checked else "false"
-                item_line = f"{indent}{marker} #task-item(checked: {chk_str})[{li_text}]"
+                item_line = f"{indent}#task-item(checked: {chk_str})[{li_text}]"
             else:
                 item_line = f"{indent}{marker} {li_text}"
 

@@ -120,3 +120,25 @@ def test_serializer_math(tmp_path: Path):
     typst.compile(typ_file, output=out_pdf)
     assert out_pdf.is_file()
     assert out_pdf.stat().st_size > 500
+
+
+def test_serialize_tasklist_without_bullet():
+    from markpublish.markdown.engine import MarkdownEngine
+    from markpublish.markdown.typst_serializer import TypstSerializer, html_to_tree
+
+    engine = MarkdownEngine()
+    md = """
+- [x] Fertig
+- [ ] Offen
+- Regulär
+"""
+    html = engine.convert(md)
+    tree = html_to_tree(html)
+    serializer = TypstSerializer()
+    typst_output = serializer.serialize(tree)
+
+    assert "#task-item(checked: true)[Fertig]" in typst_output
+    assert "#task-item(checked: false)[Offen]" in typst_output
+    assert "- #task-item" not in typst_output
+    assert "- Regulär" in typst_output
+

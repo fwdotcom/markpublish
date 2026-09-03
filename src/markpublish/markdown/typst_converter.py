@@ -362,7 +362,7 @@ class MarkdownToTypstConverter:
                 checked = task_match.group(1).lower() == "x"
                 item_text = self._convert_inline(task_match.group(2))
                 checked_bool = "true" if checked else "false"
-                list_lines.append(f"{indent}- #task-item(checked: {checked_bool})[{item_text}]")
+                list_lines.append(f"{indent}#task-item(checked: {checked_bool})[{item_text}]")
             # Unordered list: - or *
             elif re.match(r"^[-*]\s+(.*)$", stripped):
                 item_text = self._convert_inline(re.sub(r"^[-*]\s+", "", stripped))
