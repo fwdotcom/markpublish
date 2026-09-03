@@ -266,3 +266,30 @@ Here is a footnote reference[^1].
     assert "Cell 2" in text
     assert "Definition 1" in text
 
+
+def test_metadata_special_characters_in_key_and_value_compiles_cleanly(tmp_path: Path):
+    """
+    Tests that quotes and special characters in custom metadata keys and values
+    do not inject syntax errors into the Typst document.
+    """
+    yaml_text = """\
+document:
+  title: "Meta Quote Test"
+  cover: true
+  'quo"te': 'value with "quotes" and $math$ and #tags'
+parts:
+  - title: "Part"
+    break_before: "none"
+    chapters:
+      - file: "a.md"
+        title: "A"
+"""
+    a_md = "# Title\n\nContent.\n"
+    out_pdf = _compile_pdf(tmp_path, yaml_text, {"a.md": a_md})
+    doc = pdfium.PdfDocument(out_pdf)
+    assert len(doc) >= 1
+    # Check cover page text contains value
+    text = doc[0].get_textpage().get_text_range()
+    assert 'value with "quotes"' in text
+
+

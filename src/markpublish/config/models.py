@@ -7,7 +7,7 @@ from __future__ import annotations
 from enum import Enum
 from typing import Any, List, Optional, Union
 
-from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from markpublish.i18n import default_document_language
 
@@ -120,6 +120,8 @@ def parse_toc_scope(value: Any, key_path: str) -> TocScope:
 
 class DocumentConfig(BaseModel):
     """Document-level metadata and global layout switches."""
+    model_config = ConfigDict(extra="allow")
+
     title: str = Field(..., description="Document title")
     subtitle: Optional[str] = Field(default=None, description="Document subtitle")
     summary: Optional[str] = Field(default=None, description="Executive summary / abstract")
@@ -182,11 +184,6 @@ class DocumentConfig(BaseModel):
     )
     header: bool = Field(default=True, description="Enable running header")
     footer: bool = Field(default=True, description="Enable running footer")
-
-    # Allow custom extra fields for custom template needs
-    model_config = {
-        "extra": "allow"
-    }
 
     @field_validator("autonum_style", mode="before")
     @classmethod

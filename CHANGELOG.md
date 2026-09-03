@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+### Added
+- **Unified Document Metadata Model (`meta`)**: All document metadata fields are grouped and passed as a structured Typst dictionary `meta: (key: (key: "...", label: "...", value: "..."))` to `setup-document`, allowing dynamic metadata rendering on title pages and support for custom extra fields without schema changes.
+- **Enhanced `markpublish labels` Diagnostics**: Extended 7-column diagnosis table showing theme usage (`key`, `wert`, `key/wert`), fallback values from templates, and pre-build detection of missing keys or undeclared metadata fields.
+
+### Changed
+- **Breaking: Theme Contract Signature**: Custom Typst themes now accept `meta: (:)` in `setup-document` (or use `..rest`).
+- **Heading Numbers in Headers**: Running headers now display chapter titles cleanly without leading numerical prefixes (e.g. `Introduction` instead of `1 Introduction`), while preserving leading acronyms like `API` or `CLI`.
+
 ## [2.0.0] - 2026-09-02
 
 ### Added

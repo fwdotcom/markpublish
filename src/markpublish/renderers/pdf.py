@@ -12,7 +12,11 @@ from typing import Any, List, Tuple
 
 import typst
 
-from markpublish.i18n import UndefinedLabelError, undefined_label_message
+from markpublish.i18n import (
+    UndefinedLabelError,
+    build_document_metadata,
+    undefined_label_message,
+)
 from markpublish.markdown.typst_serializer import TypstSerializer, typst_string
 from markpublish.renderers.base import BaseRenderer, DocumentContext
 from markpublish.templates.contract import (
@@ -105,11 +109,13 @@ class PDFRenderer(BaseRenderer):
             return
 
         labels = context.labels
+        meta_entries = build_document_metadata(context.config.document, labels)
         report = check_theme_contract(
             contract,
             parse_sent_arguments(typst_source),
             labels=labels,
             language=getattr(labels, "language", None),
+            meta_keys=set(meta_entries.keys()),
         )
 
         if report.missing_labels:
@@ -165,9 +171,27 @@ class PDFRenderer(BaseRenderer):
         # Safely escape all label entries
         labels_entries: List[str] = []
         for k, v in labels.items():
-            k_clean = str(k).replace("-", "_")
+            k_clean = typst_string(str(k).replace("-", "_"))
             labels_entries.append(f'    "{k_clean}": "{typst_string(v)}",')
         labels_str = "\n".join(labels_entries)
+
+        # Assemble unified metadata dict
+        meta_entries = build_document_metadata(doc, labels)
+        metadata_lines: List[str] = []
+        for k, entry in meta_entries.items():
+            k_clean = typst_string(str(k).replace("-", "_"))
+            val = entry.value
+            if isinstance(val, list):
+                val_escaped = "(" + ", ".join(f'"{typst_string(str(x))}"' for x in val) + ("," if len(val) == 1 else "") + ")"
+            elif val is None:
+                val_escaped = "none"
+            else:
+                val_escaped = f'"{typst_string(str(val))}"'
+            lbl_escaped = f'"{typst_string(entry.label)}"' if entry.label else "none"
+            metadata_lines.append(
+                f'    "{k_clean}": (key: "{k_clean}", label: {lbl_escaped}, value: {val_escaped}),'
+            )
+        metadata_str = "\n".join(metadata_lines)
 
         parts: List[str] = [
             '#import "template.typ": *',
@@ -188,6 +212,9 @@ class PDFRenderer(BaseRenderer):
             f'  toc-depth: {doc.document_toc.max_depth or 3},',
             f'  show-header: {str(show_header).lower()},',
             f'  show-footer: {str(show_footer).lower()},',
+            "  meta: (",
+            f"{metadata_str}",
+            "  ),",
             "  labels: (",
             f"{labels_str}",
             "  ),",

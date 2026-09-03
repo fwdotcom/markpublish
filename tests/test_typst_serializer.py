@@ -43,7 +43,7 @@ def test_serializer_inline_and_headings():
     serializer = TypstSerializer()
     typ = serializer.serialize(tree)
 
-    assert "= 1 First Heading <first-heading>" in typ
+    assert '#heading(level: 1, numbering: (..nums) => "1")[First Heading] <first-heading>' in typ
     assert "#strong[bold]" in typ
     assert "#emph[italic]" in typ
     assert "#strike[strikethrough]" in typ

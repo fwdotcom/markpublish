@@ -187,15 +187,22 @@ class TypstSerializer:
         if heading_match:
             orig_level = int(heading_match.group(1))
             effective_level = max(1, min(6, orig_level + self.base_level_offset))
-            equal_signs = "=" * effective_level
             slug = elem.attrib.get("id", "")
             number_prefix = elem.attrib.get("data-number", "")
-            has_num_span = any(child.attrib.get("class") == "heading-number" for child in elem)
-            num_str = f"{number_prefix} " if (number_prefix and not has_num_span) else ""
-            content = self._visit_children_inline(elem)
 
+            # Falls in einem Baum noch ein alter heading-number span existiert:
+            for child in elem:
+                if child.attrib.get("class") == "heading-number" and not number_prefix:
+                    number_prefix = "".join(child.itertext()).strip()
+
+            content = self._visit_heading_content(elem)
             label_str = f" <{slug}>" if slug else ""
-            return f"{equal_signs} {num_str}{content}{label_str}\n"
+
+            if number_prefix:
+                num_esc = typst_string(number_prefix)
+                return f'#heading(level: {effective_level}, numbering: (..nums) => "{num_esc}")[{content}]{label_str}\n'
+            else:
+                return f"#heading(level: {effective_level}, numbering: none)[{content}]{label_str}\n"
 
         # Paragraph
         if tag == "p":
@@ -454,6 +461,21 @@ class TypstSerializer:
             if child.tail:
                 parts.append(escape_typst_text(child.tail))
         return "".join(parts)
+
+    def _visit_heading_content(self, elem: etree.Element) -> str:
+        """Serializes inline content of a heading, skipping any legacy heading-number span."""
+        parts: List[str] = []
+        if elem.text:
+            parts.append(escape_typst_text(elem.text))
+        for child in elem:
+            if child.attrib.get("class") == "heading-number":
+                if child.tail:
+                    parts.append(escape_typst_text(child.tail.lstrip()))
+                continue
+            parts.append(self._visit_inline(child))
+            if child.tail:
+                parts.append(escape_typst_text(child.tail))
+        return "".join(parts).strip()
 
     @staticmethod
     def _extract_braced(text: str, start_idx: int) -> Tuple[str, int]:

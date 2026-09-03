@@ -49,6 +49,7 @@ import locale
 import os
 import re
 import sys
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Mapping, Optional, Tuple
 
@@ -512,4 +513,70 @@ def validate_label_references(labels: "LabelMap", directory: Path) -> None:
         for key, places in sorted(missing.items())
     ]
     raise UndefinedLabelError("\n\n".join(blocks))
+
+
+CORE_METADATA_KEYS = (
+    "title",
+    "subtitle",
+    "summary",
+    "author",
+    "status",
+    "version",
+    "date",
+    "copyright",
+)
+
+
+@dataclass
+class MetadataEntry:
+    """Represents a document metadata item merged with i18n label."""
+    key: str
+    label: Optional[str]
+    value: Any
+    is_extra: bool = False
+    is_default: bool = False
+
+
+def build_document_metadata(
+    document: Any,
+    labels: Mapping[str, str],
+) -> Dict[str, MetadataEntry]:
+    """
+    Builds a unified metadata mapping for a document, resolving each key's
+    localized i18n label.
+    """
+    entries: Dict[str, MetadataEntry] = {}
+
+    for key in CORE_METADATA_KEYS:
+        val = getattr(document, key, None)
+        is_default = False
+        if key == "date" and str(val).lower() in ("auto", "today"):
+            is_default = True
+            from markpublish.config.loader import format_current_date
+
+            val = format_current_date(getattr(document, "language", None))
+
+        label = labels.get(key)
+        entries[key] = MetadataEntry(
+            key=key,
+            label=label,
+            value=val,
+            is_extra=False,
+            is_default=is_default,
+        )
+
+    # Extra/custom fields (e.g. from Pydantic model_extra)
+    extra_fields = getattr(document, "model_extra", None) or {}
+    for key, val in extra_fields.items():
+        label = labels.get(key)
+        entries[key] = MetadataEntry(
+            key=key,
+            label=label,
+            value=val,
+            is_extra=True,
+            is_default=False,
+        )
+
+    return entries
+
 

@@ -28,7 +28,6 @@ if sys.platform == "win32":
 from markpublish import __version__
 from markpublish.config.loader import load_config
 from markpublish.i18n import (
-    BUILTIN_I18N_PATH,
     I18N_FILENAME,
     LabelFileError,
     UndefinedLabelError,
@@ -42,7 +41,7 @@ from markpublish.renderers.base import DocumentContext
 from markpublish.renderers.pdf import PDFRenderer
 from markpublish.templates.contract import (
     ThemeContractWarning,
-    label_overview,
+    diagnose_labels_and_metadata,
     parse_theme_contract,
 )
 from markpublish.templates.resolver import (
@@ -756,68 +755,67 @@ def labels_cmd(
     )
 
     contract = parse_theme_contract(tmpl_path)
-    overview = label_overview(contract, set(resolved))
+    rows = diagnose_labels_and_metadata(contract, config.document, resolved)
 
     table = Table(show_header=True, header_style="bold blue")
-    table.add_column("Key", style="bold")
-    table.add_column("i18n", justify="center")
-    table.add_column("gelesen", justify="center")
-    table.add_column("von", style="dim")
-    table.add_column("Value")
-    table.add_column("Source", style="dim")
+    table.add_column("Key", style="bold", no_wrap=True)
+    table.add_column("Theme-Nutzung", justify="center", no_wrap=True)
+    table.add_column("i18n-Label")
+    table.add_column("Label-Fallback", style="dim")
+    table.add_column("Wert")
+    table.add_column("Wert-Fallback", style="dim")
+    table.add_column("Status", no_wrap=True)
 
-    # Aus der vollen Uebersicht, nicht aus der gefilterten Schleife: mit
-    # --overridden wuerde die Zusammenfassung sonst Vollstaendigkeit
-    # behaupten, die nur fuer den Ausschnitt gilt.
-    gaps = [row.key for row in overview if not row.defined]
-    unused = [row.key for row in overview if row.defined and not row.used]
+    breaking: List[str] = [row.key for row in rows if row.breaks_build]
+    warnings_list: List[str] = [
+        row.key for row in rows if "[yellow]" in row.status and not row.breaks_build and row.theme_usage != "-"
+    ]
+    unused: List[str] = [row.key for row in rows if row.theme_usage == "-"]
 
-    for row in overview:
-        entry = resolved.get(row.key)
-        from_program = bool(entry) and entry["path"] == str(BUILTIN_I18N_PATH)
-        if only_overridden and row.defined and from_program:
+    for row in rows:
+        if only_overridden and row.theme_usage == "-" and not row.breaks_build:
             continue
 
-        if row.defined:
-            defined_mark = "[green]x[/green]"
-            value = entry["value"]
-            source_style = "dim" if from_program else "green"
-            source = f"[{source_style}]{entry['source']}[/{source_style}]"
+        lbl_display = row.i18n_label if row.i18n_label is not None else r"[red]\[fehlt!][/red]"
+        lbl_fallback_display = f'"{row.label_fallback}"' if row.label_fallback else "-"
+
+        val_display = row.value if row.value is not None else "[dim](nicht gesetzt)[/dim]"
+        val_fallback_display = row.value_fallback if row.value_fallback else "-"
+
+        if row.theme_usage in ("key", "wert", "key/wert"):
+            usage_display = f"[cyan]{row.theme_usage}[/cyan]"
         else:
-            defined_mark = "[red]-[/red]"
-            value = "[red](fehlt)[/red]"
-            source = ""
+            usage_display = "[dim]-[/dim]"
 
-        if row.used:
-            used_mark = "[green]x[/green]"
-        else:
-            used_mark = "[yellow]-[/yellow]"
-
-        readers = ", ".join(sorted(row.readers))
-        if row.breaks_build:
-            readers += " [red](ohne Fallback)[/red]"
-
-        table.add_row(row.key, defined_mark, used_mark, readers, value, source)
+        table.add_row(
+            row.key,
+            usage_display,
+            lbl_display,
+            lbl_fallback_display,
+            val_display,
+            val_fallback_display,
+            row.status,
+        )
 
     console.print(table)
 
-    if gaps:
+    if breaking:
         console.print(
-            f"\n[red]{len(gaps)} Label ohne Definition:[/red] {', '.join(gaps)}"
+            f"\n[bold red]Kritisch: {len(breaking)} Schlüssel ohne Fallback im Theme -- Typst bricht ab:[/bold red] "
+            f"{', '.join(breaking)}"
         )
-        breaking = [r.key for r in overview if r.breaks_build]
-        if breaking:
-            console.print(
-                f"  [red]Davon ohne Fallback im Template - der Build bricht ab:[/red] "
-                f"{', '.join(breaking)}"
-            )
+    if warnings_list:
+        console.print(
+            f"\n[yellow]Hinweis: {len(warnings_list)} Schlüssel/Labels haben Warnungen (Fallbacks greifen oder Label fehlt):[/yellow] "
+            f"{', '.join(warnings_list)}"
+        )
     if unused:
         console.print(
-            f"\n[yellow]{len(unused)} Label {'wird' if len(unused) == 1 else 'werden'} von niemandem gelesen:[/yellow] "
+            f"\n[dim]{len(unused)} Schlüssel werden vom Theme nicht verwendet:[/dim] "
             f"{', '.join(unused)}"
         )
-    if not gaps and not unused:
-        console.print("\n[green]Jedes definierte Label wird gelesen, jedes gelesene ist definiert.[/green]")
+    if not breaking and not warnings_list and not unused:
+        console.print("\n[green]Alle Schlüssel und Labels sind vollständig aufeinander abgestimmt.[/green]")
 
 
     searched = [str(d / I18N_FILENAME) for d in context.label_source_dirs]

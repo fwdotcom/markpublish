@@ -22,6 +22,7 @@ from markpublish.renderers.pdf import PDFRenderer
 from markpublish.templates.contract import (
     ThemeContractWarning,
     check_theme_contract,
+    diagnose_labels_and_metadata,
     engine_labels,
     label_overview,
     parse_sent_arguments,
@@ -437,4 +438,98 @@ def test_labels_command_summary_ignores_the_overridden_filter(tmp_path: Path):
     assert plain.exit_code == 0 and filtered.exit_code == 0
     for result in (plain, filtered):
         assert "toc_sidebar" in result.stdout, "verwaistes Label fehlt in der Bilanz"
-        assert "wird von niemandem gelesen" in result.stdout
+        assert "wird von niemandem gelesen" in result.stdout or "werden vom Theme nicht verwendet" in result.stdout
+
+
+def test_diagnose_labels_and_metadata_identifies_usage_and_defaults(tmp_path: Path):
+    theme_typ = '''
+    #let setup-document(meta: (:), labels: (:), body) = {
+      let page-lbl = labels.at("page", default: "Seite")
+      let custom-lbl = labels.at("my_custom_key")
+      for (k, item) in meta {
+        item.label
+        item.value
+      }
+      body
+    }
+    '''
+    (tmp_path / "template.typ").write_text(theme_typ, encoding="utf-8")
+    contract = parse_theme_contract(tmp_path)
+
+    from markpublish.config.models import DocumentConfig
+    doc = DocumentConfig(title="Test", author="Frank", department="F&E")
+
+    resolved_labels = {
+        "page": {"value": "Seite", "source": "i18n.yaml"},
+        "author": {"value": "Autor", "source": "i18n.yaml"},
+    }
+
+    rows = diagnose_labels_and_metadata(contract, doc, resolved_labels)
+    by_key = {r.key: r for r in rows}
+
+    # author: dynamisch über meta iteriert -> key/wert, status OK
+    assert by_key["author"].theme_usage == "key/wert"
+    assert by_key["author"].i18n_label == "Autor"
+    assert by_key["author"].value == "Frank"
+    assert "OK" in by_key["author"].status
+
+    # department: extra Feld, im Dokument gesetzt, aber kein i18n-Label
+    assert by_key["department"].theme_usage == "key/wert"
+    assert by_key["department"].value == "F&E"
+
+    # page: nur Label im Theme genutzt mit Default "Seite"
+    assert by_key["page"].theme_usage == "key"
+    assert by_key["page"].label_fallback == "Seite"
+    assert "OK" in by_key["page"].status
+
+    # my_custom_key: im Theme gefordert OHNE Default und nirgends definiert!
+    assert by_key["my_custom_key"].theme_usage == "key"
+    assert by_key["my_custom_key"].breaks_build is True
+    assert "FEHLT" in by_key["my_custom_key"].status
+
+
+def test_diagnose_labels_and_metadata_detects_unknown_meta_key_without_default(tmp_path: Path):
+    theme_typ = '''
+    #let setup-document(meta: (:), labels: (:), body) = {
+      let client = meta.at("client")
+      let with_def = meta.at("optional_info", default: "Standard")
+      body
+    }
+    '''
+    (tmp_path / "template.typ").write_text(theme_typ, encoding="utf-8")
+    contract = parse_theme_contract(tmp_path)
+
+    from markpublish.config.models import DocumentConfig
+    doc = DocumentConfig(title="Test", author="Frank")
+
+    rows = diagnose_labels_and_metadata(contract, doc, {})
+    by_key = {r.key: r for r in rows}
+
+    assert "client" in by_key
+    assert by_key["client"].theme_usage in ("wert", "key/wert")
+    assert by_key["client"].breaks_build is True
+    assert "Schluessel unbekannt" in by_key["client"].status
+
+    assert "optional_info" in by_key
+    assert by_key["optional_info"].breaks_build is False
+    assert "Standard" in str(by_key["optional_info"].value_fallback)
+
+
+def test_check_theme_contract_aborts_on_missing_meta_key(tmp_path: Path):
+    theme_typ = '''
+    #let setup-document(meta: (:), body) = {
+      meta.at("client")
+      body
+    }
+    '''
+    (tmp_path / "template.typ").write_text(theme_typ, encoding="utf-8")
+    contract = parse_theme_contract(tmp_path)
+
+    report = check_theme_contract(
+        contract=contract,
+        sent={"setup-document": {"meta", "body"}},
+        meta_keys={"title", "author"},
+    )
+    assert "meta.client" in report.missing_labels
+
+

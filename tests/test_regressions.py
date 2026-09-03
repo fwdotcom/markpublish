@@ -102,11 +102,20 @@ def typst_headings(source: str) -> dict:
     """
     Zerlegt die Ueberschriftenzeilen einer main.typ zu {Titel: Ebene}.
 
-    Eine Zeile sieht so aus:  == 2.1 Abschnitt 02_child <abschnitt-02-child>
+    Unterstuetzt sowohl '#heading(level: 2, ...)[...]' als auch '== ...'.
     Nummer und Label gehoeren nicht zum Titel.
     """
     headings: dict = {}
     for line in source.splitlines():
+        line = line.strip()
+        if line.startswith("#heading("):
+            m = re.match(r"#heading\(level:\s*(\d+).*?\)\[(.*?)\]", line)
+            if m:
+                depth = int(m.group(1))
+                title = m.group(2)
+                title = re.sub(r"\\(.)", r"\1", title)
+                headings[title] = depth
+                continue
         if not line.startswith("="):
             continue
         depth = len(line) - len(line.lstrip("="))

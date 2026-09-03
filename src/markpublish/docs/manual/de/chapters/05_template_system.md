@@ -49,6 +49,7 @@ Die Datei `template.typ` definiert das Gesamterscheinungsbild des Dokuments. Ein
   authors: (),
   version: "",
   date: "",
+  meta: (:),
   labels: (:),
   body
 ) = {

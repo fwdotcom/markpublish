@@ -75,6 +75,7 @@
   toc-depth: 3,
   show-header: true,
   show-footer: true,
+  meta: (:),
   labels: (:),
   body,
 ) = {
@@ -160,11 +161,13 @@
       none
     } else {
       v(if it.level == 1 { 1.6em } else if it.level == 2 { 1.2em } else { 0.9em })
+      let num = if it.numbering != none { counter(heading).display(it.numbering) } else { none }
+      let h-text = if num != none and str(num).trim() != "" [ #num #it.body ] else [ #it.body ]
       text(
         fill: rgb("0f172a"),
         weight: "bold",
         size: if it.level == 1 { 18pt } else if it.level == 2 { 14pt } else if it.level == 3 { 11.5pt } else { 10.5pt },
-      )[#it.body]
+      )[#h-text]
       v(0.6em)
     }
   }
@@ -248,40 +251,26 @@
 
     // Metadata Grid
     v(1fr)
+    let meta-items = if meta.len() > 0 {
+      meta.values().filter(it => not (it.key in ("title", "subtitle", "summary")) and it.value != "" and it.value != none and it.value != ())
+    } else {
+      (
+        if version != "" { (key: "version", label: labels.at("version", default: "Version"), value: version) },
+        if date != "" { (key: "date", label: labels.at("date", default: "Datum"), value: date) },
+        if authors != () and authors != "" { (key: "author", label: labels.at("author", default: "Autor"), value: authors) },
+        if copyright != "" { (key: "copyright", label: labels.at("copyright", default: "Copyright"), value: copyright) },
+        if status != "" and status != none { (key: "status", label: labels.at("status", default: "Status"), value: status) },
+      ).filter(it => it != none)
+    }
+
     grid(
       columns: (auto, 1fr),
       row-gutter: 10pt,
       column-gutter: 20pt,
-      if version != "" [
-        #text(weight: "bold", fill: rgb("#64748b"))[#labels.at("version", default: "Version")]
-      ],
-      if version != "" [
-        #text(fill: rgb("#0f172a"))[#version]
-      ],
-      if date != "" [
-        #text(weight: "bold", fill: rgb("#64748b"))[#labels.at("date", default: "Datum")]
-      ],
-      if date != "" [
-        #text(fill: rgb("#0f172a"))[#date]
-      ],
-      if authors != () and authors != "" [
-        #text(weight: "bold", fill: rgb("#64748b"))[#labels.at("author", default: "Autor")]
-      ],
-      if authors != () and authors != "" [
-        #text(fill: rgb("#0f172a"))[#if type(authors) == array { authors.join(", ") } else { str(authors) }]
-      ],
-      if copyright != "" [
-        #text(weight: "bold", fill: rgb("#64748b"))[#labels.at("copyright", default: "Copyright")]
-      ],
-      if copyright != "" [
-        #text(fill: rgb("#0f172a"))[#copyright]
-      ],
-      if status != "" and status != none [
-        #text(weight: "bold", fill: rgb("#64748b"))[#labels.at("status", default: "Status")]
-      ],
-      if status != "" and status != none [
-        #text(fill: rgb("#0f172a"))[#status]
-      ],
+      ..meta-items.map(it => (
+        text(weight: "bold", fill: rgb("#64748b"))[#if it.label != none and it.label != "" { it.label } else { it.key }],
+        text(fill: rgb("#0f172a"))[#if type(it.value) == array { it.value.join(", ") } else { str(it.value) }],
+      )).flatten()
     )
     v(1cm)
     pagebreak()
