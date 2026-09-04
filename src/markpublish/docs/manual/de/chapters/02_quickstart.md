@@ -1,3 +1,5 @@
+# Installation und Schnellstart
+
 Dieses Kapitel beschreibt den direkten Weg von der Installation bis zum ersten fertig erstellten PDF-Dokument.
 
 ## Voraussetzungen

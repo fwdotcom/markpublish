@@ -28,34 +28,32 @@ parts:
       - file: "chapters/01_introduction.md"
         summary: "Motivation, Kernfeatures und die Architektur von markpublish."
         break_before: "divider"
-        divider_title: "Einleitung"
-        toc_title: "Einleitung"
+        show_title: false
 
       - file: "chapters/02_quickstart.md"
         summary: "Der direkte Weg von der Installation bis zum ersten fertigen PDF."
         break_before: "divider"
-        divider_title: "Installation und Schnellstart"
-        toc_title: "Installation und Schnellstart"
+        show_title: false
 
       - file: "chapters/03_cli_reference.md"
         summary: "Detaillierte Befehlsübersicht und vollständige Optionen-Referenz aller Befehle."
         break_before: "divider"
-        divider_title: "Kommandozeilen-Schnittstelle (CLI)"
-        toc_title: "Kommandozeilen-Schnittstelle (CLI)"
+        show_title: false
 
       - file: "chapters/04_configuration_guide.md"
         summary: "Strukturierung in Document, Parts und Chapters anhand praktischer Beispiele."
         break_before: "divider"
-        divider_title: "Projektkonfiguration mit markpublish.yaml"
-        toc_title: "Projektkonfiguration mit markpublish.yaml"
+        show_title: false
 
       - file: "chapters/05_template_system.md"
         summary: "Theme-Struktur mit Typst, 3-stufige Auflösungshierarchie und Textkaskade (i18n)."
         break_before: "divider"
+        show_title: false
 
       - file: "chapters/06_markdown_features.md"
         summary: "Auszeichnung und typografische Darstellung von Hinweisboxen, Definitionslisten, Aufgaben und mathematischen Formeln."
         break_before: "divider"
+        show_title: false
 
   - part: "Anhänge"
     summary: "Vollständige Spezifikations-Tabellen und Hilfestellungen zur Fehlerbehebung."
@@ -68,3 +66,4 @@ parts:
 
       - file: "chapters/08_appendix_troubleshooting.md"
         autonum_prefix: "B."
+

@@ -1,10 +1,10 @@
-<!-- Einleitung -->
+# Einleitung
 
 ## Motivation und Zielsetzung
 
 Markdown ist das führende Format für technische Dokumentationen, Notizen und Projektberichte. Seine Stärke liegt in der Einfachheit und Lesbarkeit im reinen Textformat. Sobald jedoch aus diesen Texten hochwertige, druckfertige Berichte, Handbücher oder Whitepapers entstehen sollen, stoßen herkömmliche Werkzeuge an ihre Grenzen. Häufig folgt ein zeitaufwendiger manueller Nachbearbeitungsschritt in Textverarbeitungs- oder Layoutprogrammen.
 
-**markpublish** schließt diese Lücke: Es verwandelt strukturierte Markdown-Dateien über eine deklarative Konfiguration vollautomatisch in typografisch anspruchsvolle, professionell gestaltete PDF-Dokumente. 
+**markpublish** schließt diese Lücke: Es verwandelt strukturierte Markdown-Dateien über eine einfache, aber mächtige Konfiguration vollautomatisch in typografisch anspruchsvolle, professionell gestaltete PDF-Dokumente. 
 
 Das Ziel von markpublish ist es, Entwicklern, technischen Redakteuren und Autoren einen nahtlosen Veröffentlichungsprozess zu bieten. Inhalte werden in einfachem Markdown verfasst, während markpublish die vollständige Kontrolle über Layout, Gliederung, Trennseiten, Nummerierung, Verzeichnisse und Typografie übernimmt.
 
@@ -18,15 +18,17 @@ markpublish zeichnet sich durch einen klaren Fokus auf Dokumentenqualität, Gesc
 
 * **Einfache Installation und Portabilität:** Als reguläres Python-Paket lässt sich markpublish plattformübergreifend auf Windows, macOS und Linux ohne komplizierte Einrichtung betreiben.
 
-* **Deklarative Projektkonfiguration:** Eine einzige Datei (`markpublish.yaml`) steuert das gesamte Dokument – von Metadaten über Gliederungsebenen bis hin zu Kopf- und Fußzeilen.
+* **Deklarative Konfiguration:** Eine einzige Datei (`markpublish.yaml`) steuert das gesamte Projekt.
 
 * **Mehrstufige Dokumentenarchitektur:** Unterstützung einer klaren Zweiteilung in übergeordnete Abschnitte (*Parts*) und inhaltstragende Kapitel (*Chapters*) mit flexibler Trennseiten-Steuerung.
 
-* **Präzise Verzeichnisse und Nummerierung:** Vollautomatische Generierung von Gesamtinhaltsverzeichnissen, Abschnittsverzeichnissen und lokalen Kapitelverzeichnissen sowie flexibel konfigurierbare Kapitel- und Überschriftennummerierung.
+* **Präzise Verzeichnisse und Nummerierung:** Vollautomatische Generierung von Gesamtinhaltsverzeichnis, Abschnittsverzeichnissen und lokalen Kapitelverzeichnissen sowie flexibel konfigurierbare Kapitel- und Überschriftennummerierung.
 
 * **Umfassende Markdown-Erweiterungen:** Standardmäßige Unterstützung von GitHub-konformen Hinweisboxen (Admonitions/Callouts), Tabellen, Definitionslisten, Fußnoten, Aufgabenlisten und Quellcode mit Syntax-Highlighting.
 
-* **Kaskadierende Mehrsprachigkeit (i18n):** Integrierte Unterstützung für mehrsprachige Dokumente mit automatischer Spracherkennung und anpassbaren Beschriftungen.
+* **Kaskadierende Mehrsprachigkeit (i18n):** Integrierte Unterstützung für mehrsprachige Templates, um statische Texte (wie Autor, Inhaltsverzeichnis, Seite) in der richtigen Sprache anzuzeigen [^1]
+
+[^1]: Aktuell wird Deutsch und Englisch unterstützt.
 
 ## Architektur im Überblick
 

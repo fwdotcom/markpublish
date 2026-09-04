@@ -138,6 +138,7 @@ class ContentItem:
         toc_title: Optional[str] = None,
         divider_title: Optional[str] = None,
         has_h1: bool = False,
+        show_title: bool = True,
     ):
         self.title = title
         self.display_title = display_title
@@ -160,6 +161,7 @@ class ContentItem:
         self.toc_title = toc_title
         self.divider_title = divider_title
         self.has_h1 = has_h1
+        self.show_title = show_title
         # Verschachtelungstiefe des Kapitels, 1 = oberste Ebene. Der Renderer
         # serialisiert den element_tree selbst neu und braucht denselben Offset,
         # den auch typst_content bekommen hat -- sonst laufen Fallback und
@@ -576,6 +578,18 @@ class MarkdownPipeline:
             max_level = base_level + effective_document_toc.max_depth - 1
             global_toc_nodes = [n for n in toc_nodes if n.level <= max_level]
 
+        # Wenn show_title False ist und die Datei eine H1 besitzt:
+        # Entferne das erste h1-Element aus dem ElementTree, damit es nicht im Text gerendert wird.
+        if file_h1 and not chapter_cfg.show_title:
+            for parent in tree.iter():
+                for child in list(parent):
+                    if child.tag.lower() == "h1":
+                        parent.remove(child)
+                        break
+                else:
+                    continue
+                break
+
         # Wenn chapter_cfg.toc_title gesetzt ist und von file_h1 abweicht,
         # soll die H1 im Text nicht als Outlined-Heading gerendert werden (sondern ueber
         # das separate hidden TOC-Heading im Renderer).
@@ -619,10 +633,11 @@ class MarkdownPipeline:
             toc_title=effective_toc_title,
             divider_title=effective_divider_title,
             has_h1=bool(file_h1),
+            show_title=chapter_cfg.show_title,
         )
 
         item.needs_synthetic_toc_heading = bool(
-            in_doc_toc and effective_toc_title and (not file_h1 or bool(chapter_cfg.toc_title))
+            in_doc_toc and effective_toc_title and (not file_h1 or bool(chapter_cfg.toc_title) or not chapter_cfg.show_title)
         )
         item.allowed_toc_slugs = allowed_toc_slugs
 

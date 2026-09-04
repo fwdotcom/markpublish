@@ -72,11 +72,12 @@ Die Liste `parts:` unterteilt das Dokument in übergeordnete Abschnitte. Ein Abs
 
 Die Liste `chapters:` definiert die Inhaltsdateien. Kapitel können unter `parts:` oder verschachtelt innerhalb anderer Kapitel liegen.
 
-Die Überschrift auf der Inhaltsseite wird **ausschließlich** durch die führende `#`-Überschrift der Markdown-Datei bestimmt. Fehlt das `#`, erscheint auf der Textseite keine Überschrift. Für Verzeichnisse und Trennseiten stehen zwei explizite, optionale Schlüssel bereit:
+Die Überschrift auf der Inhaltsseite wird standardmäßig durch die führende `#`-Überschrift der Markdown-Datei bestimmt (kann über `show_title: false` unterdrückt werden). Für Verzeichnisse und Trennseiten stehen zwei explizite, optionale Schlüssel bereit:
 
 | Schlüssel | Typ | Default | Beschreibung |
 | :--- | :--- | :--- | :--- |
 | `file` | String | `None` | Relativer Pfad zur Markdown-Datei (z. B. `"chapters/01_intro.md"`). |
+| `show_title` | Boolean | `true` | Steuert, ob die `#`-Überschrift der Datei auf der Inhaltsseite gedruckt wird. |
 | `toc_title` | String | `None` | Titel für das Inhaltsverzeichnis (Haupt- und Part-TOC) sowie Kopfzeilen. Standard: Datei-H1. |
 | `divider_title` | String | `None` | Titel auf der Kapitel-Trennseite (`break_before: "divider"`). Standard: Datei-H1. |
 | `subtitle` | String | `None` | Untertitel des Kapitels (erscheint auf Trennseiten). |

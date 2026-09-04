@@ -33,6 +33,7 @@ stammen aus der Datei-H1, Verzeichnis- und Trennseitentitel lassen sich steuern.
 | `part` | Part | Name des Parts, Pflicht |
 | `chapters` | Part | Liste der Kapitel, mindestens eines |
 | `file` | Kapitel | Pfad zur Markdown-Datei |
+| `show_title` | Kapitel | `true` (Standard); `false` unterdrückt die Datei-H1 auf der Seite |
 | `toc_title` | beide | Titel für Inhaltsverzeichnis und Kopfzeilen |
 | `divider_title` | beide | Titel auf der Trennseite |
 | `subtitle` / `summary` | beide | Untertitel und Kurzbeschreibung auf Trennseiten |

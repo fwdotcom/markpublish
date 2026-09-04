@@ -247,3 +247,74 @@ parts:
     assert "Kapitel C2 im TOC" in toc_text
     assert "5" in toc_text
 
+
+def test_pdf_show_title_false_rendering(tmp_path: Path):
+    """
+    Prueft, dass bei show_title: false die H1 auf der Textseite unterdrueckt wird,
+    der Titel auf der Trennseite erscheint und der TOC-Verweis auf die Trennseite zeigt.
+    """
+    project = tmp_path / "doc"
+    project.mkdir()
+
+    (project / "markpublish.yaml").write_text(
+        """\
+document:
+  title: "ShowTitle Test"
+  cover: false
+  document_toc: "full"
+parts:
+  - part: "Abschnitt"
+    break_before: "none"
+    document_toc: "none"
+    chapters:
+      - file: "c1.md"
+        break_before: "divider"
+        show_title: false
+""",
+        encoding="utf-8",
+    )
+
+    (project / "c1.md").write_text(
+        "# Kapitel Eins Mit Titel\n\nStart des Inhalts ohne sichtbare H1.\n\n## Unterabschnitt 1",
+        encoding="utf-8",
+    )
+
+    config = load_config(project / "markpublish.yaml")
+    context = DocumentContext(
+        config=config,
+        content_items=[],
+        toc_tree=[],
+        template_path=resolve_template_path("pdf", "default"),
+        base_dir=project,
+        target="pdf",
+    )
+    context.content_items, context.toc_tree = MarkdownPipeline(
+        config, base_dir=project, labels=context.labels
+    ).process_document()
+
+    out = project / "out.pdf"
+    PDFRenderer().render(context, out)
+    assert out.is_file()
+
+    import pypdfium2 as pdfium
+    doc = pdfium.PdfDocument(str(out))
+
+    # Seite 1: TOC -> Kapitel Eins Mit Titel verweist auf Seite 2 (Trennseite)
+    toc_text = doc[0].get_textpage().get_text_range()
+    assert "Kapitel Eins Mit Titel" in toc_text
+    assert "2" in toc_text
+
+    # Seite 2: Trennseite -> enthaelt den Titel
+    divider_text = doc[1].get_textpage().get_text_range()
+    assert "Kapitel Eins Mit Titel" in divider_text
+
+    # Seite 3: Textseite -> enthaelt NICHT die H1, sondern startet direkt mit Inhalt
+    content_text = doc[2].get_textpage().get_text_range()
+    assert "Start des Inhalts ohne sichtbare H1." in content_text
+    assert "Unterabschnitt 1" in content_text
+    # Die H1 "Kapitel Eins Mit Titel" darf im Haupttext auf Seite 3 nicht als sichtbare Überschrift erscheinen
+    # (ausser in der Kopfzeile oben)
+    lines_below_header = content_text.split("\n")[4:]  # Skip header lines
+    assert not any("Kapitel Eins Mit Titel" in line for line in lines_below_header)
+
+

@@ -1,4 +1,4 @@
-<!-- Projektkonfiguration mit markpublish.yaml -->
+# Projektkonfiguration mit markpublish.yaml
 
 Die zentrale Steuerungsdatei eines jeden markpublish-Projekts ist die Datei `markpublish.yaml`. Sie definiert das Dokument deklarativ: Metadaten, Layout-Vorgaben, Gliederung und die Zuordnung der Markdown-Dateien zu Kapiteln und Abschnitten.
 
@@ -72,7 +72,9 @@ Ein Dokument wird durch `parts:` in übergeordnete Abschnitte gegliedert (z. B. 
 
 Die Liste `chapters:` innerhalb eines Abschnitts verweist auf die eigentlichen Markdown-Inhaltsdateien:
 
-* Jedes Kapitel verweist auf seine Markdown-Datei (`file:`). Die Überschrift auf der Inhaltsseite wird **ausschließlich** durch die führende `#`-Überschrift der Markdown-Datei bestimmt. Fehlt das `#`, erscheint auf der Seite keine Überschrift.
+* Jedes Kapitel verweist auf seine Markdown-Datei (`file:`). Autoren können in ihren Markdown-Dateien ganz natürlich mit einer `#`-Überschrift beginnen.
+
+* Über **`show_title:`** (`true` oder `false`, Standard: `true`) lässt sich steuern, ob die `#`-Überschrift der Markdown-Datei auf der Inhaltsseite gerendert werden soll. Wird vor dem Kapitel eine Trennseite erzeugt (`break_before: "divider"`), kann mit `show_title: false` verhindert werden, dass der Titel auf der Folgeseite doppelt erscheint — die Inhaltsseite beginnt dann direkt mit dem Fließtext oder der ersten Zwischenüberschrift.
 
 * Über die optionalen Schlüssel **`toc_title:`** (für Inhaltsverzeichnisse und Kopfzeilen) und **`divider_title:`** (für Trennseiten) können gezielt abweichende Titel vergeben werden (z. B. eine prägnante Kurzform im Inhaltsverzeichnis gegenüber einer ausführlichen Überschrift auf der Textseite). Fehlen die Schlüssel, erben beide automatisch die `#`-Überschrift der Datei.
 

@@ -253,11 +253,12 @@
 
   // Code Block styling
   show raw.where(block: true): it => block(
-    fill: rgb("#0f172a"),
-    inset: 12pt,
+    fill: rgb("#f1f5f9"),
+    stroke: 0.5pt + rgb("#cbd5e1"),
+    inset: 10pt,
     radius: 4pt,
     width: 100%,
-    text(fill: rgb("#f8fafc"), font: ("Consolas", "Courier New", "monospace"), size: 8.5pt)[#it]
+    text(font: ("Consolas", "Courier New", "monospace"), size: 8.5pt)[#it]
   )
   show raw.where(block: false): it => highlight(
     fill: rgb("#f1f5f9"),

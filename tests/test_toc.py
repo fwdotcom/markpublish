@@ -975,6 +975,40 @@ parts:
     assert "toc_title" in str(exc_info.value)
 
 
+def test_show_title_false_suppresses_h1_in_content_but_keeps_toc_node(tmp_path: Path):
+    """
+    show_title: false unterdrueckt die H1 im Textinhalt (weder im HTML noch im Typst),
+    erhaelt aber den TOCNode im Inhaltsverzeichnis und setzt needs_synthetic_toc_heading.
+    """
+    (tmp_path / "chapter.md").write_text("# Mein Kapitel\n\nDies ist der Inhalt.", encoding="utf-8")
+    (tmp_path / "markpublish.yaml").write_text(
+        """\
+document:
+  title: "Doc"
+parts:
+  - part: "Hauptteil"
+    chapters:
+      - file: "chapter.md"
+        show_title: false
+""",
+        encoding="utf-8",
+    )
 
+    config = load_config(tmp_path / "markpublish.yaml")
+    items, tree = MarkdownPipeline(config, base_dir=tmp_path, labels={}).process_document()
 
+    assert len(tree) == 1
+    # Part Node -> Child ist das Kapitel mit Titel "Mein Kapitel"
+    assert tree[0].children[0].title == "Mein Kapitel"
 
+    # items enthaelt den Part (items[0]) und das Kapitel (items[1])
+    assert len(items) == 2
+    assert items[0].is_part is True
+    ch = items[1]
+    assert ch.is_part is False
+    assert ch.show_title is False
+    assert ch.needs_synthetic_toc_heading is True
+    assert "<h1>" not in ch.html_content
+    assert "#heading(level: 1" not in ch.typst_content
+    assert "Dies ist der Inhalt." in ch.html_content
+    assert "Dies ist der Inhalt." in ch.typst_content

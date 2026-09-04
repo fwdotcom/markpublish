@@ -302,6 +302,7 @@ class ChapterItem(BaseModel):
     file: Optional[str] = Field(default=None, description="Path to markdown file")
     toc_title: Optional[str] = Field(default=None, description="Title for document TOC, part TOC and running headers")
     divider_title: Optional[str] = Field(default=None, description="Title on chapter divider page")
+    show_title: bool = Field(default=True, description="Whether to render the markdown H1 heading on the content page")
     chapter: Optional[Any] = Field(default=None, description="Legacy/custom field, ignored")
     title: Optional[Any] = Field(default=None, description="Legacy/custom field, ignored")
     subtitle: Optional[str] = Field(default=None, description="Chapter subtitle")

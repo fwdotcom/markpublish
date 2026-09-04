@@ -282,6 +282,7 @@ class PDFRenderer(BaseRenderer):
         bb_val = chapter_item.break_before.value if getattr(chapter_item, "break_before", None) else "page"
 
         has_file_h1 = getattr(chapter_item, "has_h1", False)
+        show_title = getattr(chapter_item, "show_title", True)
         needs_synth = getattr(chapter_item, "needs_synthetic_toc_heading", False)
 
         def _synthetic_heading() -> str:
@@ -289,7 +290,7 @@ class PDFRenderer(BaseRenderer):
             num_prefix = getattr(chapter_item, "number_prefix", None)
             eff_level = max(1, getattr(chapter_item, "base_level", 1))
             ch_slug = getattr(chapter_item, "slug", "")
-            lbl_str = f" <{ch_slug}>" if (ch_slug and not has_file_h1) else ""
+            lbl_str = f" <{ch_slug}>" if (ch_slug and (not has_file_h1 or not show_title)) else ""
             if num_prefix:
                 num_esc = typst_string(num_prefix)
                 return f'#place(top + left)[#hide[#heading(level: {eff_level}, outlined: true, numbering: (..nums) => "{num_esc}")[{t_esc}]{lbl_str}]]\n'
@@ -300,7 +301,7 @@ class PDFRenderer(BaseRenderer):
         if bb_val == "divider":
             if has_content:
                 res.append("#pagebreak()\n")
-            if needs_synth and not has_file_h1:
+            if needs_synth and (not has_file_h1 or not show_title):
                 res.append(_synthetic_heading())
                 synth_placed_on_divider = True
             tag_label = labels.get("chapter", "Chapter" if lang_code == "en" else "Kapitel")
