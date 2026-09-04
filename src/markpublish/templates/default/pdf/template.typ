@@ -140,11 +140,11 @@
             ]
           ],
           [
-            #text(size: 8.5pt, fill: rgb("#64748b"))[#ch-title]
+            #text(size: 8.5pt, fill: rgb("#94a3b8"))[#ch-title]
           ],
         )
         v(-2pt)
-        line(length: 100%, stroke: 0.5pt + rgb("#cbd5e1"))
+        line(length: 100%, stroke: 0.35pt + rgb("#e2e8f0"))
       }
     },
     footer: context {
@@ -154,7 +154,7 @@
       if show-footer and not is-cover and not is-divider {
         let doc-ends = query(label("doc-end"))
         let total-pages = if doc-ends.len() > 0 { doc-ends.last().location().page() } else { 1 }
-        line(length: 100%, stroke: 0.5pt + rgb("#cbd5e1"))
+        line(length: 100%, stroke: 0.35pt + rgb("#e2e8f0"))
         v(-2pt)
         grid(
           columns: (1fr, 1fr),
@@ -182,12 +182,13 @@
     font: ("Open Sans", "Liberation Sans", "Arial", "Helvetica"),
     size: 10pt,
     lang: language,
+    hyphenate: true,
     fill: rgb("#0f172a"),
   )
   set par(
     justify: true,
-    leading: 0.75em,
-    spacing: 1.2em,
+    leading: 0.7em,
+    spacing: 1.5em,
   )
   set list(
     spacing: 1.2em,
@@ -203,7 +204,7 @@
     } else if it.has("label") and str(it.label) == "chapter-divider" {
       none
     } else {
-      v(if it.level == 1 { 1.6em } else if it.level == 2 { 1.2em } else { 0.9em })
+      v(if it.level == 1 { 2.2em } else if it.level == 2 { 1.7em } else if it.level == 3 { 1.3em } else { 1.1em })
       let num = if it.numbering != none { counter(heading).display(it.numbering) } else { none }
       let h-text = if num != none and str(num).trim() != "" [ #num #it.body ] else [ #it.body ]
       text(
@@ -211,7 +212,7 @@
         weight: "bold",
         size: if it.level == 1 { 18pt } else if it.level == 2 { 14pt } else if it.level == 3 { 11.5pt } else { 10.5pt },
       )[#h-text]
-      v(0.6em)
+      v(if it.level == 1 { 0.6em } else if it.level == 2 { 0.5em } else { 0.4em })
     }
   }
 
@@ -244,11 +245,11 @@
     }
   }
 
-  // Table styling
+  // Table styling (Booktabs-Stil: klare Linien, dezente Haarlinien, kein unruhiges Zebra)
   set table(
-    stroke: (x, y) => if y == 0 { (bottom: 1.5pt + rgb("#0f172a")) } else { (bottom: 0.5pt + rgb("#e2e8f0")) },
-    fill: (col, row) => if row == 0 { rgb("#f8fafc") } else if calc.even(row) { rgb("#f8fafc") } else { none },
-    inset: (top: 8pt, bottom: 8pt, left: 10pt, right: 10pt),
+    stroke: (x, y) => if y == 0 { (top: 1.2pt + rgb("#0f172a"), bottom: 0.6pt + rgb("#0f172a")) } else { (bottom: 0.4pt + rgb("#e2e8f0")) },
+    fill: none,
+    inset: (top: 7pt, bottom: 7pt, left: 10pt, right: 10pt),
   )
 
   // Code Block styling
