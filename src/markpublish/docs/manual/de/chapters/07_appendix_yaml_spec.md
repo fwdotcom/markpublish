@@ -31,6 +31,12 @@ Die Sektion `document:` legt globale Metadaten, Layoutschalter, Verzeichnisvorga
 | `autonum_reset` | Boolean | `false` | Setzt den Überschriftenzähler bei jedem neuen Kapitel auf 1 zurück. |
 | `pagenum_reset` | Boolean | `false` | Startet die Seitennummerierung bei jedem Abschnitt oder Kapitel neu bei Seite 1. |
 
+> [!NOTE] Freie Metadatenfelder unter `document:`
+> Über die aufgeführten Standardfelder hinaus sind unter `document:` beliebige eigene Metadatenfelder erlaubt (z. B. `abteilung: "F&E"`, `freigegeben: true`). Sie werden typisiert an das Theme (`meta: (:)`) übergeben.
+>
+> Statische Textbeschriftungen (`document.i18n` oder `document.labels`) sind hier jedoch unzulässig und führen zum Abbruch – Textübersetzungen gehören ausschließlich in die `i18n.yaml`-Dateien der Kaskade.
+
+
 ---
 
 ## Globale Projekt-Einstellungen
@@ -90,7 +96,7 @@ Die Überschrift auf der Inhaltsseite wird standardmäßig durch die führende `
 | `autonum_prefix` | String | `None` | Präfix für Überschriftennummern dieses Kapitels. |
 | `autonum_reset` | Boolean | `None` | Setzt den Nummerierungszähler zu Beginn dieses Kapitels auf 1 zurück. |
 | `pagenum_reset` | Boolean | `None` | Setzt die Seitennummerierung zu Beginn dieses Kapitels auf 1 zurück. |
-| `chapters` | Liste | `[]` | Optionale Liste von weiteren Unterkapiteln. |
+| `chapters` | Liste | `[]` | Optionale Liste von weiteren Unterkapiteln (rekursiv gegliedert und validiert). |
 
 > [!IMPORTANT]
 > Auf `parts:` und `chapters:` sind **nur** die hier aufgeführten Schlüssel erlaubt. Ein unbekannter Schlüssel bricht den Build ab und nennt, falls vorhanden, den ähnlich geschriebenen – `break_befor` also, bevor das Kapitel still mit dem falschen Umbruch gesetzt wird. Freie Felder gibt es ausschließlich unter `document:`; dort erreichen sie das Theme, hier blieben sie wirkungslos.
@@ -106,3 +112,7 @@ Die Verzeichnisschalter `document_toc`, `part_toc` und `chapter_toc` akzeptieren
 | `"none"` | Schaltet das jeweilige Verzeichnis komplett ab bzw. nimmt das Element nicht auf. |
 | `"full"` | Nimmt alle vorhandenen Überschriftenebenen ohne Tiefenbegrenzung auf. |
 | Ganze Zahl (z. B. `1`, `2`, `3`) | Begrenzt die Verzeichnistiefe exakt auf die angegebene Zahl von Ebenen. |
+
+> [!WARNING] Keine Booleans zulässig
+> Wahrheitswerte (`true` oder `false`) sind für Verzeichnisschalter unzulässig und führen zu einem `ConfigurationError`. Um ein Verzeichnis zu unterdrücken, notieren Sie stets `"none"`.
+

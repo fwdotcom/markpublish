@@ -26,6 +26,9 @@ Layout-Schalter
 Globale Verzeichnisvorgaben
 : Steuerung der Tiefe für das Gesamt-Inhaltsverzeichnis (`document_toc`), Abschnittsverzeichnisse (`part_toc`) und lokale Kapitelverzeichnisse (`chapter_toc`).
 
+> [!IMPORTANT] Keine Wahrheitswerte bei Verzeichnisschaltern
+> Die Schalter `document_toc`, `part_toc` und `chapter_toc` akzeptieren **keine** Booleans (`true` oder `false`). Verwenden Sie `"full"` (volle Tiefe), `"none"` (kein Verzeichnis) oder eine positive Zahl ab `1` für die maximale Gliederungstiefe (z. B. `2`). Ein notiertes `document_toc: false` bricht die Validierung mit einer deutlichen Meldung ab.
+
 Nummerierungsregeln
 : Vorgaben zur automatischen Nummerierung von Überschriften (`autonum_style`, `autonum_from_level`, `autonum_prefix`).
 
@@ -68,11 +71,15 @@ Drei Dinge sind dabei zu wissen:
 
 Ein Dokument wird durch `parts:` in übergeordnete Abschnitte gegliedert (z. B. „Hauptteil“, „Fallstudien“, „Anhänge“):
 
+* Ein Dokument muss immer über `parts:` aufgebaut sein; ein flaches `chapters:` direkt auf oberster Ebene wird abgewiesen.
+
 * Ein Abschnitt fasst logisch zusammengehörige Kapitel zusammen.
 
 * Ohne Angabe tritt ein Abschnitt selbst nicht in Erscheinung (`break_before: "none"`): er klammert seine Kapitel und vererbt seine Einstellungen, belegt aber keine Seite und erscheint nicht im Inhaltsverzeichnis. Mit `break_before: "divider"` erhält er eine gestaltete Trennseite, mit `break_before: "page"` eine Überschrift auf einer neuen Seite.
 
 * Auf Abschnittsebene gesetzte Einstellungen (z. B. Verzeichnistiefe oder Nummerierungspräfixe wie `autonum_prefix: "A."`) vererben sich automatisch auf alle darin enthaltenen Kapitel.
+
+* Auf `parts:` sind ausschließlich die deklarierten Konfigurationsschlüssel erlaubt. Unbekannte Schlüssel (wie `break_befor`) werden mit Ähnlichkeitsvorschlägen abgelehnt, um unbemerkte Fehlkonfigurationen auszuschließen.
 
 ### Chapters (Kapitel)
 
@@ -88,7 +95,8 @@ Die Liste `chapters:` innerhalb eines Abschnitts verweist auf die eigentlichen M
 
 * Kapitel können über das Feld `break_before` steuern, ob vor ihnen eine Trennseite erzeugt wird, ein einfacher Seitenwechsel erfolgt oder der Text nahtlos anschließt.
 
-* Kapitel können untereinander angeordnet werden; die inhaltliche Nummerierungs- und Gliederungstiefe (1.1, 1.1.1) entsteht dabei ausschließlich aus den Überschriftenebenen (H2, H3) innerhalb der Markdown-Dateien.
+* **Verschachtelte Unterkapitel:** Ein Kapitel kann über das Feld `chapters:` weitere Unterkapitel aufnehmen. Diese werden rekursiv aufgebaut und genauso strikt gegen Schreibfehler geprüft wie die Hauptebene. Unterkapitel erben Einstellungen (wie Nummerierungspräfixe) nach unten.
+
 
 ---
 

@@ -31,11 +31,70 @@ templates/
             └── icons/
 ```
 
-### Was auf dem Titelblatt erscheint
+### Der Theme-Contract (`setup-document` und `meta`)
 
-Das Metadatenraster des Deckblatts zeigt nicht alles, was unter `document:` steht, sondern genau die Angaben, die das Theme dafür vorsieht – im mitgelieferten Standard-Theme sind das Version, Datum, Autor, Copyright und Status, in dieser Reihenfolge. Titel, Untertitel und Zusammenfassung stehen ohnehin groß darüber.
+Das Herzstück der Layoutdatei `template.typ` ist die Typst-Funktion `setup-document`. Sie empfängt Layoutschalter, Textbeschriftungen und sämtliche Metadaten aus markpublish:
 
-Ein eigenes Feld aus der `markpublish.yaml` erreicht das Theme, wird aber erst gedruckt, wenn das Theme es ausdrücklich aufführt. Wer `abteilung:` oder `kunde:` auf dem Deckblatt haben möchte, exportiert sich das Theme (siehe unten) und ergänzt dort eine Zeile; die Beschriftung dazu kommt aus der `i18n.yaml` des Projekts.
+```typst
+#let setup-document(
+  language: "de",
+  show-cover: true,
+  show-toc: true,
+  toc-title: "Inhaltsverzeichnis",
+  toc-depth: 3,
+  show-header: true,
+  show-footer: true,
+  meta: (:),
+  labels: (:),
+  body,
+) = {
+  // ...
+}
+```
+
+> [!IMPORTANT] Metadatenübergabe über `meta`
+> markpublish übergibt alle Dokumentmetadaten geschlossen als strukturiertes Typst-Wörterbuch `meta: (:)`. Jedes Theme muss diesen Parameter in `setup-document` deklarieren (oder `..rest` akzeptieren). Fehlt der Parameter, meldet `markpublish labels` dies noch vor dem Build als Signaturfehler.
+
+Innerhalb des Typst-Templates greifen Sie auf die einzelnen Metadatenfelder über ihren Namen zu:
+
+```typst
+let title = meta.at("title").value
+let subtitle = meta.at("subtitle").value
+let version = meta.at("version").value
+```
+
+Freie oder optionale Metadatenfelder sollten stets mit einem sicheren Fallback abgefragt werden:
+
+```typst
+let abteilung = meta.at("abteilung", default: (value: none)).value
+```
+
+Wird im Theme ein Feld ohne `default:` abgefragt, das in der Konfiguration nicht definiert ist, bricht der Build mit einem klaren `UndefinedMetadataError` ab. Dieser nennt die genaue Zeile im Theme und verweist auf die `markpublish.yaml`.
+
+### Was auf dem Titelblatt erscheint (`cover-fields`)
+
+Das Metadatenraster des Deckblatts zeigt nicht alles, was unter `document:` steht, sondern genau die Angaben, die das Theme dafür vorsieht – im mitgelieferten Standard-Theme sind das Version, Datum, Autor, Copyright und Status. Titel, Untertitel und Zusammenfassung stehen als Hauptblöcke darüber.
+
+Welche Felder auf dem Deckblatt erscheinen, bestimmt im Theme die Funktion `cover-fields`:
+
+```typst
+#let cover-fields(meta) = (
+  meta.at("version", default: none),
+  meta.at("date", default: none),
+  meta.at("author", default: none),
+  meta.at("copyright", default: none),
+  meta.at("status", default: none),
+)
+```
+
+Wer `abteilung:` oder `kunde:` auf dem Deckblatt haben möchte, exportiert das Theme (siehe unten) und ergänzt dort eine Zeile. Die zugehörige Beschriftung stammt aus der `i18n.yaml` des Projekts.
+
+### Typisierte Metadatenwerte
+
+Metadaten behalten ihren YAML-Typ auf dem Weg zu Typst bei:
+* Zahlen und Zeichenketten bleiben Zahlen und Strings.
+* Ein `freigegeben: true` kommt als echter Typst-Wahrheitswert an. Das Standard-Theme formatiert diesen automatisch über die Beschriftungsschlüssel `bool_true` („Ja“) bzw. `bool_false` („Nein“) aus der i18n-Kaskade.
+* Listen werden sauber komma-separiert formatiert.
 
 Welche Felder ein Theme tatsächlich abholt, zeigt `markpublish labels`: Ein Feld, das kein Theme verwendet, erscheint dort mit dem Befund *ungenutzt*.
 
@@ -50,6 +109,7 @@ markpublish export-template default ./templates --target pdf
 Dieser Befehl kopiert das Standard-Theme vollständig in das lokale Verzeichnis `templates/default/`. Sie können die Dateien anschließend direkt bearbeiten, Schriften anpassen, Farben ändern oder Ihr Firmenlogo einbinden. markpublish greift beim nächsten `build` automatisch auf Ihre angepasste Projektvorlage zu.
 
 Die Layoutdatei `template.typ` ist in der Satzsprache Typst geschrieben und im Standard-Theme durchgehend kommentiert. Wer sie über Farben und Schriften hinaus umbauen möchte, findet die vollständige Sprachreferenz unter [https://typst.app/docs](https://typst.app/docs).
+
 
 ---
 

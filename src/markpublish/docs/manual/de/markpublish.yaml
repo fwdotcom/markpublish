@@ -2,8 +2,8 @@
 
 document:
   title: "markpublish Benutzerhandbuch"
-  subtitle: "Moderne PDF-Dokumentenerstellung aus Markdown mit Typst"
-  summary: "Praxisorientierte Anleitung und vollständige Referenz zur Konfiguration, CLI-Bedienung, Theme-Gestaltung und Dokumentenerstellung mit markpublish."
+  subtitle: "Moderne PDF-Dokumentenerstellung aus Markdown"
+  summary: "Praxisorientierte Anleitung und Referenz zur Konfiguration, CLI-Bedienung, Theme-Gestaltung und Dokumentenerstellung mit markpublish."
   author: "Frank Winter"
   status: "Freigegeben"
   copyright: "© 2026 Frank Winter"

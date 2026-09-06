@@ -100,6 +100,8 @@ markpublish init [ZIELORDNER] [OPTIONEN]
 
 Die erzeugte `markpublish.yaml` und das Einstiegskapitel stammen aus den mitgelieferten Vorlagen. Mit `--lang` (z. B. `--lang de`) lässt sich die Sprache der Vorlage explizit vorgeben; ohne Angabe wird automatisch die Systemsprache ermittelt und eingetragen, sodass das Projekt auf jedem Rechner konsistent kompiliert.
 
+Besteht das Zielverzeichnis bereits und enthält Dateien, bricht `init` mit einer Fehlermeldung ab. Ein bestehendes Verzeichnis wird niemals stillschweigend überschrieben; für eine Neuinitialisierung wählen Sie entweder einen neuen Ordner oder stellen sicher, dass das bestehende Verzeichnis leer ist.
+
 Beispiel:
 
 ```bash
@@ -133,7 +135,7 @@ markpublish cheatsheet [OPTIONEN]
 
 ### Erläuterungen
 
-Wird beim Aufruf von `manual` oder `cheatsheet` keine Sprache mit `--lang` angegeben, ermittelt markpublish automatisch die Sprache Ihres Betriebssystems. Ist für diese Sprache keine Übersetzung vorhanden, wird auf die erste im Paket vorhandene Sprache zurückgegriffen (beim Handbuch derzeit `de`).
+Wird beim Aufruf von `manual` oder `cheatsheet` keine Sprache mit `--lang` angegeben, ermittelt markpublish automatisch die Sprache Ihres Betriebssystems. Ist für diese Sprache keine Übersetzung vorhanden, greift markpublish auf die Standardsprache des Dokuments zurück.
 
 Beispiel:
 
@@ -217,9 +219,22 @@ markpublish labels [CONFIG_FILE] [OPTIONEN]
 
 ### Erläuterungen
 
-Dieser Befehl ist besonders hilfreich bei der Erstellung eigener Themes oder neuer Übersetzungen, um zu prüfen, ob alle benötigten Textbausteine vollständig vorhanden sind.
+Dieser Befehl ist das zentrale Diagnosewerkzeug bei der Theme-Entwicklung und Dokumentenkonfiguration. Er prüft noch vor dem eigentlichen Build, ob alle Metadatenfelder, Beschriftungen und Theme-Signaturen vollständig zueinander passen.
 
-Die Spalte **i18n-Quelle** nennt die Ebene der Kaskade, aus der ein Text stammt:
+Die tabellarische Ausgabe gliedert sich in acht Spalten:
+
+| Spalte | Bedeutung |
+| :--- | :--- |
+| **Schlüssel** | Name des Metadatums oder Textschlüssels (z. B. `title`, `author`, `toc_title` oder eigene Felder wie `abteilung`). |
+| **Theme-Nutzung** | Art der Verwendung im Theme: `key` (als Beschriftungsbezeichner), `wert` (als Inhaltswert), `key/wert` (beides) oder `-` (vom Theme nicht verwendet). |
+| **Label** | Aufgelöster Text aus der Beschriftungskaskade für diesen Schlüssel. Fehlt ein benötigtes Label, wird dies rot markiert. |
+| **i18n-Quelle** | Ebene der Kaskade, aus der das Label stammt (`mpub`, `theme`, `target`, `projekt`). Grün hervorgehoben sind Ebenen, die den Standard überschrieben haben. |
+| **Label-Fallback** | Im Theme definierter Notfall-Ersatztext, falls das Label in keiner i18n-Ebene existiert. |
+| **Wert** | Im Dokument (`document:`) hinterlegter konkreter Wert. |
+| **Wert-Fallback** | Im Theme notierter Fallback-Wert für den Fall, dass das Feld im Dokument nicht gesetzt ist. |
+| **Status** | Detaillierter Befund: `OK`, `ungenutzt`, `Label fehlt`, `Wert nicht gesetzt` oder rot hervorgehobene kritische Fehler, die einen Build-Abbruch zur Folge hätten. |
+
+Die Ebenen in der Spalte **i18n-Quelle** bedeuten:
 
 | Wert | Datei |
 | :--- | :--- |
@@ -228,25 +243,37 @@ Die Spalte **i18n-Quelle** nennt die Ebene der Kaskade, aus der ein Text stammt:
 | `target` | `<theme>/<zielformat>/i18n.yaml` |
 | `projekt` | `i18n.yaml` neben Ihrer `markpublish.yaml` |
 
-Grün hervorgehoben sind die Ebenen, die den Programmstandard ersetzt haben – auf diese beschränkt `--overridden` die Ausgabe. Zeilen, die den Build zum Abbruch bringen würden, bleiben dabei immer sichtbar: ein Filter, der einen Fehler verschweigt, wäre eine Falle.
+Grün hervorgehoben sind Ebenen, die eigene Werte gegenüber dem Programmstandard definieren – auf diese beschränkt `--overridden` die Ausgabe. Zeilen, die den Build zum Abbruch bringen würden, bleiben dabei immer sichtbar: ein Filter, der einen Fehler verschweigt, wäre eine Falle.
+
 
 Der Sprachblock steht nur dann in Klammern dabei, wenn er von der Dokumentsprache abweicht: `(*)` für einen sprachunabhängigen Eintrag, `(en)` für einen Rückfall auf die Fallback-Sprache. Am Fuß der Ausgabe stehen die vollständigen Pfade zu allen vier Ebenen, jeweils mit dem Vermerk, ob die Datei dort vorhanden ist.
 
-Zusätzlich prüft der Befehl das Theme gegen den Aufruf, den markpublish beim Rendern erzeugt. Ein Theme, dessen `setup-document` einen gesendeten Parameter nicht deklariert, wird hier gemeldet – vor dem Bauen statt währenddessen.
+**Vorab-Signaturprüfung und Bilanz:**  
+Zusätzlich prüft `markpublish labels` die Typst-Vorlage des Themes direkt gegen den Aufruf, den markpublish beim Rendern erzeugt. Deklariert das Theme notwendige Parameter nicht (wie `meta: (:)`), meldet `labels` den Signaturfehler sofort vor dem Bauen. Eine zusammenfassende Bilanz am Ende der Ausgabe zählt kritische Abbrüche, Warnungen sowie ungenutzte Felder übersichtlich auf.
 
 ---
 
-## Globale Optionen
+## Globale Optionen und Umgebungsvariablen
 
-Folgende Optionen stehen global für alle Befehle zur Verfügung:
+Folgende Optionen und Umgebungsvariablen steuern das Verhalten von markpublish übergeordnet:
 
-| Option | Bedeutung |
+| Option / Variable | Bedeutung |
 | :--- | :--- |
 | `--version`, `-v` | Gibt die installierte Version von markpublish aus und beendet das Programm. |
 | `--help` | Zeigt die integrierte Hilfe und Parameterübersicht im Terminal an. |
-| `--ui-lang` | Sprache der Kommandozeilenausgaben für diesen Aufruf (`en`, `de`). |
+| `--ui-lang` | Sprache der Bildschirmausgaben und Terminalmeldungen für diesen Aufruf (`de`, `en`). |
+| `MARKPUBLISH_UI_LANG` | Umgebungsvariable zur dauerhaften Festlegung der Terminal-Sprache. |
+| `MARKPUBLISH_TEMPLATES_DIR` | Umgebungsvariable für ein alternatives globales Vorlagenverzeichnis. |
+
+Die Anzeigesprache der Programmoberfläche ermittelt markpublish in folgender Prioritätsreihenfolge:
+1. Das Kommandozeilen-Flag `--ui-lang`
+2. Die Umgebungsvariable `MARKPUBLISH_UI_LANG`
+3. Die Systemsprache des Betriebssystems (Windows Anzeigesprache bzw. POSIX-Variablen `LC_ALL`, `LANG`)
+4. Englisch (`en`) als Ausweichsprache
+
+*(Hinweis: Die Benutzeroberflächensprache betrifft ausschließlich die Terminalausgaben und Hilfetexte des Programms. Die Sprache des generierten PDF-Dokuments und dessen Silbentrennung wird davon völlig unabhängig über `language:` in der `markpublish.yaml` festgelegt.)*
 
 ```bash
-# Gibt Meldungen auf Englisch aus
+# Gibt Meldungen für diesen Aufruf auf Englisch aus
 markpublish --ui-lang en build
 ```

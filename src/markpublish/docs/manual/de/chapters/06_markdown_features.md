@@ -2,7 +2,7 @@
 
 markpublish unterstützt den vollen Funktionsumfang des modernen CommonMark- und GitHub-Flavored-Markdown-Standards. Grundlegende Elemente wie Überschriften, Absätze, Textauszeichnungen (*kursiv*, **fett**), Tabellen, Aufzählungen, Quellcode-Blöcke und Weblinks funktionieren exakt wie gewohnt.
 
-Dieses Kapitel konzentriert sich ausschließlich auf die darüber hinausgehenden Spezialfeatures und typografischen Erweiterungen von markpublish. Jeder Abschnitt zeigt zuerst die Auszeichnung im Markdown und unmittelbar darunter das Ergebnis, wie es in diesem Handbuch gesetzt wurde.
+Dieses Kapitel konzentriert sich ausschließlich auf die darüber hinausgehenden Spezialfeatures und typografischen Erweiterungen von markpublish. Jeder Abschnitt zeigt zuerst die Auszeichnung im Markdown und unmittelbar darunter das Ergebnis, wie es in diesem Handbuch gesetzt ist.
 
 ---
 

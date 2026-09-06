@@ -36,6 +36,8 @@ Mit dem Befehl `init` legt markpublish ein neues Projektverzeichnis mit einer mi
 markpublish init mein-dokument
 ```
 
+Besteht das angegebene Verzeichnis bereits und ist nicht leer, bricht `init` vorsorglich ab, um ein versehentliches Überschreiben vorhandener Dateien zu verhindern.
+
 Dieser Befehl erzeugt einen neuen Ordner `mein-dokument/` mit folgender Grundstruktur:
 
 ```text
@@ -44,19 +46,18 @@ mein-dokument/
 └── welcome.md
 ```
 
-### In das Projektverzeichnis wechseln
+### Erstes PDF erstellen
 
-Wechseln Sie in das neu angelegte Verzeichnis:
+Sie können das PDF direkt aus dem übergeordneten Ordner über den Pfad zur Konfiguration erzeugen (diese Zeile gibt `init` am Ende auch als Empfehlung aus):
+
+```bash
+markpublish build mein-dokument/markpublish.yaml
+```
+
+Oder Sie wechseln zuerst in das neu angelegte Verzeichnis und starten den Build dort:
 
 ```bash
 cd mein-dokument
-```
-
-### Erstes PDF erstellen
-
-Starten Sie den Veröffentlichungsprozess direkt aus dem Projektverzeichnis heraus:
-
-```bash
 markpublish build
 ```
 

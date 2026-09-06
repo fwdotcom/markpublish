@@ -26,7 +26,7 @@ markpublish zeichnet sich durch einen klaren Fokus auf Dokumentenqualität, Gesc
 
 * **Umfassende Markdown-Erweiterungen:** Standardmäßige Unterstützung von GitHub-konformen Hinweisboxen (Admonitions/Callouts), Tabellen, Definitionslisten, Fußnoten, Aufgabenlisten und Quellcode mit Syntax-Highlighting.
 
-* **Kaskadierende Mehrsprachigkeit (i18n):** Integrierte Unterstützung für mehrsprachige Templates, um statische Texte (wie Autor, Inhaltsverzeichnis, Seite) in der richtigen Sprache anzuzeigen.
+* **Kaskadierende Mehrsprachigkeit (i18n):** Integrierte Unterstützung für mehrsprachige Dokumente und Themes (statische Texte wie Inhaltsverzeichnis, Kapitel, Seitenzahlen) über eine vierstufige Kaskade. Zudem ist auch die Programmoberfläche (CLI) vollständig zweisprachig (Deutsch und Englisch) und folgt automatisch der Systemsprache des Arbeitsplatzes.
 
 ## Architektur im Überblick
 
@@ -34,8 +34,8 @@ Die Arbeitsweise von markpublish folgt einer klaren Verarbeitungs-Pipeline:
 
 1. **Konfigurations- und Dokumentenanalyse:** markpublish liest die Datei `markpublish.yaml` ein, validiert sämtliche Einstellungen und baut die Gliederungshierarchie aus Abschnitten und Kapiteln auf.
 
-2. **Inhaltsaufbereitung:** Die Markdown-Dateien der Kapitel werden eingelesen und strukturiert aufbereitet. Überschriften erhalten ihre exakte Nummerierung, Sprungmarken werden gesetzt und Verzeichniseinträge synchron erfasst.
+2. **Inhaltsaufbereitung:** Die Markdown-Dateien der Kapitel werden über eine Syntaxbaum-Pipeline (ElementTree AST) eingelesen und durch einen nativen Typst-Serializer (`TypstSerializer`) direkt in sauberes Typst-Markup überführt. Überschriften und Verzeichnisse werden auf AST-Ebene synchronisiert, Sprungmarken gesetzt und lokale Bildpfade automatisch für den Bau isoliert.
 
-3. **Template-Zusammenstellung:** Das gewählte Theme (standardmäßig das integrierte Standard-Theme) stellt die Layout-Vorgaben bereit. Metadaten, konfigurierte Kopf- und Fußzeilen, Trennseiten und Textinhalte werden präzise in die Typst-Umgebung übergeben.
+3. **Template-Zusammenstellung:** Das gewählte Theme (standardmäßig das integrierte Standard-Theme) stellt die Layout-Vorgaben bereit. Metadaten (gesammelt in einem typisierten `meta`-Wörterbuch), Kopf- und Fußzeilen, Trennseiten und Textinhalte werden präzise in die Typst-Umgebung übergeben.
 
-4. **Kompilierung zum PDF:** Die Typst-Engine kompiliert das Gesamtdokument in einem einzigen, hocheffizienten Durchlauf direkt in die fertige PDF-Datei.
+4. **Kompilierung zum PDF:** Die Typst-Engine kompiliert das Gesamtdokument in einem einzigen, hocheffizienten Durchlauf direkt in die fertige PDF-Datei. Tritt ein Fehler auf, wird der generierte Typst-Code zur schnellen Diagnose in `.markpublish/last_failed_build.typ` abgelegt.
