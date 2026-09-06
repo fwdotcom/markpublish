@@ -31,6 +31,7 @@ markpublish build [CONFIG_FILE] [OPTIONEN]
 | `CONFIG_FILE` *(Argument)* | `markpublish.yaml` | Pfad zur Projekt-Konfigurationsdatei. |
 | `--target`, `-t` | `pdf` | Ausgabeformat (`pdf`). |
 | `--output`, `-o` | *(automatisch)* | Pfad zur Zieldatei oder zum Zielverzeichnis. Endet der Pfad ohne Dateiendung, wird er als Verzeichnis behandelt. |
+| `--theme` | `None` | Rendert mit einem alternativen Theme anstelle der Angabe in der Konfigurationsdatei. |
 | `--templates-dir` | `None` | Pfad zu einem benutzerdefinierten Vorlagen-Verzeichnis. |
 
 ### Erläuterungen
@@ -39,7 +40,7 @@ Ohne Argument sucht markpublish die Datei `markpublish.yaml` im aktuellen Verzei
 
 Wird kein `--output` angegeben, erzeugt markpublish die Datei im Projektordner. Der Dateiname leitet sich automatisch aus dem Dokumententitel ab (z. B. `mein_dokument.pdf`).
 
-`--templates-dir` erwartet das Sammelverzeichnis, nicht das Theme selbst. Welches Theme verwendet wird, entscheidet ausschließlich `theme:` in der `markpublish.yaml` (Standard: `default`); eine Option dafür hat `build` nicht. markpublish setzt beide Angaben zusammen und sucht unter `<verzeichnis>/<theme>/<zielformat>`:
+`--templates-dir` erwartet das Sammelverzeichnis, nicht das Theme selbst. Welches Theme verwendet wird, bestimmt entweder die Option `--theme` auf der Kommandozeile oder `theme:` in der `markpublish.yaml` (Standard: `default`). markpublish setzt beide Angaben zusammen und sucht unter `<verzeichnis>/<theme>/<zielformat>`:
 
 ```text
 meine-vorlagen/          <- hierhin zeigt --templates-dir
@@ -69,6 +70,9 @@ Beispiele:
 ```bash
 # Standard-Build im aktuellen Projekt
 markpublish build
+
+# Mit einem alternativen Theme bauen (übersteuert die Angabe in markpublish.yaml)
+markpublish build --theme custom-theme
 
 # Andere Konfigurationsdatei und anderen Ausgabeordner festlegen
 markpublish build projekte/bericht.yaml --output dist/
@@ -207,6 +211,7 @@ markpublish labels [CONFIG_FILE] [OPTIONEN]
 | :--- | :--- | :--- |
 | `CONFIG_FILE` *(Argument)* | `markpublish.yaml` | Pfad zur Projekt-Konfigurationsdatei. |
 | `--target`, `-t` | `pdf` | Zielformat, dessen Beschriftungskaskade angezeigt werden soll. |
+| `--theme` | `None` | Prüft die Beschriftungskaskade für ein alternatives Theme. |
 | `--templates-dir` | `None` | Benutzerdefiniertes Vorlagen-Verzeichnis. |
 | `--overridden` | `False` | Zeigt ausschließlich Beschriftungen an, die durch ein Theme oder Projekt überschrieben wurden. |
 

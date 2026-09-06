@@ -401,6 +401,11 @@ def build_cmd(
         "-o",
         help=t("opt.output.help"),
     ),
+    theme: Optional[str] = typer.Option(
+        None,
+        "--theme",
+        help=t("opt.theme.help"),
+    ),
     templates_dir: Optional[Path] = typer.Option(
         None,
         "--templates-dir",
@@ -425,6 +430,9 @@ def build_cmd(
         except Exception as e:
             console.print(f"[bold red]Configuration error:[/bold red] {e}")
             raise typer.Exit(code=1) from e
+
+    if theme:
+        config.theme = theme
 
     console.print(
         Panel(
@@ -765,6 +773,11 @@ def labels_cmd(
         "-t",
         help=t("opt.target_labels.help"),
     ),
+    theme: Optional[str] = typer.Option(
+        None,
+        "--theme",
+        help=t("opt.theme_labels.help"),
+    ),
     templates_dir: Optional[Path] = typer.Option(
         None,
         "--templates-dir",
@@ -798,6 +811,9 @@ def labels_cmd(
     except Exception as e:
         console.print(f"[bold red]Configuration error:[/bold red] {e}")
         raise typer.Exit(code=1) from e
+
+    if theme:
+        config.theme = theme
 
     tgt = target.lower().strip()
     if tgt not in ("pdf", "html"):

@@ -356,3 +356,49 @@ def test_cli_export_template_rejects_unknown_target(tmp_path: Path):
     assert res.exit_code == 1
     assert "Unknown target 'invalid_target'" in res.stdout
 
+
+def test_cli_build_theme_flag_overrides_yaml(tmp_path: Path):
+    project_dir = tmp_path / "theme_project"
+    assert runner.invoke(app, ["init", str(project_dir), "--title", "Theme Test"]).exit_code == 0
+    config_file = project_dir / "markpublish.yaml"
+
+    # With a non-existing theme via --theme, build fails even though markpublish.yaml has theme: default
+    res_fail = runner.invoke(app, ["build", str(config_file), "--theme", "non_existing_theme"])
+    assert res_fail.exit_code == 1
+    assert "non_existing_theme" in res_fail.stdout
+
+    # Export default to custom-theme in ./templates and build with --theme custom-theme
+    templates_dir = project_dir / "templates"
+    assert runner.invoke(app, ["export-template", "default", str(templates_dir)]).exit_code == 0
+    (templates_dir / "default").rename(templates_dir / "custom-theme")
+
+    res_ok = runner.invoke(
+        app,
+        ["build", str(config_file), "--theme", "custom-theme", "--target", "pdf"],
+    )
+    assert res_ok.exit_code == 0
+    assert "custom-theme" in res_ok.stdout
+
+
+def test_cli_labels_theme_flag_overrides_yaml(tmp_path: Path):
+    project_dir = tmp_path / "labels_project"
+    assert runner.invoke(app, ["init", str(project_dir), "--title", "Labels Test"]).exit_code == 0
+    config_file = project_dir / "markpublish.yaml"
+
+    # Fails with non-existing theme
+    res_fail = runner.invoke(app, ["labels", str(config_file), "--theme", "non_existing_theme"])
+    assert res_fail.exit_code == 1
+    assert "non_existing_theme" in res_fail.stdout
+
+    # Succeeds with custom-theme
+    templates_dir = project_dir / "templates"
+    assert runner.invoke(app, ["export-template", "default", str(templates_dir)]).exit_code == 0
+    (templates_dir / "default").rename(templates_dir / "custom-theme")
+
+    res_ok = runner.invoke(
+        app,
+        ["labels", str(config_file), "--theme", "custom-theme"],
+    )
+    assert res_ok.exit_code == 0
+    assert "custom-theme" in res_ok.stdout
+

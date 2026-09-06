@@ -44,6 +44,7 @@ opt.output.help: "Custom output file or directory path (a non-existing path with
 opt.output_bundled.help: "Custom output file or directory path. Defaults to the current directory."
 opt.templates_dir.help: "Custom templates directory path."
 opt.theme.help: "Render with a theme of your own instead of the built-in one."
+opt.theme_labels.help: "Theme whose label cascade to show (overrides markpublish.yaml)."
 opt.lang_bundled.help: "Language of the bundled source to render (default: your system language, else en)."
 opt.lang_init.help: "Language for project template ('de', 'en'); defaults to system language."
 opt.title.help: "Document title."

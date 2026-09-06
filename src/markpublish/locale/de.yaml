@@ -40,6 +40,7 @@ opt.output.help: "Eigener Pfad für Datei oder Verzeichnis (ein nicht vorhandene
 opt.output_bundled.help: "Eigener Pfad für Datei oder Verzeichnis. Ohne Angabe das aktuelle Verzeichnis."
 opt.templates_dir.help: "Eigenes Verzeichnis mit Themes."
 opt.theme.help: "Mit einem eigenen Theme rendern statt mit dem mitgelieferten."
+opt.theme_labels.help: "Theme, dessen Label-Kaskade gezeigt wird (überschreibt markpublish.yaml)."
 opt.lang_bundled.help: "Sprache der mitgelieferten Quelle (ohne Angabe die Systemsprache, sonst Englisch)."
 opt.lang_init.help: "Sprache der Projektvorlage ('de', 'en'); ohne Angabe die Systemsprache."
 opt.title.help: "Titel des Dokuments."
