@@ -149,12 +149,14 @@ class TypstSerializer:
         images_dir: Optional[Path] = None,
         labels: Optional[Dict[str, str]] = None,
         allowed_toc_slugs: Optional[Set[str]] = None,
+        known_labels: Optional[Set[str]] = None,
     ):
         self.base_level_offset = base_level_offset
         self.file_base_dir = file_base_dir
         self.images_dir = images_dir
         self.labels = labels or {}
         self.allowed_toc_slugs = allowed_toc_slugs
+        self.known_labels = known_labels
         self.copied_images: Dict[str, str] = {}
         self.footnotes: Dict[str, str] = {}  # footnote_id -> typst_text
 
@@ -726,6 +728,22 @@ class TypstSerializer:
             inner = self._visit_children_inline(elem)
             if not inner:
                 inner = escape_typst_text(href)
+
+            # Ein Anker auf eine Ueberschrift ist ein Sprung im Dokument, keine
+            # Adresse. `#link("#slug")` gibt Typst eine Zeichenkette, und die
+            # landet im PDF als URI-Aktion: der Betrachter versucht "#slug" zu
+            # oeffnen, statt zu springen -- der Verweis ist tot, ohne dass es
+            # jemandem auffaellt. `label()` macht daraus ein echtes Sprungziel.
+            #
+            # Nur fuer Marken, die es auch gibt: `label()` auf eine nirgends
+            # gesetzte Marke bricht die Kompilierung ab. Ein vertippter Anker
+            # darf nicht das ganze Dokument kosten, also bleibt er die
+            # Zeichenkette, die er vorher auch war.
+            if href.startswith("#") and self.known_labels:
+                slug = href[1:]
+                if slug in self.known_labels:
+                    return f'#link(label("{typst_string(slug)}"))[{inner}]'
+
             escaped_href = typst_string(href)
             return f'#link("{escaped_href}")[{inner}]'
 

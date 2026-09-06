@@ -8,7 +8,7 @@ import shutil
 import tempfile
 import warnings
 from pathlib import Path
-from typing import Any, List, Tuple
+from typing import Any, List, Optional, Set, Tuple
 
 import typst
 
@@ -213,6 +213,8 @@ class PDFRenderer(BaseRenderer):
             "",
         ]
 
+        link_targets = self._collect_link_targets(context)
+
         # Track if there is already content on the current page.
         # At document start (after cover and/or TOC pagebreak), we are already on a fresh page.
         has_content = False
@@ -265,10 +267,53 @@ class PDFRenderer(BaseRenderer):
                 if getattr(item, "pagenum_reset", False):
                     parts.append("#counter(page).update(1)\n")
             else:
-                ch_typst, has_content = self._render_chapter(item, labels, build_dir, has_content, lang_code=lang_code)
+                ch_typst, has_content = self._render_chapter(
+                    item, labels, build_dir, has_content,
+                    lang_code=lang_code, link_targets=link_targets,
+                )
                 parts.append(ch_typst)
 
         return "\n".join(parts)
+
+    @staticmethod
+    def _collect_link_targets(context: DocumentContext) -> Set[str]:
+        """
+        Alle Marken, die im fertigen Dokument als Sprungziel existieren.
+
+        Gebraucht fuer Anker im Markdown (`[Text](#slug)`): nur ein Ziel, das
+        es wirklich gibt, darf als `label()` gesetzt werden -- eine Marke ohne
+        Fundstelle bricht die Typst-Kompilierung ab.
+
+        Zwei Quellen, weil es zwei Arten von Marken gibt: die Ueberschriften
+        aus den Kapiteln setzt der Serializer aus ihrer `id`, die Marken fuer
+        Teile und Kapitel stehen an den Trennseiten und im Verzeichnisbaum.
+        """
+        targets: Set[str] = set()
+
+        def walk(nodes: Any) -> None:
+            for node in nodes or []:
+                slug = getattr(node, "slug", None)
+                if slug:
+                    targets.add(slug)
+                walk(getattr(node, "children", None))
+
+        walk(context.toc_tree)
+
+        for item in context.content_items:
+            slug = getattr(item, "slug", None)
+            if slug:
+                targets.add(slug)
+
+            tree = getattr(item, "element_tree", None)
+            if tree is None:
+                continue
+            for level in range(1, 7):
+                for heading in tree.iter("h" + str(level)):
+                    heading_id = heading.attrib.get("id")
+                    if heading_id:
+                        targets.add(heading_id)
+
+        return targets
 
     def _render_chapter(
         self,
@@ -277,6 +322,7 @@ class PDFRenderer(BaseRenderer):
         build_dir: Path,
         has_content: bool,
         lang_code: str = "de",
+        link_targets: Optional[Set[str]] = None,
     ) -> Tuple[str, bool]:
         """Renders an individual chapter item into Typst markup."""
         res: List[str] = []
@@ -357,6 +403,7 @@ class PDFRenderer(BaseRenderer):
                 images_dir=images_dir,
                 labels=labels,
                 allowed_toc_slugs=getattr(chapter_item, "allowed_toc_slugs", None),
+                known_labels=link_targets,
             )
             ch_typst = serializer.serialize(element_tree)
             if ch_typst.strip():

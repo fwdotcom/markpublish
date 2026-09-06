@@ -148,9 +148,9 @@ markpublish setzt Aufgabenlisten typografisch sauber ohne vorangestellte Aufzäh
 
 ## Fußnoten
 
-markpublish unterstützt die klassische Markdown-Notation für Fußnoten. Damit lassen sich weiterführende Hinweise, Quellenangaben oder detaillierte Erläuterungen elegant auslagern, ohne den Lesefluss des Haupttextes zu unterbrechen.
+markpublish unterstützt die klassische Markdown-Notation für Fußnoten. Damit lassen sich weiterführende Hinweise, Quellenangaben oder detaillierte Erläuterungen auslagern, ohne den Lesefluss des Haupttextes zu unterbrechen.
 
-Die Notation erfolgt zweistufig: An der gewünschten Textstelle wird ein Fußnotenverweis wie `[^1]` oder ein sprechender Bezeichner wie `[^hinweis]` eingefügt. Die zugehörige Textdefinition kann an beliebiger Stelle im Markdown-Dokument notiert werden – üblicherweise am Ende des jeweiligen Abschnitts oder Kapitels:
+Die Notation erfolgt zweistufig: An der gewünschten Textstelle steht ein Verweis wie `[^1]` oder ein sprechender Bezeichner wie `[^hinweis]`. Die zugehörige Definition kann an beliebiger Stelle im Markdown-Dokument notiert werden – üblicherweise am Ende des jeweiligen Abschnitts oder Kapitels:
 
 ```markdown
 Dieser Satz enthält eine nummerierte Fußnote[^1] sowie eine Notiz mit Text-Schlüssel[^hinweis].
@@ -159,20 +159,12 @@ Dieser Satz enthält eine nummerierte Fußnote[^1] sowie eine Notiz mit Text-Sch
 [^hinweis]: Text-Schlüssel werden bei der Ausgabe automatisch in die richtige Ziffer umgewandelt.
 ```
 
-Der folgende Beispielsatz demonstriert eine echte Fußnote in diesem Handbuch[^fn-demo].
+Im Satz ergibt das die folgenden beiden Verweise; ihre Texte stehen am unteren Rand dieser Seite, und Verweisziffer und Fußnotentext sind im PDF gegenseitig verlinkt:
 
-[^fn-demo]: Dies ist eine echte Fußnote in diesem Handbuch. Im PDF wird sie automatisch am unteren Rand dieser Druckseite platziert.
+Dieser Satz enthält eine nummerierte Fußnote[^1] sowie eine Notiz mit Text-Schlüssel[^hinweis].
 
-markpublish überführt diese Notationen vollautomatisch in echte Typst-Fußnoten (`#footnote[...]`):
-
-* **Seitengenaue Platzierung:** Fußnoten werden typografisch sauber am unteren Rand genau der Druckseite ausgegeben, auf der sich der Verweis befindet.
-
-* **Automatische Nummerierung:** Ziffern und textuelle Bezeichner werden kapitel- bzw. dokumentweit fortlaufend nummeriert.
-
-* **Interaktive Hyperlinks:** Im erzeugten PDF sind Verweisziffer und Fußnotentext gegenseitig verlinkt.
-
-> [!NOTE] Fußnoten und laufende Fußzeilen
-> In markpublish wird begrifflich klar zwischen inhaltlichen **Fußnoten** (Anmerkungen am Seitenende via `[^1]`) und **laufenden Fußzeilen** (Seitenzahl, Kolumnentitel und Copyright-Zeile am Blattrand) unterschieden. Die laufende Kopf- und Fußzeile wird nicht im Markdown notiert, sondern global in der `markpublish.yaml` über `footer: true` bzw. `footer: false` gesteuert (siehe Kapitel *Projektkonfiguration mit markpublish.yaml*).
+[^1]: Dies ist der Inhalt der ersten Fußnote.
+[^hinweis]: Text-Schlüssel werden bei der Ausgabe automatisch in die richtige Ziffer umgewandelt.
 
 ---
 

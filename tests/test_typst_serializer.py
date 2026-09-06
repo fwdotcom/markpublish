@@ -218,3 +218,44 @@ def test_tasklist_is_wrapped_in_block():
     # Absatzabstand selbst mit -- sie darf keine Klammer bekommen.
     assert "#block[\n- Normale Liste" not in typst_output
 
+
+def test_anchor_link_becomes_label_reference():
+    """
+    Ein Anker auf eine Ueberschrift muss ein Sprung sein, keine Adresse.
+
+    `#link("#slug")` gibt Typst eine Zeichenkette; im PDF steht dann eine
+    URI-Aktion, und der Betrachter versucht "#slug" zu oeffnen statt zu
+    springen. Der Verweis ist tot, ohne dass es auffaellt.
+    """
+    from markpublish.markdown.engine import MarkdownEngine
+    from markpublish.markdown.typst_serializer import TypstSerializer, html_to_tree
+
+    md = """## Ein Abschnitt
+
+[Sprung](#ein-abschnitt) und [extern](https://example.com).
+"""
+    tree = html_to_tree(MarkdownEngine().convert(md))
+    typst_output = TypstSerializer(known_labels={"ein-abschnitt"}).serialize(tree)
+
+    assert '#link(label("ein-abschnitt"))[Sprung]' in typst_output
+    # Externe Adressen bleiben Adressen.
+    assert '#link("https://example.com")[extern]' in typst_output
+
+
+def test_unknown_anchor_stays_a_string():
+    """
+    Ein vertippter Anker darf das Dokument nicht kosten.
+
+    `label()` auf eine Marke, die nirgends gesetzt ist, bricht die
+    Typst-Kompilierung ab. Ein Ziel, das es nicht gibt, bleibt deshalb die
+    Zeichenkette, die es vorher auch war.
+    """
+    from markpublish.markdown.engine import MarkdownEngine
+    from markpublish.markdown.typst_serializer import TypstSerializer, html_to_tree
+
+    tree = html_to_tree(MarkdownEngine().convert("[Sprung](#gibt-es-nicht)."))
+    typst_output = TypstSerializer(known_labels={"ein-abschnitt"}).serialize(tree)
+
+    assert '#link("#gibt-es-nicht")[Sprung]' in typst_output
+    assert "label(" not in typst_output
+
