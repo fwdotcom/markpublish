@@ -194,6 +194,10 @@ def test_split_ui_lang(argv, rest, language):
 # --------------------------------------------------------------------------
 
 
+#: Was rich zur Einfaerbung in die Ausgabe schreibt.
+_ANSI_SEQUENCE = re.compile(r"\x1b\[[0-9;]*m")
+
+
 def _run_cli(args, env_language=None):
     """
     Ruft die CLI in einem eigenen Prozess auf.
@@ -216,7 +220,7 @@ def _run_cli(args, env_language=None):
     # COLUMNS breit genug, damit rich einen Satz nicht mitten im Wort umbricht.
     env["COLUMNS"] = "200"
 
-    return subprocess.run(
+    result = subprocess.run(
         [sys.executable, "-c", "from markpublish.entry import main; main()", *args],
         capture_output=True,
         text=True,
@@ -224,6 +228,18 @@ def _run_cli(args, env_language=None):
         env=env,
         cwd=str(REPO_ROOT),
     )
+
+    # Farbe raus, bevor jemand im Text sucht. Typer faerbt Optionsnamen ueber
+    # zwei ineinandergreifende Muster ein, und rich schreibt an jeder Grenze
+    # eine eigene Sequenz: '--ui-lang' verlaesst den Prozess dann als
+    # '\x1b[1;36m-\x1b[0m\x1b[1;36m-ui\x1b[0m\x1b[1;36m-lang\x1b[0m'. Wer darin
+    # nach der Flagge sucht, findet sie nicht. Ob ueberhaupt gefaerbt wird,
+    # entscheidet die Umgebung -- auf GitHub Actions ja, in einer umgeleiteten
+    # Windows-Konsole nein --, und damit haetten diese Tests sonst am
+    # Betriebssystem gehangen statt an markpublish.
+    result.stdout = _ANSI_SEQUENCE.sub("", result.stdout)
+    result.stderr = _ANSI_SEQUENCE.sub("", result.stderr)
+    return result
 
 
 @pytest.mark.parametrize(
