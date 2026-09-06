@@ -18,10 +18,11 @@ from markpublish.cli import (
     _parse_targets,
     _render_bundled_doc,
 )
+from markpublish.ui import t, tn
 
 app = typer.Typer(
     name="build-manuals",
-    help="Baut das offizielle markpublish Handbuch in Deutsch und Englisch.",
+    help=t("manuals.app.help"),
     add_completion=False,
 )
 console = Console()
@@ -44,7 +45,7 @@ def main(
         typer.Option(
             "--target",
             "-t",
-            help="Ausgabeformat: 'pdf', 'html' oder 'all'.",
+            help=t("manuals.opt.target"),
         ),
     ] = "pdf",
     output_dir: Annotated[
@@ -52,7 +53,7 @@ def main(
         typer.Option(
             "--output-dir",
             "-o",
-            help="Zielverzeichnis für die Handbücher.",
+            help=t("manuals.opt.output_dir"),
         ),
     ] = Path("manual"),
     lang: Annotated[
@@ -60,7 +61,7 @@ def main(
         typer.Option(
             "--lang",
             "-l",
-            help="Sprachen, kommagetrennt, oder 'all' für alle mitgelieferten.",
+            help=t("manuals.opt.lang"),
         ),
     ] = ",".join(DEFAULT_LANGUAGES),
 ):
@@ -79,10 +80,14 @@ def main(
     languages = _parse_languages(lang)
 
     console.print(
-        f"[bold blue]Baue Handbuch "
-        f"({', '.join(code.upper() for code in languages)}) "
-        f"als {', '.join(t.upper() for t in targets)} "
-        f"nach [cyan]{out_dir}[/cyan]...[/bold blue]\n"
+        "[bold blue]"
+        + t(
+            "manuals.building",
+            language=", ".join(code.upper() for code in languages),
+            target=", ".join(tgt.upper() for tgt in targets),
+            path=f"[cyan]{out_dir}[/cyan]",
+        )
+        + "[/bold blue]\n"
     )
 
     started_at = time.time()
@@ -90,9 +95,12 @@ def main(
     for code in languages:
         for tgt in targets:
             console.print(
-                f"[bold green]▶[/bold green] Rendere Handbuch: "
-                f"Sprache [cyan]{code.upper()}[/cyan] | "
-                f"Format [yellow]{tgt.upper()}[/yellow]"
+                "[bold green]▶[/bold green] "
+                + t(
+                    "manuals.rendering",
+                    language=f"[cyan]{code.upper()}[/cyan]",
+                    target=f"[yellow]{tgt.upper()}[/yellow]",
+                )
             )
             _render_bundled_doc(
                 name="manual",
@@ -116,8 +124,7 @@ def _parse_languages(value: str) -> list[str]:
     available = _available_doc_languages("manual")
     if not available:
         console.print(
-            "[bold red]Fehler:[/bold red] Im Paket liegt kein Handbuch "
-            "(docs/manual/<sprache>/markpublish.yaml fehlt)."
+            f"[bold red]{t('label.error')}[/bold red] " + t("manuals.err.no_source")
         )
         raise typer.Exit(code=1)
 
@@ -129,12 +136,18 @@ def _parse_languages(value: str) -> list[str]:
     unknown = [code for code in wanted if code not in available]
     if unknown:
         console.print(
-            f"[bold red]Fehler:[/bold red] Keine Handbuchquelle für "
-            f"{', '.join(unknown)}. Mitgeliefert: {', '.join(available)}."
+            f"[bold red]{t('label.error')}[/bold red] "
+            + t(
+                "manuals.err.unknown_lang",
+                language=", ".join(unknown),
+                available=", ".join(available),
+            )
         )
         raise typer.Exit(code=1)
     if not wanted:
-        console.print("[bold red]Fehler:[/bold red] --lang ist leer.")
+        console.print(
+            f"[bold red]{t('label.error')}[/bold red] " + t("manuals.err.lang_empty")
+        )
         raise typer.Exit(code=1)
     return wanted
 
@@ -158,10 +171,10 @@ def _print_summary(
     frisches Ergebnis aussehen.
     """
     table = Table(show_header=True, header_style="bold blue")
-    table.add_column("Datei", style="cyan")
-    table.add_column("Format", style="yellow")
-    table.add_column("Größe", justify="right")
-    table.add_column("Stand")
+    table.add_column(t("manuals.table.file"), style="cyan")
+    table.add_column(t("manuals.table.format"), style="yellow")
+    table.add_column(t("manuals.table.size"), justify="right")
+    table.add_column(t("manuals.table.state"))
 
     found = sorted(path for tgt in targets for path in out_dir.glob(f"*.{tgt}"))
     fresh = 0
@@ -172,7 +185,11 @@ def _print_summary(
             path.name,
             path.suffix.lstrip(".").upper(),
             f"{path.stat().st_size / 1024:,.0f} kB",
-            "[green]neu gebaut[/green]" if is_fresh else "[dim]unverändert[/dim]",
+            (
+                f"[green]{t('manuals.state.rebuilt')}[/green]"
+                if is_fresh
+                else f"[dim]{t('manuals.state.unchanged')}[/dim]"
+            ),
         )
 
     console.print()
@@ -181,13 +198,13 @@ def _print_summary(
     expected = len(languages) * len(targets)
     if fresh == expected:
         console.print(
-            f"\n[bold green][ERFOLG][/bold green] {expected} Dokumente unter "
-            f"[cyan]{out_dir}[/cyan] aktualisiert."
+            f"\n[bold green][{t('manuals.label.success')}][/bold green] "
+            + tn("manuals.success", expected, path=f"[cyan]{out_dir}[/cyan]")
         )
     else:
         console.print(
-            f"\n[bold yellow][WARNUNG][/bold yellow] {fresh} von {expected} "
-            f"Dokumenten gebaut - bitte die Ausgabe oben prüfen."
+            f"\n[bold yellow][{t('label.warning').rstrip(':').upper()}][/bold yellow] "
+            + tn("manuals.partial", expected, done=fresh, expected=expected)
         )
 
 

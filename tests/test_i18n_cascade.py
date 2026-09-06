@@ -88,7 +88,7 @@ def test_language_block_beats_star_within_one_level(tmp_path: Path):
 def test_mapping_under_a_language_is_required(tmp_path: Path):
     """Eine Sprache, deren Wert kein Mapping ist, ist ein echter Fehler."""
     write_i18n(tmp_path, 'de: nur ein string\nen:\n  part: "Section"\n')
-    with pytest.raises(LabelFileError, match="Zuordnung von Schluessel zu Text"):
+    with pytest.raises(LabelFileError, match="must be a mapping of key to text"):
         read_i18n_file(tmp_path)
 
 
@@ -101,7 +101,7 @@ def test_broken_yaml_names_the_file(tmp_path: Path):
 
 def test_scalar_document_raises(tmp_path: Path):
     write_i18n(tmp_path, "just a string\n")
-    with pytest.raises(LabelFileError, match="Sprachcodes auf oberster Ebene"):
+    with pytest.raises(LabelFileError, match="expected language codes at the top level"):
         read_i18n_file(tmp_path)
 
 

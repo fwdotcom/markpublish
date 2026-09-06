@@ -1,0 +1,248 @@
+# Texte der Programmoberflaeche -- Deutsch.
+#
+# Vollstaendig gegen en.yaml; ein Test haelt beide Kataloge Schluessel fuer
+# Schluessel gegeneinander und vergleicht auch die Platzhalter.
+
+# --- Wiederkehrende Beschriftungen -------------------------------------------
+label.error: "Fehler:"
+label.warning: "Warnung:"
+label.note: "Hinweis:"
+label.notice: "Hinweis:"
+label.critical: "Kritisch:"
+label.hint: "Tipp:"
+label.config_error: "Fehler in der Konfiguration:"
+label.template_error: "Fehler im Theme für {target}:"
+label.label_file_error: "Fehler in einer i18n-Datei:"
+label.label_file_error_target: "Fehler in einer i18n-Datei ({target}):"
+label.theme_warning: "Theme-Warnung ({target}):"
+label.undefined_label: "Undefiniertes Label ({target}):"
+label.undefined_metadata: "Undefiniertes Metadatum ({target}):"
+label.rendering_error: "Fehler beim Rendern ({target}):"
+value.na: "k. A."
+value.not_set: "(nicht gesetzt)"
+value.missing: "[fehlt!]"
+value.yes: "Ja"
+value.no: "Nein"
+value.none: "-"
+
+# --- Anwendung ----------------------------------------------------------------
+app.help: "Modernes, modulares Publizieren von Markdown nach PDF auf Basis von Typst."
+app.version_word: "Version"
+opt.version.help: "Zeigt die Version des Programms und beendet sich."
+opt.ui_lang.help: "Sprache der Kommandozeile ('en', 'de'); ohne Angabe die Systemsprache."
+
+# --- Gemeinsame Optionen ------------------------------------------------------
+opt.config_file.help: "Pfad zur Konfigurationsdatei markpublish.yaml."
+opt.target.help: "Ausgabeformat: 'pdf', 'html' oder 'all'."
+opt.target_filter.help: "Nach Ausgabeformat filtern ('pdf' oder 'html')."
+opt.target_labels.help: "Ausgabeformat, dessen Label-Kaskade gezeigt wird ('pdf' oder 'html')."
+opt.output.help: "Eigener Pfad für Datei oder Verzeichnis (ein nicht vorhandener Pfad ohne Endung gilt als Verzeichnis)."
+opt.output_bundled.help: "Eigener Pfad für Datei oder Verzeichnis. Ohne Angabe das aktuelle Verzeichnis."
+opt.templates_dir.help: "Eigenes Verzeichnis mit Themes."
+opt.theme.help: "Mit einem eigenen Theme rendern statt mit dem mitgelieferten."
+opt.lang_bundled.help: "Sprache der mitgelieferten Quelle (ohne Angabe die Systemsprache, sonst Englisch)."
+opt.lang_init.help: "Sprache der Projektvorlage ('de', 'en'); ohne Angabe die Systemsprache."
+opt.title.help: "Titel des Dokuments."
+opt.overridden.help: "Nur Texte zeigen, die eine Theme-Ebene ersetzt hat (Fehler bleiben sichtbar)."
+opt.target_dir.help: "Verzeichnis, das eingerichtet wird."
+opt.export_theme.help: "Name des Themes, das exportiert wird."
+opt.export_destination.help: "Zielverzeichnis."
+opt.export_target.help: "Ausgabeformat, das exportiert wird ('pdf', 'html' oder 'all')."
+
+# --- Befehle ------------------------------------------------------------------
+cmd.build.help: "Baut das Dokument nach PDF und/oder HTML gemäß markpublish.yaml."
+cmd.init.help: |
+  Legt ein minimales markpublish-Projekt an: eine Konfiguration, ein Kapitel.
+
+  Bewusst klein. Das Gerüst soll verschwinden, sobald echter Inhalt da ist,
+  und zeigt deshalb nichts, was es nicht zeigen muss -- das Nachschlagewerk
+  ist 'markpublish cheatsheet' und bleibt verfügbar, wenn die letzte Datei
+  des Gerüsts gelöscht ist.
+cmd.cheatsheet.help: |
+  Rendert die zweiseitige Kurzreferenz zu markpublish.yaml und Themes.
+
+  Die Quelle liegt im Paket und wird bei Bedarf gerendert. Das Ergebnis passt
+  damit immer zur installierten Fassung -- und ein erfolgreicher Lauf ist
+  zugleich der Beweis, dass die Rendering-Kette funktioniert. Geschrieben wird
+  nur das fertige Dokument; im Projekt landen keine Quellen.
+cmd.manual.help: |
+  Rendert das vollständige Benutzerhandbuch.
+
+  Wie bei 'cheatsheet' liegt die Quelle im Paket. Das Handbuch beschreibt
+  damit die Fassung, die Sie tatsächlich haben, und nicht die, die galt, als
+  zuletzt jemand ein PDF gebaut hat. Mit --lang wählen Sie eine Übersetzung.
+cmd.templates.help: "Listet alle verfügbaren Themes aus Benutzer-, Projekt- und Paketquellen."
+cmd.export_template.help: "Exportiert ein mitgeliefertes Theme ins Projekt, um es anzupassen."
+cmd.labels.help: |
+  Zeigt die aufgelösten statischen Texte und welche Ebene jeden geliefert hat.
+
+  Kaskade, spätere gewinnen: markpublish/i18n.yaml -> <theme>/i18n.yaml ->
+  <theme>/<target>/i18n.yaml -> i18n.yaml neben der markpublish.yaml. Das
+  Theme ist das, welches die Auflösung gewählt hat; die Projektebene hat das
+  letzte Wort und ist der Ort, an dem ein Dokument seine eigenen Felder
+  benennt.
+
+# --- Statusmeldungen waehrend des Laufs ---------------------------------------
+status.loading_config: "Konfiguration wird geladen..."
+status.rendering: "Markdown wird verarbeitet und {target} gerendert..."
+
+# --- build --------------------------------------------------------------------
+panel.build.title: "markpublish build"
+panel.build.meta: "Autor: {author} | Version: {version} | Datum: {date}"
+panel.build.setup: "Theme: {theme} | Sprache: {language} | Ausgabe: {targets}"
+err.config.notfound: "Konfigurationsdatei '{path}' nicht gefunden."
+err.target.unknown: "Unbekanntes Ausgabeformat '{target}'. Wählen Sie 'pdf', 'html' oder 'all'."
+err.target.unknown_labels: "Unbekanntes Ausgabeformat '{target}'. Wählen Sie 'pdf' oder 'html'."
+notice.html.unimplemented: "Die HTML-Ausgabe ist derzeit nicht umgesetzt. markpublish konzentriert sich auf hochwertige PDF-Ausgabe über Typst."
+ok.generated: "{target} erfolgreich erzeugt: {path}"
+
+# --- Mitgelieferte Dokumente --------------------------------------------------
+err.bundled.missing: "Das mitgelieferte '{name}' fehlt in '{path}'. Das deutet auf eine unvollständige Installation hin - installieren Sie markpublish neu."
+err.init_template.missing: "Die mitgelieferte 'init'-Vorlage fehlt in '{path}'. Das deutet auf eine unvollständige Installation hin - installieren Sie markpublish neu."
+note.doc.lang_unavailable: "'{name}' gibt es nicht in {requested}. Gerendert wird stattdessen {chosen} (verfügbar: {available})."
+note.init.lang_unavailable: "Die 'init'-Vorlage gibt es nicht in {requested}. Verwendet wird stattdessen {chosen} (verfügbar: {available})."
+
+# --- init ---------------------------------------------------------------------
+ok.init.done: "markpublish-Projekt eingerichtet in {path}"
+init.next.build: "{command} erzeugt Ihr erstes PDF."
+init.next.cheatsheet: "{command} zeigt die zweiseitige Kurzreferenz."
+
+# --- templates ----------------------------------------------------------------
+table.templates.title: "Verfügbare Themes"
+table.templates.target: "Format"
+table.templates.theme: "Theme"
+table.templates.source: "Quelle"
+table.templates.active: "Aktiv"
+table.templates.path: "Pfad"
+
+# --- export-template ----------------------------------------------------------
+warn.export.notfound: "Mitgeliefertes Theme '{theme}' für das Format '{target}' nicht gefunden unter {path}"
+ok.export.template: "Theme {name} exportiert nach {path}"
+ok.export.i18n: "{name} exportiert nach {path}"
+info.export.kept: "Vorhandene Datei behalten"
+
+# --- labels -------------------------------------------------------------------
+panel.labels.title: "markpublish labels"
+panel.labels.summary: "Sprache: {language} | Theme: {theme} | Format: {target}"
+table.labels.key: "Schlüssel"
+table.labels.usage: "Theme-Nutzung"
+table.labels.label: "Label"
+table.labels.source: "i18n-Quelle"
+table.labels.label_fallback: "Label-Fallback"
+table.labels.value: "Wert"
+table.labels.value_fallback: "Wert-Fallback"
+table.labels.status: "Status"
+labels.status.ok: "OK"
+labels.status.unused: "ungenutzt"
+labels.status.label_missing: "Label fehlt"
+labels.status.label_fallback: 'Label fehlt (Fallback: "{detail}")'
+labels.status.value_missing: "Wert nicht gesetzt"
+labels.status.value_fallback: 'Wert fehlt (Fallback: "{detail}")'
+labels.status.label_and_value_fallback: "Label und Wert fehlen (Fallbacks greifen)"
+labels.status.label_fallback_value_missing: 'Label fehlt (Fallback: "{detail}"), Wert fehlt'
+labels.status.label_breaks: "FEHLT: Label ohne Fallback!"
+labels.status.meta_key_unknown: "FEHLT: Schlüssel unbekannt!"
+labels.status.label_and_meta_break: "FEHLT: Label und Schlüssel ohne Fallback!"
+labels.signature_mismatch: "Kritisch: Theme und Aufruf passen nicht zusammen:"
+labels.breaking.one: "Kritisch: {n} Schlüssel bricht den Build ab:"
+labels.breaking.other: "Kritisch: {n} Schlüssel brechen den Build ab:"
+labels.warned.one: "Hinweis: bei {n} Schlüssel greift ein Fallback oder fehlt die Beschriftung:"
+labels.warned.other: "Hinweis: bei {n} Schlüsseln greift ein Fallback oder fehlt die Beschriftung:"
+labels.unused.one: "{n} Schlüssel wird vom Theme nicht verwendet:"
+labels.unused.other: "{n} Schlüssel werden vom Theme nicht verwendet:"
+labels.all_clear: "Alle Schlüssel und Labels sind vollständig aufeinander abgestimmt."
+labels.cascade.intro: "Die Kaskade, spätere Ebenen gewinnen:"
+labels.cascade.builtin: "(Programmstandard)"
+labels.cascade.found: "gefunden"
+labels.cascade.absent: "nicht vorhanden"
+
+# --- Konfiguration ------------------------------------------------------------
+err.config.not_found_file: "Konfigurationsdatei nicht gefunden: {path}"
+err.config.toc_bool: "{key_path} nimmt keine Wahrheitswerte. Schreiben Sie 'none', 'full' oder eine Tiefe (z. B. 2)."
+err.config.toc_value: "{key_path} kennt {allowed} oder eine Tiefe als Zahl (war: {value})."
+err.config.toc_depth: "{key_path} braucht eine Tiefe ab 1 (war: {value}). Für 'kommt nicht vor' schreiben Sie 'none'."
+err.config.toc_kind: "{key_path} kennt 'none', 'full' oder eine Tiefe als Zahl (war: {value})."
+err.config.document_unknown: |
+  document.{key} gibt es nicht. Statische Texte gehören in die i18n.yaml des Themes:
+    <templates>/<theme>/i18n.yaml          für alle Zielformate
+    <templates>/<theme>/<pdf|html>/i18n.yaml  nur für ein Zielformat
+  Aufbau: Sprachcode, darunter die Texte. Ein eigenes Theme legen Sie mit
+  'markpublish export-template' an; 'markpublish labels' zeigt, was am Ende gilt.
+err.config.did_you_mean: " -- meinten Sie '{candidate}'?"
+err.config.unknown_key.one: "{where} kennt diesen Schlüssel nicht:"
+err.config.unknown_key.other: "{where} kennt diese Schlüssel nicht:"
+err.config.unknown_key.allowed: "Erlaubt sind: {allowed}."
+err.config.unknown_key.hint: "Eigene Felder gibt es nur unter 'document:' -- dort erreichen sie das Theme und erscheinen im Dokument. Auf einem Kapitel oder Teil bliebe ein freies Feld wirkungslos."
+err.config.break_before: "{key_path} kennt nur {allowed} (war: {value})."
+err.config.part_needs_name: "Jeder Part in 'parts' muss einen Namen tragen (Schlüssel 'part'). Ein unbenannter Block ohne Part-Name ist nicht zulässig."
+err.config.part_needs_chapters: "Der Part '{part}' muss mindestens ein Kapitel unter 'chapters' enthalten."
+err.config.chapters_toplevel: |
+  chapters gibt es auf oberster Ebene nicht - Kapitel stehen immer unter einem Part:
+    parts:
+      - title: "Hauptteil"
+        chapters:
+          - file: "kapitel/01.md"
+  Ein Part ohne eigene Trennseite bekommt break_before: "none".
+
+# --- Kapitelverarbeitung ------------------------------------------------------
+chapter.desc.in_file: "in '{file}'"
+chapter.desc.no_file: "ohne Dateiangabe"
+err.chapter.no_divider_title: "Kapitel {file} erfordert eine Trennseite (break_before: 'divider'), besitzt aber weder eine '#'-Überschrift in der Markdown-Datei noch ein 'divider_title' in markpublish.yaml."
+err.chapter.no_toc_title: "Kapitel {file} soll in einem Inhaltsverzeichnis (Haupt- oder Abschnittsverzeichnis) aufgeführt werden, besitzt aber weder eine '#'-Überschrift in der Markdown-Datei noch ein 'toc_title' in markpublish.yaml."
+
+# --- Themes -------------------------------------------------------------------
+err.template.notfound: "Theme '{theme}' für das Format '{target}' nicht gefunden. Gesucht wurde in:"
+err.typst.compile: "Typst-Kompilierungsfehler: {error}"
+err.typst.debug_saved: " (Quelltext zur Fehlerdiagnose gespeichert unter: {path})"
+err.theme.signature_mismatch: "Theme und Aufruf passen nicht zusammen:"
+err.theme.signature_theme: "Theme: {path}"
+
+# --- Label-Kaskade ------------------------------------------------------------
+err.i18n.invalid_yaml: "{path}: kein gültiges YAML - {error}"
+err.i18n.unreadable: "{path}: nicht lesbar - {error}"
+err.i18n.expects_languages: "{source}: erwartet werden Sprachcodes auf oberster Ebene, gefunden {found}."
+err.i18n.expects_mapping: |
+  {source}: '{language}' muss eine Zuordnung von Schlüssel zu Text sein. Erwartetes Format:  de:
+      part: "Abschnitt"
+err.i18n.builtin_missing: "Mitgelieferte Standardtexte nicht gefunden: {path}. Vermutlich ein unvollständiges Paket - i18n.yaml gehört zu den package-data von markpublish."
+err.i18n.fallback_missing: "{path}: die Fallback-Sprache '{language}' fehlt."
+err.label.undefined: "Label '{key}' ist im Template notiert, aber in keiner i18n-Ebene definiert."
+err.label.document_language: "Dokumentsprache: {language}"
+err.label.occurrence: "Fundstelle:"
+err.label.searched: "Gesucht in:"
+err.label.state_present: "vorhanden"
+err.label.state_absent: "nicht vorhanden"
+err.label.remedy: "Abhilfe: den Schlüssel unter '{language}:' (oder unter '{any}:' für jede Sprache) in einer der oben genannten Theme-Dateien ergänzen."
+err.meta.undefined: "Metadatum '{key}' wird vom Theme gelesen, ist im Dokument aber nicht gesetzt."
+err.meta.occurrence: "Fundstelle:"
+err.meta.typo: "Das Dokument führt '{candidate}' -- möglicherweise ein Schreibfehler."
+err.meta.known: "Bekannt sind: {keys}"
+err.meta.remedy: "Abhilfe: '{key}' unter 'document:' in der markpublish.yaml ergänzen (freie Felder sind erlaubt); oder im Theme einen Fallback notieren, z. B. meta.at(\"{key}\", default: (value: \"\"))."
+
+# --- build_manuals.py ---------------------------------------------------------
+manuals.app.help: "Baut das offizielle markpublish Handbuch in Deutsch und Englisch."
+manuals.opt.target: "Ausgabeformat: 'pdf', 'html' oder 'all'."
+manuals.opt.output_dir: "Zielverzeichnis für die Handbücher."
+manuals.opt.lang: "Sprachen, die gebaut werden, kommagetrennt ('de', 'en' oder 'all')."
+manuals.cmd.help: |
+  Baut das Handbuch und meldet, was dieser Lauf tatsächlich geschrieben hat.
+
+  Die Spalte "Stand" trennt dabei die Dokumente dieses Laufs von denen, die
+  schon dalagen.
+manuals.building: "Baue Handbuch ({language}) als {target} nach {path}..."
+manuals.rendering: "Rendere Handbuch: Sprache {language} | Format {target}"
+manuals.err.no_source: "Im Paket liegt kein Handbuch (docs/manual/<sprache>/markpublish.yaml fehlt)."
+manuals.err.lang_empty: "--lang ist leer."
+manuals.err.unknown_lang: "Unbekannte Sprache '{language}'. Verfügbar: {available}."
+manuals.table.file: "Datei"
+manuals.table.format: "Format"
+manuals.table.size: "Größe"
+manuals.table.state: "Stand"
+manuals.state.rebuilt: "neu gebaut"
+manuals.state.unchanged: "unverändert"
+manuals.success.one: "{n} Dokument unter {path} aktualisiert."
+manuals.success.other: "{n} Dokumente unter {path} aktualisiert."
+manuals.partial.one: "Nur {done} von {expected} Dokument gebaut - bitte die Ausgabe oben prüfen."
+manuals.partial.other: "Nur {done} von {expected} Dokumenten gebaut - bitte die Ausgabe oben prüfen."
+manuals.label.success: "ERFOLG"
+manuals.label.ok: "OK"

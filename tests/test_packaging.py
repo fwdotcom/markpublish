@@ -100,3 +100,32 @@ def test_project_metadata_is_complete():
             f"[project.urls] {name} = {value!r} ist keine URL - "
             "steht die Tabelle an der falschen Stelle?"
         )
+
+
+def test_ui_catalogs_are_declared_as_package_data():
+    """
+    Die Sprachkataloge muessen mit ins Wheel.
+
+    Fehlen sie, laesst sich markpublish nicht einmal starten: ui.py laedt sie
+    beim Import und bricht laut ab. Das faellt hier auf und nicht erst bei
+    jemandem, der frisch installiert hat.
+    """
+    pyproject = tomllib.loads((REPO_ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+    patterns = pyproject["tool"]["setuptools"]["package-data"]["markpublish"]
+    assert "locale/*.yaml" in patterns, "locale/*.yaml fehlt in den package-data"
+
+    shipped = sorted(p.name for p in (REPO_ROOT / "src" / "markpublish" / "locale").glob("*.yaml"))
+    assert "en.yaml" in shipped, "die Rueckfallsprache fehlt im Paket"
+
+
+def test_console_scripts_point_at_the_entry_wrapper():
+    """
+    Die Einsprungpunkte muessen ueber entry.py laufen.
+
+    Zeigten sie direkt auf `cli:app`, waere `--ui-lang` fuer die Hilfetexte
+    wirkungslos - die entstehen beim Import, und der waere dann schon
+    passiert.
+    """
+    pyproject = tomllib.loads((REPO_ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+    for name, target in pyproject["project"]["scripts"].items():
+        assert target == "markpublish.entry:main", f"{name} zeigt auf {target}"

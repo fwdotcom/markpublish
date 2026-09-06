@@ -11,6 +11,8 @@ from typing import Dict, List, Optional, Tuple, Union
 
 import platformdirs
 
+from markpublish.ui import t
+
 
 def get_package_templates_dir() -> Path:
     """Returns the path to the built-in package templates directory."""
@@ -141,7 +143,8 @@ def resolve_template_path(
 
     searched = [str(base / theme / target) for _, base in bases]
     raise FileNotFoundError(
-        f"Template '{theme}' for target '{target}' not found. Searched locations:\n"
+        t("err.template.notfound", theme=theme, target=target)
+        + "\n"
         + "\n".join(f" - {loc}" for loc in searched)
     )
 

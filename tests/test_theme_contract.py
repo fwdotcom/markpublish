@@ -287,7 +287,7 @@ def test_render_aborts_on_an_outdated_theme(tmp_path: Path):
         _render(project)
 
     message = str(excinfo.value)
-    assert "passen nicht zusammen" in message
+    assert "do not match" in message
     assert "nicht deklariert" in message
     assert "setup-document" in message
     assert str(project) in message, "Der Theme-Pfad gehoert in die Meldung"
@@ -492,7 +492,7 @@ def test_labels_command_summary_ignores_the_overridden_filter(tmp_path: Path):
     assert plain.exit_code == 0 and filtered.exit_code == 0
     for result in (plain, filtered):
         assert "liest_niemand" in result.stdout, "verwaistes Label fehlt in der Bilanz"
-        assert "vom Theme nicht verwendet" in result.stdout
+        assert "not used by the theme" in result.stdout
 
 
 def test_labels_command_shows_which_layer_supplied_a_text(tmp_path: Path):
@@ -518,13 +518,13 @@ def test_labels_command_shows_which_layer_supplied_a_text(tmp_path: Path):
         app, ["labels", str(tmp_path / "markpublish.yaml")]
     )
     assert result.exit_code == 0
-    assert "i18n-Quelle" in result.stdout, "Herkunftsspalte fehlt"
-    table = result.stdout.split("Die Kaskade")[0]
+    assert "i18n source" in result.stdout, "Herkunftsspalte fehlt"
+    table = result.stdout.split("The cascade")[0]
     assert "theme" in table, "die ueberschreibende Ebene fehlt"
     assert "mpub" in table, "der Programmstandard wird nicht benannt"
     assert "Auf einen Blick" in table, "der Theme-Text fehlt"
     # Der Fuss loest die Kurznamen auf -- sonst waeren sie nicht nachschlagbar.
-    assert "templates" in result.stdout.split("Die Kaskade")[1]
+    assert "templates" in result.stdout.split("The cascade")[1]
 
 
 def test_labels_command_names_the_language_block_only_when_it_differs(tmp_path: Path):
@@ -553,7 +553,7 @@ def test_labels_command_names_the_language_block_only_when_it_differs(tmp_path: 
         app, ["labels", str(tmp_path / "markpublish.yaml")]
     )
     assert result.exit_code == 0
-    table = result.stdout.split("Die Kaskade")[0]
+    table = result.stdout.split("The cascade")[0]
 
     assert "(*)" in table, "der sprachunabhaengige Block wird nicht benannt"
     assert "(de)" not in table, "die Dokumentsprache steht schon im Kopf"
@@ -583,7 +583,7 @@ def test_labels_command_only_overridden_hides_program_defaults(tmp_path: Path):
         app, ["labels", str(tmp_path / "markpublish.yaml"), "--overridden"]
     )
     assert result.exit_code == 0
-    table = result.stdout.split("Die Kaskade")[0]
+    table = result.stdout.split("The cascade")[0]
     assert "Auf einen Blick" in table, "das ueberschriebene Label fehlt"
     assert "alert_note" not in table, "unveraenderter Programmstandard wird angezeigt"
 

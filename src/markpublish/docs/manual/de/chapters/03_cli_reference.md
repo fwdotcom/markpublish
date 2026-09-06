@@ -212,3 +212,48 @@ Folgende Optionen stehen global für alle Befehle zur Verfügung:
 | :--- | :--- |
 | `--version`, `-v` | Gibt die installierte Version von markpublish aus und beendet das Programm. |
 | `--help` | Zeigt die integrierte Hilfe und Parameterübersicht im Terminal an. |
+| `--ui-lang` | Sprache der Kommandozeile für diesen Aufruf (`en`, `de`). |
+
+---
+
+## Sprache der Kommandozeile
+
+markpublish spricht Deutsch und Englisch. Gemeint ist damit die Oberfläche —
+Hilfetexte, Statusmeldungen und Fehlermeldungen im Terminal.
+
+> [!IMPORTANT]
+> Die Sprache der Oberfläche und die Sprache des Dokuments sind zwei
+> verschiedene Dinge. `language:` in der `markpublish.yaml` steuert, was im
+> PDF steht: Überschrift des Inhaltsverzeichnisses, Beschriftungen auf dem
+> Deckblatt, Titel der Hinweisboxen. Die Oberflächensprache steuert nur, was
+> im Terminal erscheint. Wer ein englisches Handbuch setzt und dabei deutsche
+> Meldungen lesen will, bekommt genau das.
+
+Ohne Zutun richtet sich markpublish nach der Sprache Ihres Systems. Wer sie
+für einen einzelnen Aufruf oder dauerhaft umstellen will, hat zwei Wege:
+
+```bash
+# Nur für diesen Aufruf
+markpublish --ui-lang en build
+
+# Für diese Shell-Sitzung
+export MARKPUBLISH_UI_LANG=en    # Windows: $env:MARKPUBLISH_UI_LANG = "en"
+markpublish build
+```
+
+Es gilt, was am nächsten am Aufruf steht:
+
+1. `--ui-lang` auf der Kommandozeile
+2. die Umgebungsvariable `MARKPUBLISH_UI_LANG`
+3. die Sprache Ihres Systems (`LANGUAGE`, `LC_ALL`, `LC_MESSAGES`, `LANG`;
+   unter Windows die Anzeigesprache)
+4. Englisch
+
+Eine regionale Angabe wird auf ihre Basissprache zurückgeführt: `de-AT` und
+`de_DE` ergeben beide Deutsch. Eine Sprache, für die keine Übersetzung
+vorliegt, führt auf Englisch — geraten wird nicht.
+
+> [!NOTE]
+> Bewusst nicht dabei ist die `markpublish.yaml`. Die Terminalsprache gehört
+> zur Arbeitsumgebung eines Menschen, nicht zum Projekt — zwei Personen an
+> einem Repository sollen sie unabhängig voneinander wählen können.

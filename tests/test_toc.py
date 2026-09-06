@@ -879,7 +879,7 @@ parts:
     with pytest.raises(ConfigurationError) as exc_info:
         MarkdownPipeline(config, base_dir=tmp_path, labels={}).process_document()
 
-    assert "erfordert eine Trennseite" in str(exc_info.value)
+    assert "requires a divider page" in str(exc_info.value)
     assert "divider_title" in str(exc_info.value)
 
 
@@ -909,7 +909,7 @@ parts:
     with pytest.raises(ConfigurationError) as exc_info:
         MarkdownPipeline(config, base_dir=tmp_path, labels={}).process_document()
 
-    assert "Inhaltsverzeichnis" in str(exc_info.value)
+    assert "table of contents" in str(exc_info.value)
     assert "toc_title" in str(exc_info.value)
 
 
@@ -971,7 +971,7 @@ parts:
     with pytest.raises(ConfigurationError) as exc_info:
         MarkdownPipeline(config, base_dir=tmp_path, labels={}).process_document()
 
-    assert "Inhaltsverzeichnis" in str(exc_info.value)
+    assert "table of contents" in str(exc_info.value)
     assert "toc_title" in str(exc_info.value)
 
 

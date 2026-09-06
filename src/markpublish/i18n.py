@@ -53,15 +53,15 @@ das Stylesheet ebenso -- `styles.css` laeuft durch dieselbe Jinja-Umgebung.
 from __future__ import annotations
 
 import difflib
-import locale
-import os
 import re
-import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Mapping, Optional, Tuple
 
 import yaml
+
+from markpublish.syslang import detect_system_language
+from markpublish.ui import t
 
 #: Sprache, auf die zurueckgefallen wird, wenn `document.language` unbekannt
 #: ist. Sie muss jeden Schluessel enthalten - build_labels() legt sie als Basis
@@ -130,8 +130,7 @@ def normalize_table(raw: Any, source: str) -> Dict[str, Dict[str, str]]:
         return {}
     if not isinstance(raw, Mapping):
         raise LabelFileError(
-            f"{source}: erwartet werden Sprachcodes auf oberster Ebene, "
-            f"gefunden {type(raw).__name__}."
+            t("err.i18n.expects_languages", source=source, found=type(raw).__name__)
         )
 
     values = list(raw.values())
@@ -143,8 +142,7 @@ def normalize_table(raw: Any, source: str) -> Dict[str, Dict[str, str]]:
     for lang, entries in raw.items():
         if not isinstance(entries, Mapping):
             raise LabelFileError(
-                f"{source}: '{lang}' muss eine Zuordnung von Schluessel zu Text sein. "
-                'Erwartetes Format:  de:\n    part: "Abschnitt"'
+                t("err.i18n.expects_mapping", source=source, language=lang)
             )
         table[_normalize_language_key(lang)] = {str(k): str(v) for k, v in entries.items()}
     return table
@@ -169,9 +167,9 @@ def _read_table_file(path: Path) -> Dict[str, Dict[str, str]]:
     try:
         raw = yaml.safe_load(path.read_text(encoding="utf-8"))
     except yaml.YAMLError as err:
-        raise LabelFileError(f"{path}: kein gueltiges YAML - {err}") from err
+        raise LabelFileError(t("err.i18n.invalid_yaml", path=path, error=err)) from err
     except OSError as err:
-        raise LabelFileError(f"{path}: nicht lesbar - {err}") from err
+        raise LabelFileError(t("err.i18n.unreadable", path=path, error=err)) from err
     return normalize_table(raw, str(path))
 
 
@@ -179,14 +177,12 @@ def _load_builtin() -> Dict[str, Dict[str, str]]:
     """Loads level 1. A packaging error must fail loudly, not silently."""
     if not BUILTIN_I18N_PATH.is_file():
         raise LabelFileError(
-            f"Mitgelieferte Standardtexte nicht gefunden: {BUILTIN_I18N_PATH}. "
-            "Vermutlich ein unvollstaendiges Paket - i18n.yaml gehoert zu den "
-            "package-data von markpublish."
+            t("err.i18n.builtin_missing", path=BUILTIN_I18N_PATH)
         )
     table = _read_table_file(BUILTIN_I18N_PATH)
     if FALLBACK_LANGUAGE not in table:
         raise LabelFileError(
-            f"{BUILTIN_I18N_PATH}: die Fallback-Sprache '{FALLBACK_LANGUAGE}' fehlt."
+            t("err.i18n.fallback_missing", path=BUILTIN_I18N_PATH, language=FALLBACK_LANGUAGE)
         )
     return table
 
@@ -198,70 +194,6 @@ LABELS: Dict[str, Dict[str, str]] = _load_builtin()
 def available_languages() -> List[str]:
     """Returns the language codes level 1 covers."""
     return sorted(k for k in LABELS if k != ANY_LANGUAGE)
-
-
-#: Umgebungsvariablen, in denen POSIX die Sprachwahl fuehrt, spezifisch zuerst.
-#: LANGUAGE darf eine Prioritaetsliste sein ("de:en"); genommen wird der erste
-#: Eintrag.
-_LOCALE_ENV_VARS = ("LANGUAGE", "LC_ALL", "LC_MESSAGES", "LANG")
-
-#: Werte, die "keine Sprache gewaehlt" bedeuten und keine sind.
-_NEUTRAL_LOCALES = frozenset({"c", "posix", "c.utf-8", "und"})
-
-
-def _clean_locale(value: str) -> Optional[str]:
-    """
-    Schaelt aus 'de_DE.UTF-8@euro' den Sprachcode 'de-DE'.
-
-    Geschrieben wird die uebliche Form -- Sprache klein, Region gross. Fuer die
-    Aufloesung ist das gleichgueltig, jede Suche normalisiert selbst; hier geht
-    es darum, dass der Wert in einer markpublish.yaml landen kann, ohne dass
-    jemand ueber ein 'de-de' stolpert.
-    """
-    code = value.split(":", 1)[0].split(".", 1)[0].split("@", 1)[0].strip()
-    if not code or code.lower() in _NEUTRAL_LOCALES:
-        return None
-
-    language, _, region = _normalize_language_key(code).partition("-")
-    return f"{language}-{region.upper()}" if region else language
-
-
-def detect_system_language() -> Optional[str]:
-    """
-    Sprache der Benutzeroberflaeche des Systems, oder None.
-
-    Reihenfolge: erst die POSIX-Umgebungsvariablen -- sie sind die einzige
-    Stelle, an der ein Benutzer die Sprache pro Aufruf oder pro Shell
-    uebersteuern kann, und wer sie setzt, meint sie auch. Danach fragt Windows
-    seine UI-Sprache ueber die API ab; `locale.getlocale()` liefert dort
-    'German_Germany' statt eines ISO-Codes und waere unbrauchbar. Auf allen
-    anderen Systemen bleibt getlocale() als Rueckfallebene.
-
-    Zurueckgegeben wird ein roher Code wie "de", "de-AT" oder "pt-BR" -- ob es
-    ihn ueberhaupt gibt, entscheidet der Aufrufer: normalize_language() fuer die
-    Labels, das Vorhandensein eines Verzeichnisses fuer die mitgelieferten
-    Dokumente. Erkennung, die nichts findet, gibt None zurueck statt zu raten.
-    """
-    for var in _LOCALE_ENV_VARS:
-        value = os.environ.get(var)
-        if value and (code := _clean_locale(value)):
-            return code
-
-    if sys.platform == "win32":
-        try:
-            import ctypes
-
-            lcid = ctypes.windll.kernel32.GetUserDefaultUILanguage()
-            windows_code = locale.windows_locale.get(lcid)
-        except Exception:
-            windows_code = None
-        return _clean_locale(windows_code) if windows_code else None
-
-    try:
-        code = locale.getlocale()[0]
-    except (TypeError, ValueError):
-        return None
-    return _clean_locale(code) if code else None
 
 
 def default_document_language() -> str:
@@ -491,24 +423,27 @@ def undefined_label_message(
 ) -> str:
     """Builds the abort message for one undefined label."""
     lines = [
-        f"Label '{key}' ist im Template notiert, aber in keiner i18n-Ebene definiert.",
-        f"  Dokumentsprache: {labels.language or FALLBACK_LANGUAGE}",
+        t("err.label.undefined", key=key),
+        "  " + t("err.label.document_language", language=labels.language or FALLBACK_LANGUAGE),
     ]
 
     found = list(occurrences)
     if found:
-        lines.append("  Fundstelle:")
+        lines.append("  " + t("err.label.occurrence"))
         lines.extend(f"    {path}:{line}" for path, line in found)
 
-    lines.append("  Gesucht in:")
+    lines.append("  " + t("err.label.searched"))
     for path in labels.searched_files():
-        state = "vorhanden" if path.is_file() else "nicht vorhanden"
+        state = t("err.label.state_present") if path.is_file() else t("err.label.state_absent")
         lines.append(f"    {path}  ({state})")
 
     lines.append(
-        f"  Abhilfe: den Schluessel unter '{labels.language or FALLBACK_LANGUAGE}:' "
-        f"(oder unter '{ANY_LANGUAGE}:' fuer jede Sprache) in einer der oben "
-        "genannten Theme-Dateien ergaenzen."
+        "  "
+        + t(
+            "err.label.remedy",
+            language=labels.language or FALLBACK_LANGUAGE,
+            any=ANY_LANGUAGE,
+        )
     )
     return "\n".join(lines)
 
@@ -653,12 +588,12 @@ def undefined_metadata_message(
     verwenden hiesse, in der Haelfte der Faelle den falschen Weg zu weisen.
     """
     lines = [
-        f"Metadatum '{key}' wird vom Theme gelesen, ist im Dokument aber nicht gesetzt.",
+        t("err.meta.undefined", key=key),
     ]
 
     found = list(occurrences)
     if found:
-        lines.append("  Fundstelle:")
+        lines.append("  " + t("err.meta.occurrence"))
         lines.extend(f"    {path}:{line}" for path, line in found)
 
     candidates = sorted(k for k in known_keys if k)
@@ -666,13 +601,11 @@ def undefined_metadata_message(
         close = difflib.get_close_matches(key, candidates, n=1, cutoff=0.8)
         if close:
             lines.append(
-                f"  Das Dokument fuehrt '{close[0]}' -- moeglicherweise ein Schreibfehler."
+                "  " + t("err.meta.typo", candidate=close[0])
             )
-        lines.append(f"  Bekannt sind: {', '.join(candidates)}")
+        lines.append("  " + t("err.meta.known", keys=", ".join(candidates)))
 
     lines.append(
-        f"  Abhilfe: '{key}' unter 'document:' in der markpublish.yaml ergaenzen "
-        f"(freie Felder sind erlaubt); oder im Theme einen Fallback notieren, "
-        f'z. B. meta.at("{key}", default: (value: "")).'
+        "  " + t("err.meta.remedy", key=key)
     )
     return "\n".join(lines)

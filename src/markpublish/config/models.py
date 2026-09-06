@@ -11,6 +11,7 @@ from typing import Any, List, Optional, Union
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from markpublish.i18n import default_document_language
+from markpublish.ui import t, tn
 
 
 class ConfigurationError(ValueError):
@@ -88,8 +89,7 @@ def parse_toc_scope(value: Any, key_path: str) -> TocScope:
         # Schluesselwoerter. Ein Wahrheitswert ist hier also keine Abkuerzung,
         # sondern eine Angabe, die die Haelfte der Information unterschlaegt.
         raise ValueError(
-            f"{key_path} nimmt keine Wahrheitswerte. "
-            f"Schreiben Sie 'none', 'full' oder eine Tiefe (z. B. 2)."
+            t("err.config.toc_bool", key_path=key_path)
         )
 
     if isinstance(value, str):
@@ -103,15 +103,13 @@ def parse_toc_scope(value: Any, key_path: str) -> TocScope:
         else:
             allowed = ", ".join(f"'{k}'" for k in TOC_SCOPE_KEYWORDS)
             raise ValueError(
-                f"{key_path} kennt {allowed} oder eine Tiefe als Zahl "
-                f"(war: {value!r})."
+                t("err.config.toc_value", key_path=key_path, allowed=allowed, value=repr(value))
             )
 
     if isinstance(value, int):
         if value < 1:
             raise ValueError(
-                f"{key_path} braucht eine Tiefe ab 1 (war: {value}). "
-                f"Fuer 'kommt nicht vor' schreiben Sie 'none'."
+                t("err.config.toc_depth", key_path=key_path, value=value)
             )
         return TocScope(enabled=True, max_depth=value)
 
@@ -119,8 +117,7 @@ def parse_toc_scope(value: Any, key_path: str) -> TocScope:
         return TocScope(**value)
 
     raise ValueError(
-        f"{key_path} kennt 'none', 'full' oder eine Tiefe als Zahl "
-        f"(war: {value!r})."
+        t("err.config.toc_kind", key_path=key_path, value=repr(value))
     )
 
 
@@ -243,13 +240,7 @@ class DocumentConfig(BaseModel):
         for key in ("i18n", "labels"):
             if key in data:
                 raise ValueError(
-                    f"document.{key} gibt es nicht. Statische Texte "
-                    "gehoeren in die i18n.yaml des Themes:\n"
-                    "  <templates>/<theme>/i18n.yaml          fuer alle Zielformate\n"
-                    "  <templates>/<theme>/<pdf|html>/i18n.yaml  nur fuer ein Zielformat\n"
-                    "Aufbau: Sprachcode, darunter die Texte. "
-                    "Ein eigenes Theme legen Sie mit 'markpublish export-template' an; "
-                    "'markpublish labels' zeigt, was am Ende gilt."
+                    t("err.config.document_unknown", key=key)
                 )
         return data
 
@@ -280,18 +271,18 @@ def reject_unknown_keys(data: Any, model: type, where: str) -> Any:
     lines = []
     for key in unknown:
         close = difflib.get_close_matches(str(key), sorted(known), n=1, cutoff=0.7)
-        hint = f" -- meinten Sie '{close[0]}'?" if close else ""
+        hint = t("err.config.did_you_mean", candidate=close[0]) if close else ""
         lines.append(f"  '{key}'{hint}")
 
     listed = "\n".join(lines)
-    single = len(unknown) == 1
     raise ValueError(
-        f"{where} kennt {'diesen Schluessel' if single else 'diese Schluessel'} nicht:\n"
-        f"{listed}\n"
-        f"Erlaubt sind: {', '.join(sorted(known))}.\n"
-        f"Eigene Felder gibt es nur unter 'document:' -- dort erreichen sie das "
-        f"Theme und erscheinen im Dokument. Auf einem Kapitel oder Teil bliebe "
-        f"ein freies Feld wirkungslos."
+        tn("err.config.unknown_key", len(unknown), where=where)
+        + "\n"
+        + listed
+        + "\n"
+        + t("err.config.unknown_key.allowed", allowed=", ".join(sorted(known)))
+        + "\n"
+        + t("err.config.unknown_key.hint")
     )
 
 
@@ -365,7 +356,7 @@ class ChapterItem(BaseModel):
                     return item
         allowed = ", ".join(f"'{item.value}'" for item in BreakBefore)
         raise ValueError(
-            f"chapters.break_before kennt nur {allowed} (war: {v!r})."
+            t("err.config.break_before", key_path="chapters.break_before", allowed=allowed, value=repr(v))
         )
 
     @property
@@ -423,14 +414,13 @@ class PartItem(BaseModel):
         if isinstance(data, dict):
             if not data.get("part") and not data.get("title"):
                 raise ValueError(
-                    "Jeder Part in 'parts' muss einen Namen tragen (Schlüssel 'part'). "
-                    "Ein unbenannter Block ohne Part-Name ist nicht zulässig."
+                    t("err.config.part_needs_name")
                 )
             if not data.get("part") and data.get("title"):
                 data["part"] = data.get("title")
             if "chapters" not in data or not data["chapters"]:
                 raise ValueError(
-                    f"Der Part '{data.get('part')}' muss mindestens ein Kapitel unter 'chapters' enthalten."
+                    t("err.config.part_needs_chapters", part=data.get("part"))
                 )
         return data
 
@@ -469,7 +459,7 @@ class PartItem(BaseModel):
                     return item
         allowed = ", ".join(f"'{item.value}'" for item in BreakBefore)
         raise ValueError(
-            f"parts.break_before kennt nur {allowed} (war: {v!r})."
+            t("err.config.break_before", key_path="parts.break_before", allowed=allowed, value=repr(v))
         )
 
     @property
@@ -515,13 +505,7 @@ class MarkpublishConfig(BaseModel):
             return data
 
         raise ValueError(
-            "chapters gibt es auf oberster Ebene nicht - Kapitel stehen immer "
-            "unter einem Part:\n"
-            "  parts:\n"
-            '    - title: "Hauptteil"\n'
-            "      chapters:\n"
-            '        - file: "kapitel/01.md"\n'
-            'Ein Part ohne eigene Trennseite bekommt break_before: "none".'
+            t("err.config.chapters_toplevel")
         )
 
     @property

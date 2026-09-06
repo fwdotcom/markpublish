@@ -27,6 +27,7 @@ from markpublish.markdown.typst_serializer import (
     html_to_tree,
     process_tree_headings_and_toc,
 )
+from markpublish.ui import t
 
 #: Namen der String-Extensions. Der GitHubAlertsExtension wird pro Sprache
 #: instanziiert und deshalb erst in _build_default_extensions() vorangestellt --
@@ -510,13 +511,16 @@ class MarkdownPipeline:
         effective_toc_title = chapter_cfg.toc_title or file_h1
         effective_divider_title = chapter_cfg.divider_title or file_h1
 
-        file_desc = f"in '{chapter_cfg.file}'" if chapter_cfg.file else "ohne Dateiangabe"
+        file_desc = (
+            t("chapter.desc.in_file", file=chapter_cfg.file)
+            if chapter_cfg.file
+            else t("chapter.desc.no_file")
+        )
 
         # Validierung 1: Trennseite verlangt
         if break_before == BreakBefore.DIVIDER and not effective_divider_title:
             raise ConfigurationError(
-                f"Kapitel {file_desc} erfordert eine Trennseite (break_before: 'divider'), "
-                f"besitzt aber weder eine '#'-Überschrift in der Markdown-Datei noch ein 'divider_title' in markpublish.yaml."
+                t("err.chapter.no_divider_title", file=file_desc)
             )
 
         # Validierung 2: Inhaltsverzeichnis (Haupt-TOC oder Part-TOC) verlangt
@@ -524,8 +528,7 @@ class MarkdownPipeline:
         in_part_toc = bool(inherited_part_toc and _document_toc_enabled(inherited_part_toc))
         if (in_doc_toc or in_part_toc) and not effective_toc_title:
             raise ConfigurationError(
-                f"Kapitel {file_desc} soll in einem Inhaltsverzeichnis (Haupt- oder Abschnittsverzeichnis) "
-                f"aufgeführt werden, besitzt aber weder eine '#'-Überschrift in der Markdown-Datei noch ein 'toc_title' in markpublish.yaml."
+                t("err.chapter.no_toc_title", file=file_desc)
             )
 
         display_title = effective_toc_title or effective_divider_title or "Chapter"

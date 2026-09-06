@@ -31,6 +31,7 @@ from markpublish.templates.contract import (
     parse_sent_arguments,
     parse_theme_contract,
 )
+from markpublish.ui import t
 
 
 class PDFRenderer(BaseRenderer):
@@ -92,10 +93,10 @@ class PDFRenderer(BaseRenderer):
                     debug_dir.mkdir(parents=True, exist_ok=True)
                     debug_file = debug_dir / "last_failed_build.typ"
                     shutil.copy2(main_typ, debug_file)
-                    debug_msg = f" (Quelltext zur Fehlerdiagnose gespeichert unter: {debug_file})"
+                    debug_msg = t("err.typst.debug_saved", path=debug_file)
                 except Exception:
                     debug_msg = ""
-                raise RuntimeError(f"Typst-Kompilierungsfehler: {e}{debug_msg}") from e
+                raise RuntimeError(t("err.typst.compile", error=e) + debug_msg) from e
 
         return output_path
 
@@ -143,9 +144,10 @@ class PDFRenderer(BaseRenderer):
 
         if report.errors:
             raise RuntimeError(
-                "Theme und Aufruf passen nicht zusammen:\n"
+                t("err.theme.signature_mismatch")
                 + "\n".join(f"  {message}" for message in report.errors)
-                + f"\n  Theme: {context.template_path}"
+                + "\n  "
+                + t("err.theme.signature_theme", path=context.template_path)
             )
 
         for message in report.warnings:

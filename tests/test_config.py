@@ -123,7 +123,7 @@ def test_parts_must_have_name():
             }
         ]
     }
-    with pytest.raises(ValidationError, match="Jeder Part in 'parts' muss einen Namen tragen"):
+    with pytest.raises(ValidationError, match="Every part in 'parts' must carry a name"):
         load_config(raw_invalid)
 
     raw_valid = {

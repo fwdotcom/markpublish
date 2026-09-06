@@ -1,0 +1,251 @@
+# Texte der Programmoberflaeche -- Englisch.
+#
+# Diese Sprache muss vollstaendig sein: sie liegt unter jeder anderen, damit
+# eine unfertige Uebersetzung nie eine leere Zeile erzeugt. Ein Test haelt die
+# Kataloge Schluessel fuer Schluessel gegeneinander.
+#
+# Flach, mit gepunkteten Schluesseln. Platzhalter sind benannt ({path}), nie
+# nummeriert, und Rich-Markup steht an der Aufrufstelle, nicht hier.
+
+# --- Wiederkehrende Beschriftungen -------------------------------------------
+label.error: "Error:"
+label.warning: "Warning:"
+label.note: "Note:"
+label.notice: "Notice:"
+label.critical: "Critical:"
+label.hint: "Hint:"
+label.config_error: "Configuration error:"
+label.template_error: "Template error for {target}:"
+label.label_file_error: "Label file error:"
+label.label_file_error_target: "Label file error ({target}):"
+label.theme_warning: "Theme warning ({target}):"
+label.undefined_label: "Undefined label ({target}):"
+label.undefined_metadata: "Undefined metadata ({target}):"
+label.rendering_error: "Rendering error ({target}):"
+value.na: "N/A"
+value.not_set: "(not set)"
+value.missing: "[missing!]"
+value.yes: "Yes"
+value.no: "No"
+value.none: "-"
+
+# --- Anwendung ----------------------------------------------------------------
+app.help: "Modern, modular Markdown to PDF publishing tool powered by Typst."
+app.version_word: "version"
+opt.version.help: "Show the application's version and exit."
+opt.ui_lang.help: "Language of the command-line interface ('en', 'de'); defaults to your system language."
+
+# --- Gemeinsame Optionen ------------------------------------------------------
+opt.config_file.help: "Path to markpublish.yaml configuration file."
+opt.target.help: "Output target: 'pdf', 'html', or 'all'."
+opt.target_filter.help: "Filter by target format ('pdf' or 'html')."
+opt.target_labels.help: "Target format whose label cascade to show ('pdf' or 'html')."
+opt.output.help: "Custom output file or directory path (a non-existing path without extension is treated as directory)."
+opt.output_bundled.help: "Custom output file or directory path. Defaults to the current directory."
+opt.templates_dir.help: "Custom templates directory path."
+opt.theme.help: "Render with a theme of your own instead of the built-in one."
+opt.lang_bundled.help: "Language of the bundled source to render (default: your system language, else en)."
+opt.lang_init.help: "Language for project template ('de', 'en'); defaults to system language."
+opt.title.help: "Document title."
+opt.overridden.help: "Show only texts a theme layer overrode (errors stay visible)."
+opt.target_dir.help: "Directory to initialize."
+opt.export_theme.help: "Theme name to export."
+opt.export_destination.help: "Destination directory."
+opt.export_target.help: "Target to export ('pdf', 'html', or 'all')."
+
+# --- Befehle ------------------------------------------------------------------
+cmd.build.help: "Builds document to PDF and/or HTML based on markpublish.yaml."
+cmd.init.help: |
+  Creates a minimal markpublish project: one config file and one chapter.
+
+  Deliberately small. The scaffold is meant to be deleted as soon as real
+  content arrives, so it demonstrates nothing it does not have to -- the
+  reference lives in 'markpublish cheatsheet', which stays available after
+  the last scaffold file is gone.
+cmd.cheatsheet.help: |
+  Renders the two-page reference for markpublish.yaml and themes.
+
+  The source ships inside the package and is rendered on demand, so the
+  result always matches the installed version -- and a successful run doubles
+  as proof that the rendering toolchain works. Only the finished document is
+  written; no sources land in your project.
+cmd.manual.help: |
+  Renders the full user guide.
+
+  Same deal as 'cheatsheet': the source ships with the package, so the guide
+  describes the version you actually have rather than whatever was current
+  when someone last rebuilt a PDF. Use --lang to pick a translation.
+cmd.templates.help: "Lists all available templates across User, Common, and Package sources."
+cmd.export_template.help: "Exports a built-in template to project directory for customization."
+cmd.labels.help: |
+  Shows the resolved static texts and which layer supplied each one.
+
+  Cascade, later wins: markpublish/i18n.yaml -> <theme>/i18n.yaml ->
+  <theme>/<target>/i18n.yaml -> i18n.yaml next to markpublish.yaml. The
+  theme is the one the template resolution picked; the project level has
+  the last word and is where a document names its own free metadata fields.
+
+# --- Statusmeldungen waehrend des Laufs ---------------------------------------
+status.loading_config: "Loading configuration..."
+status.rendering: "Processing Markdown and rendering {target}..."
+
+# --- build --------------------------------------------------------------------
+panel.build.title: "markpublish build"
+panel.build.meta: "Author: {author} | Version: {version} | Date: {date}"
+panel.build.setup: "Theme: {theme} | Language: {language} | Targets: {targets}"
+err.config.notfound: "Configuration file '{path}' not found."
+err.target.unknown: "Unknown target '{target}'. Choose 'pdf', 'html', or 'all'."
+err.target.unknown_labels: "Unknown target '{target}'. Choose 'pdf' or 'html'."
+notice.html.unimplemented: "HTML output is currently not implemented. markpublish focuses on high-quality PDF publishing via Typst."
+ok.generated: "{target} successfully generated: {path}"
+
+# --- Mitgelieferte Dokumente --------------------------------------------------
+err.bundled.missing: "The packaged '{name}' is missing from '{path}'. This points to an incomplete installation - reinstall markpublish."
+err.init_template.missing: "The packaged 'init' template is missing from '{path}'. This points to an incomplete installation - reinstall markpublish."
+note.doc.lang_unavailable: "'{name}' is not available in {requested}. Rendering {chosen} instead (available: {available})."
+note.init.lang_unavailable: "'init' template is not available in {requested}. Using {chosen} instead (available: {available})."
+
+# --- init ---------------------------------------------------------------------
+ok.init.done: "Initialized markpublish project in {path}"
+init.next.build: "Run {command} to generate your first PDF."
+init.next.cheatsheet: "Run {command} for the two-page reference."
+
+# --- templates ----------------------------------------------------------------
+table.templates.title: "Available Templates"
+table.templates.target: "Target"
+table.templates.theme: "Theme"
+table.templates.source: "Source"
+table.templates.active: "Active"
+table.templates.path: "Path"
+
+# --- export-template ----------------------------------------------------------
+warn.export.notfound: "Built-in template '{theme}' for target '{target}' not found at {path}"
+ok.export.template: "Exported template {name} to {path}"
+ok.export.i18n: "Exported {name} to {path}"
+info.export.kept: "Kept existing"
+
+# --- labels -------------------------------------------------------------------
+panel.labels.title: "markpublish labels"
+panel.labels.summary: "Language: {language} | Theme: {theme} | Target: {target}"
+table.labels.key: "Key"
+table.labels.usage: "Theme usage"
+table.labels.label: "Label"
+table.labels.source: "i18n source"
+table.labels.label_fallback: "Label fallback"
+table.labels.value: "Value"
+table.labels.value_fallback: "Value fallback"
+table.labels.status: "Status"
+labels.status.ok: "OK"
+labels.status.unused: "unused"
+labels.status.label_missing: "label missing"
+labels.status.label_fallback: 'label missing (fallback: "{detail}")'
+labels.status.value_missing: "value not set"
+labels.status.value_fallback: 'value missing (fallback: "{detail}")'
+labels.status.label_and_value_fallback: "label and value missing (fallbacks apply)"
+labels.status.label_fallback_value_missing: 'label missing (fallback: "{detail}"), value missing'
+labels.status.label_breaks: "MISSING: label without a fallback!"
+labels.status.meta_key_unknown: "MISSING: key unknown!"
+labels.status.label_and_meta_break: "MISSING: label and key without a fallback!"
+labels.signature_mismatch: "Critical: theme and call do not match:"
+labels.breaking.one: "Critical: {n} key breaks the build:"
+labels.breaking.other: "Critical: {n} keys break the build:"
+labels.warned.one: "Note: {n} key falls back or lacks its caption:"
+labels.warned.other: "Note: {n} keys fall back or lack their caption:"
+labels.unused.one: "{n} key is not used by the theme:"
+labels.unused.other: "{n} keys are not used by the theme:"
+labels.all_clear: "All keys and labels line up."
+labels.cascade.intro: "The cascade, later layers win:"
+labels.cascade.builtin: "(program default)"
+labels.cascade.found: "found"
+labels.cascade.absent: "not present"
+
+# --- Konfiguration ------------------------------------------------------------
+err.config.not_found_file: "Configuration file not found: {path}"
+err.config.toc_bool: "{key_path} takes no boolean. Write 'none', 'full' or a depth (e.g. 2)."
+err.config.toc_value: "{key_path} takes {allowed} or a depth as a number (was: {value})."
+err.config.toc_depth: "{key_path} needs a depth of at least 1 (was: {value}). For 'does not appear' write 'none'."
+err.config.toc_kind: "{key_path} takes 'none', 'full' or a depth as a number (was: {value})."
+err.config.document_unknown: |
+  document.{key} does not exist. Static texts belong in the theme's i18n.yaml:
+    <templates>/<theme>/i18n.yaml          for every target
+    <templates>/<theme>/<pdf|html>/i18n.yaml  for one target only
+  Structure: language code, texts below it. Create your own theme with
+  'markpublish export-template'; 'markpublish labels' shows what finally applies.
+err.config.did_you_mean: " -- did you mean '{candidate}'?"
+err.config.unknown_key.one: "{where} does not know this key:"
+err.config.unknown_key.other: "{where} does not know these keys:"
+err.config.unknown_key.allowed: "Allowed are: {allowed}."
+err.config.unknown_key.hint: "Free fields exist only under 'document:' -- there they reach the theme and appear in the document. On a chapter or part a free field would have no effect."
+err.config.break_before: "{key_path} takes only {allowed} (was: {value})."
+err.config.part_needs_name: "Every part in 'parts' must carry a name (key 'part'). An unnamed block without a part name is not allowed."
+err.config.part_needs_chapters: "The part '{part}' must contain at least one chapter under 'chapters'."
+err.config.chapters_toplevel: |
+  chapters does not exist at the top level - chapters always sit under a part:
+    parts:
+      - title: "Main part"
+        chapters:
+          - file: "chapters/01.md"
+  A part without its own divider page gets break_before: "none".
+
+# --- Kapitelverarbeitung ------------------------------------------------------
+chapter.desc.in_file: "in '{file}'"
+chapter.desc.no_file: "without a file reference"
+err.chapter.no_divider_title: "Chapter {file} requires a divider page (break_before: 'divider') but has neither a '#' heading in the Markdown file nor a 'divider_title' in markpublish.yaml."
+err.chapter.no_toc_title: "Chapter {file} is meant to appear in a table of contents (main or section) but has neither a '#' heading in the Markdown file nor a 'toc_title' in markpublish.yaml."
+
+# --- Themes -------------------------------------------------------------------
+err.template.notfound: "Template '{theme}' for target '{target}' not found. Searched locations:"
+err.typst.compile: "Typst compilation error: {error}"
+err.typst.debug_saved: " (source saved for diagnosis at: {path})"
+err.theme.signature_mismatch: "Theme and call do not match:"
+err.theme.signature_theme: "Theme: {path}"
+
+# --- Label-Kaskade ------------------------------------------------------------
+err.i18n.invalid_yaml: "{path}: not valid YAML - {error}"
+err.i18n.unreadable: "{path}: not readable - {error}"
+err.i18n.expects_languages: "{source}: expected language codes at the top level, found {found}."
+err.i18n.expects_mapping: |
+  {source}: '{language}' must be a mapping of key to text. Expected format:  de:
+      part: "Section"
+err.i18n.builtin_missing: "Bundled default texts not found: {path}. Probably an incomplete package - i18n.yaml belongs to markpublish's package-data."
+err.i18n.fallback_missing: "{path}: the fallback language '{language}' is missing."
+err.label.undefined: "Label '{key}' is noted in the template but defined in no i18n layer."
+err.label.document_language: "Document language: {language}"
+err.label.occurrence: "Found at:"
+err.label.searched: "Searched in:"
+err.label.state_present: "present"
+err.label.state_absent: "not present"
+err.label.remedy: "Remedy: add the key under '{language}:' (or under '{any}:' for every language) in one of the theme files listed above."
+err.meta.undefined: "Metadata '{key}' is read by the theme but not set in the document."
+err.meta.occurrence: "Found at:"
+err.meta.typo: "The document carries '{candidate}' -- possibly a typo."
+err.meta.known: "Known are: {keys}"
+err.meta.remedy: "Remedy: add '{key}' under 'document:' in the markpublish.yaml (free fields are allowed); or note a fallback in the theme, e.g. meta.at(\"{key}\", default: (value: \"\"))."
+
+# --- build_manuals.py ---------------------------------------------------------
+manuals.app.help: "Builds the official markpublish manual in German and English."
+manuals.opt.target: "Output format: 'pdf', 'html' or 'all'."
+manuals.opt.output_dir: "Destination directory for the manuals."
+manuals.opt.lang: "Languages to build, comma-separated ('de', 'en', or 'all')."
+manuals.cmd.help: |
+  Builds the manual and reports what this run actually wrote.
+
+  The "State" column separates the documents of this run from those that were
+  already lying there.
+manuals.building: "Building manual ({language}) as {target} into {path}..."
+manuals.rendering: "Rendering manual: language {language} | format {target}"
+manuals.err.no_source: "No manual in the package (docs/manual/<language>/markpublish.yaml is missing)."
+manuals.err.lang_empty: "--lang is empty."
+manuals.err.unknown_lang: "Unknown language '{language}'. Available: {available}."
+manuals.table.file: "File"
+manuals.table.format: "Format"
+manuals.table.size: "Size"
+manuals.table.state: "State"
+manuals.state.rebuilt: "rebuilt"
+manuals.state.unchanged: "unchanged"
+manuals.success.one: "{n} document updated under {path}."
+manuals.success.other: "{n} documents updated under {path}."
+manuals.partial.one: "Only {done} of {expected} document built - please check the output above."
+manuals.partial.other: "Only {done} of {expected} documents built - please check the output above."
+manuals.label.success: "SUCCESS"
+manuals.label.ok: "OK"

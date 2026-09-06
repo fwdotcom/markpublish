@@ -58,28 +58,53 @@ from markpublish.templates.resolver import (
     list_templates,
     resolve_template_path,
 )
+from markpublish.ui import set_ui_language, t, tn
 
 app = typer.Typer(
     name="markpublish",
-    help="Modern, modular Markdown to PDF publishing tool powered by Typst.",
+    help=t("app.help"),
 )
 console = Console()
 
 
 def version_callback(value: bool):
     if value:
-        console.print(f"[bold blue]markpublish[/bold blue] version [green]{__version__}[/green]")
+        console.print(
+            f"[bold blue]markpublish[/bold blue] "
+            f"{t('app.version_word')} [green]{__version__}[/green]"
+        )
         raise typer.Exit()
 
 
 @app.callback()
 def main(
     version: Optional[bool] = typer.Option(
-        None, "--version", "-v", help="Show the application's version and exit.", callback=version_callback, is_eager=True
-    )
+        None,
+        "--version",
+        "-v",
+        help=t("opt.version.help"),
+        callback=version_callback,
+        is_eager=True,
+    ),
+    ui_lang: Optional[str] = typer.Option(
+        None,
+        "--ui-lang",
+        help=t("opt.ui_lang.help"),
+    ),
 ):
-    """markpublish CLI"""
-    pass
+    """
+    markpublish CLI.
+
+    `--ui-lang` ist hier nur angemeldet, damit die Flagge in der Hilfe
+    steht und ein direkter Aufruf von `markpublish.cli:app` sie nicht als
+    unbekannt zurueckweist. Ausgewertet hat sie der Einsprung (entry.py)
+    schon vor dem Import -- fuer die Hilfetexte muss sie das auch, die
+    entstehen beim Import. Erneut gesetzt wird sie nur fuer den Fall, dass
+    jemand die App unter Umgehung des Einsprungs aufruft; dann stimmen
+    wenigstens die Meldungen zur Laufzeit.
+    """
+    if ui_lang:
+        set_ui_language(ui_lang)
 
 
 #: Sprache, in der die mitgelieferten Dokumente erscheinen, wenn weder --lang
@@ -142,9 +167,8 @@ def _resolve_bundled_doc(name: str, lang: Optional[str]) -> Path:
     available = _available_doc_languages(name)
     if not available:
         console.print(
-            f"[bold red]Error:[/bold red] The packaged '{name}' is missing from "
-            f"'{get_bundled_doc_dir(name)}'. This points to an incomplete "
-            "installation - reinstall markpublish."
+            f"[bold red]{t('label.error')}[/bold red] "
+            + t("err.bundled.missing", name=name, path=get_bundled_doc_dir(name))
         )
         raise typer.Exit(code=1)
 
@@ -155,9 +179,14 @@ def _resolve_bundled_doc(name: str, lang: Optional[str]) -> Path:
         chosen = DEFAULT_DOC_LANGUAGE if DEFAULT_DOC_LANGUAGE in available else available[0]
         if lang:
             console.print(
-                f"[yellow]Note:[/yellow] '{name}' is not available in "
-                f"[cyan]{lang.strip().lower()}[/cyan]. Rendering [cyan]{chosen}[/cyan] "
-                f"instead (available: {', '.join(available)})."
+                f"[yellow]{t('label.note')}[/yellow] "
+                + t(
+                    "note.doc.lang_unavailable",
+                    name=name,
+                    requested=f"[cyan]{lang.strip().lower()}[/cyan]",
+                    chosen=f"[cyan]{chosen}[/cyan]",
+                    available=", ".join(available),
+                )
             )
 
     return get_bundled_doc_dir(name) / chosen / "markpublish.yaml"
@@ -178,7 +207,7 @@ def _render_bundled_doc(
     try:
         config = load_config(config_file)
     except Exception as e:
-        console.print(f"[bold red]Configuration error:[/bold red] {e}")
+        console.print(f"[bold red]{t('label.config_error')}[/bold red] {e}")
         raise typer.Exit(code=1) from e
 
     if theme:
@@ -211,7 +240,10 @@ def _parse_targets(target: str) -> List[str]:
         return ["pdf", "html"]
     if cleaned in ("pdf", "html"):
         return [cleaned]
-    console.print(f"[bold red]Error:[/bold red] Unknown target '{target}'. Choose 'pdf', 'html', or 'all'.")
+    console.print(
+        f"[bold red]{t('label.error')}[/bold red] "
+        + t("err.target.unknown", target=target)
+    )
     raise typer.Exit(code=1)
 
 
@@ -253,12 +285,13 @@ def _render_document(
     for tgt in targets_to_build:
         if tgt == "html":
             console.print(
-                "[yellow]Notice:[/yellow] HTML output is currently not implemented. "
-                "markpublish focuses on high-quality PDF publishing via Typst."
+                f"[yellow]{t('label.notice')}[/yellow] "
+                + t("notice.html.unimplemented")
             )
             continue
 
-        with console.status(f"[bold green]Processing Markdown and rendering {tgt.upper()}...[/bold green]"):
+        status_text = t("status.rendering", target=tgt.upper())
+        with console.status(f"[bold green]{status_text}[/bold green]"):
             try:
                 tmpl_path = resolve_template_path(
                     target=tgt,
@@ -268,7 +301,7 @@ def _render_document(
                     package_only=package_templates_only,
                 )
             except Exception as e:
-                console.print(f"[bold red]Template error for {tgt}:[/bold red] {e}")
+                console.print(f"[bold red]{t('label.template_error', target=tgt)}[/bold red] {e}")
                 raise typer.Exit(code=1) from e
 
             context = DocumentContext(
@@ -287,7 +320,9 @@ def _render_document(
             try:
                 labels = context.labels
             except LabelFileError as e:
-                console.print(f"[bold red]Label file error ({tgt}):[/bold red] {e}")
+                console.print(
+                    f"[bold red]{t('label.label_file_error_target', target=tgt)}[/bold red] {e}"
+                )
                 raise typer.Exit(code=1) from e
 
             try:
@@ -319,63 +354,72 @@ def _render_document(
                     out_result = renderer.render(context, out_file)
                 for entry in caught:
                     if issubclass(entry.category, ThemeContractWarning):
-                        console.print(f"[yellow]Theme warning ({tgt}):[/yellow] {entry.message}")
+                        console.print(
+                            f"[yellow]{t('label.theme_warning', target=tgt)}[/yellow] "
+                            f"{entry.message}"
+                        )
                     else:
                         warnings.warn_explicit(
                             entry.message, entry.category, entry.filename, entry.lineno
                         )
-                console.print(f"[bold green][OK][/bold green] {tgt.upper()} successfully generated: [cyan]{out_result}[/cyan]")
+                console.print(
+                    "[bold green][OK][/bold green] "
+                    + t("ok.generated", target=tgt.upper(), path=f"[cyan]{out_result}[/cyan]")
+                )
             except UndefinedLabelError as e:
                 # Eigener Zweig, weil die Meldung mehrzeilig ist und Fundstelle
                 # samt durchsuchten Dateien nennt - die gehoert nicht hinter ein
                 # "Rendering error:" auf dieselbe Zeile gequetscht.
-                console.print(f"[bold red]Undefined label ({tgt}):[/bold red]")
+                console.print(f"[bold red]{t('label.undefined_label', target=tgt)}[/bold red]")
                 console.print(str(e))
                 raise typer.Exit(code=1) from e
             except UndefinedMetadataError as e:
-                console.print(f"[bold red]Undefined metadata ({tgt}):[/bold red]")
+                console.print(f"[bold red]{t('label.undefined_metadata', target=tgt)}[/bold red]")
                 console.print(str(e))
                 raise typer.Exit(code=1) from e
             except Exception as e:
-                console.print(f"[bold red]Rendering error ({tgt}):[/bold red] {e}")
+                console.print(f"[bold red]{t('label.rendering_error', target=tgt)}[/bold red] {e}")
                 raise typer.Exit(code=1) from e
 
 
-@app.command(name="build")
+@app.command(name="build", help=t("cmd.build.help"))
 def build_cmd(
     config_file: Path = typer.Argument(
         Path("markpublish.yaml"),
-        help="Path to markpublish.yaml configuration file.",
+        help=t("opt.config_file.help"),
         exists=False,
     ),
     target: str = typer.Option(
         "pdf",
         "--target",
         "-t",
-        help="Output target: 'pdf', 'html', or 'all'.",
+        help=t("opt.target.help"),
     ),
     output: Optional[Path] = typer.Option(
         None,
         "--output",
         "-o",
-        help="Custom output file or directory path (a non-existing path without extension is treated as directory).",
+        help=t("opt.output.help"),
     ),
     templates_dir: Optional[Path] = typer.Option(
         None,
         "--templates-dir",
-        help="Custom templates directory path.",
+        help=t("opt.templates_dir.help"),
     ),
 ):
     """
     Builds document to PDF and/or HTML based on markpublish.yaml.
     """
     if not config_file.exists():
-        console.print(f"[bold red]Error:[/bold red] Configuration file '{config_file}' not found.")
+        console.print(
+            f"[bold red]{t('label.error')}[/bold red] "
+            + t("err.config.notfound", path=config_file)
+        )
         raise typer.Exit(code=1)
 
     base_dir = config_file.parent.resolve()
 
-    with console.status("[bold green]Loading configuration...[/bold green]"):
+    with console.status(f"[bold green]{t('status.loading_config')}[/bold green]"):
         try:
             config = load_config(config_file)
         except Exception as e:
@@ -385,13 +429,23 @@ def build_cmd(
     console.print(
         Panel(
             f"[bold]{config.document.title}[/bold]\n"
-            f"Author: {config.document.author or 'N/A'} | Version: {config.document.version or 'N/A'} | Date: {config.document.date}\n"
+            + t(
+                "panel.build.meta",
+                author=config.document.author or t("value.na"),
+                version=config.document.version or t("value.na"),
+                date=config.document.date,
+            )
+            + "\n"
             # Die Sprache steht mit in der Kopfzeile, weil sie ohne Angabe in
             # der YAML vom System kommt - was gilt, soll man sehen, ohne es
             # ausrechnen zu muessen.
-            f"Theme: [cyan]{config.theme}[/cyan] | Language: [cyan]{config.document.language}[/cyan]"
-            f" | Targets: [yellow]{target.upper()}[/yellow]",
-            title="[bold blue]markpublish build[/bold blue]",
+            + t(
+                "panel.build.setup",
+                theme=f"[cyan]{config.theme}[/cyan]",
+                language=f"[cyan]{config.document.language}[/cyan]",
+                targets=f"[yellow]{target.upper()}[/yellow]",
+            ),
+            title=f"[bold blue]{t('panel.build.title')}[/bold blue]",
             border_style="blue",
         )
     )
@@ -408,23 +462,23 @@ def build_cmd(
     )
 
 
-@app.command(name="init")
+@app.command(name="init", help=t("cmd.init.help"))
 def init_cmd(
     target_dir: Path = typer.Argument(
         Path("."),
-        help="Directory to initialize.",
+        help=t("opt.target_dir.help"),
     ),
     title: str = typer.Option(
         "New Document",
         "--title",
         "-t",
-        help="Document title.",
+        help=t("opt.title.help"),
     ),
     lang: Optional[str] = typer.Option(
         None,
         "--lang",
         "-l",
-        help="Language for project template ('de', 'en'); defaults to system language.",
+        help=t("opt.lang_init.help"),
     ),
 ):
     """
@@ -441,9 +495,8 @@ def init_cmd(
     available = _available_doc_languages("init")
     if not available:
         console.print(
-            f"[bold red]Error:[/bold red] The packaged 'init' template is missing from "
-            f"'{get_bundled_doc_dir('init')}'. This points to an incomplete "
-            "installation - reinstall markpublish."
+            f"[bold red]{t('label.error')}[/bold red] "
+            + t("err.init_template.missing", path=get_bundled_doc_dir("init"))
         )
         raise typer.Exit(code=1)
 
@@ -454,9 +507,13 @@ def init_cmd(
         chosen = DEFAULT_DOC_LANGUAGE if DEFAULT_DOC_LANGUAGE in available else available[0]
         if lang:
             console.print(
-                f"[yellow]Note:[/yellow] 'init' template is not available in "
-                f"[cyan]{lang.strip().lower()}[/cyan]. Using [cyan]{chosen}[/cyan] "
-                f"instead (available: {', '.join(available)})."
+                f"[yellow]{t('label.note')}[/yellow] "
+                + t(
+                    "note.init.lang_unavailable",
+                    requested=f"[cyan]{lang.strip().lower()}[/cyan]",
+                    chosen=f"[cyan]{chosen}[/cyan]",
+                    available=", ".join(available),
+                )
             )
 
     src_dir = get_bundled_doc_dir("init") / chosen
@@ -476,40 +533,45 @@ def init_cmd(
         if not dest.exists():
             dest.write_text(f.read_text(encoding="utf-8"), encoding="utf-8")
 
-    console.print(f"[bold green][OK][/bold green] Initialized markpublish project in [cyan]{target_dir}[/cyan]")
-    console.print("Run [bold cyan]markpublish build[/bold cyan] to generate your first PDF.")
-    console.print("Run [bold cyan]markpublish cheatsheet[/bold cyan] for the two-page reference.")
+    console.print(
+        "[bold green][OK][/bold green] "
+        + t("ok.init.done", path=f"[cyan]{target_dir}[/cyan]")
+    )
+    console.print(t("init.next.build", command="[bold cyan]markpublish build[/bold cyan]"))
+    console.print(
+        t("init.next.cheatsheet", command="[bold cyan]markpublish cheatsheet[/bold cyan]")
+    )
 
 
-@app.command(name="cheatsheet")
+@app.command(name="cheatsheet", help=t("cmd.cheatsheet.help"))
 def cheatsheet_cmd(
     lang: Optional[str] = typer.Option(
         None,
         "--lang",
         "-l",
-        help="Language of the bundled source to render (default: your system language, else en).",
+        help=t("opt.lang_bundled.help"),
     ),
     target: str = typer.Option(
         "pdf",
         "--target",
         "-t",
-        help="Output target: 'pdf', 'html', or 'all'.",
+        help=t("opt.target.help"),
     ),
     output: Optional[Path] = typer.Option(
         None,
         "--output",
         "-o",
-        help="Custom output file or directory path. Defaults to the current directory.",
+        help=t("opt.output_bundled.help"),
     ),
     theme: Optional[str] = typer.Option(
         None,
         "--theme",
-        help="Render with a theme of your own instead of the built-in one.",
+        help=t("opt.theme.help"),
     ),
     templates_dir: Optional[Path] = typer.Option(
         None,
         "--templates-dir",
-        help="Custom templates directory path.",
+        help=t("opt.templates_dir.help"),
     ),
 ):
     """
@@ -523,35 +585,35 @@ def cheatsheet_cmd(
     _render_bundled_doc("cheatsheet", lang, target, output, theme, templates_dir)
 
 
-@app.command(name="manual")
+@app.command(name="manual", help=t("cmd.manual.help"))
 def manual_cmd(
     lang: Optional[str] = typer.Option(
         None,
         "--lang",
         "-l",
-        help="Language of the bundled source to render (default: your system language, else en).",
+        help=t("opt.lang_bundled.help"),
     ),
     target: str = typer.Option(
         "pdf",
         "--target",
         "-t",
-        help="Output target: 'pdf', 'html', or 'all'.",
+        help=t("opt.target.help"),
     ),
     output: Optional[Path] = typer.Option(
         None,
         "--output",
         "-o",
-        help="Custom output file or directory path. Defaults to the current directory.",
+        help=t("opt.output_bundled.help"),
     ),
     theme: Optional[str] = typer.Option(
         None,
         "--theme",
-        help="Render with a theme of your own instead of the built-in one.",
+        help=t("opt.theme.help"),
     ),
     templates_dir: Optional[Path] = typer.Option(
         None,
         "--templates-dir",
-        help="Custom templates directory path.",
+        help=t("opt.templates_dir.help"),
     ),
 ):
     """
@@ -564,18 +626,18 @@ def manual_cmd(
     _render_bundled_doc("manual", lang, target, output, theme, templates_dir)
 
 
-@app.command(name="templates")
+@app.command(name="templates", help=t("cmd.templates.help"))
 def templates_list_cmd(
     target: Optional[str] = typer.Option(
         None,
         "--target",
         "-t",
-        help="Filter by target format ('pdf' or 'html').",
+        help=t("opt.target_filter.help"),
     ),
     templates_dir: Optional[Path] = typer.Option(
         None,
         "--templates-dir",
-        help="Custom templates directory path.",
+        help=t("opt.templates_dir.help"),
     ),
 ):
     """
@@ -583,27 +645,33 @@ def templates_list_cmd(
     """
     all_tmpls = list_templates(custom_templates_dir=templates_dir)
 
-    table = Table(title="Available Templates", show_header=True, header_style="bold blue")
-    table.add_column("Target", style="yellow")
-    table.add_column("Theme", style="bold")
-    table.add_column("Source", style="cyan")
-    table.add_column("Active", justify="center")
-    table.add_column("Path", style="dim")
+    table = Table(
+        title=t("table.templates.title"), show_header=True, header_style="bold blue"
+    )
+    table.add_column(t("table.templates.target"), style="yellow")
+    table.add_column(t("table.templates.theme"), style="bold")
+    table.add_column(t("table.templates.source"), style="cyan")
+    table.add_column(t("table.templates.active"), justify="center")
+    table.add_column(t("table.templates.path"), style="dim")
 
-    for t in all_tmpls:
-        if target and t["target"] != target.lower().strip():
+    for tmpl in all_tmpls:
+        if target and tmpl["target"] != target.lower().strip():
             continue
-        active_str = "[bold green]Yes[/bold green]" if t["is_active"] else "[dim]No[/dim]"
-        table.add_row(t["target"], t["theme"], t["source"], active_str, t["path"])
+        active_str = (
+            f"[bold green]{t('value.yes')}[/bold green]"
+            if tmpl["is_active"]
+            else f"[dim]{t('value.no')}[/dim]"
+        )
+        table.add_row(tmpl["target"], tmpl["theme"], tmpl["source"], active_str, tmpl["path"])
 
     console.print(table)
 
 
-@app.command(name="export-template")
+@app.command(name="export-template", help=t("cmd.export_template.help"))
 def export_template_cmd(
-    theme: str = typer.Argument("default", help="Theme name to export."),
-    destination: Path = typer.Argument(Path("templates"), help="Destination directory."),
-    target: str = typer.Option("all", "--target", "-t", help="Target to export ('pdf', 'html', or 'all')."),
+    theme: str = typer.Argument("default", help=t("opt.export_theme.help")),
+    destination: Path = typer.Argument(Path("templates"), help=t("opt.export_destination.help")),
+    target: str = typer.Option("all", "--target", "-t", help=t("opt.export_target.help")),
 ):
     """
     Exports a built-in template to project directory for customization.
@@ -615,14 +683,24 @@ def export_template_cmd(
     for tgt in targets:
         src = pkg_base / theme / tgt
         if not src.exists():
-            console.print(f"[yellow]Warning:[/yellow] Built-in template '{theme}' for target '{tgt}' not found at {src}")
+            console.print(
+                f"[yellow]{t('label.warning')}[/yellow] "
+                + t("warn.export.notfound", theme=theme, target=tgt, path=src)
+            )
             continue
 
         dest = destination / theme / tgt
         dest.parent.mkdir(parents=True, exist_ok=True)
         shutil.copytree(src, dest, dirs_exist_ok=True)
         exported_any = True
-        console.print(f"[bold green][OK][/bold green] Exported template [cyan]{tgt}/{theme}[/cyan] to [yellow]{dest}[/yellow]")
+        console.print(
+            "[bold green][OK][/bold green] "
+            + t(
+                "ok.export.template",
+                name=f"[cyan]{tgt}/{theme}[/cyan]",
+                path=f"[yellow]{dest}[/yellow]",
+            )
+        )
 
     # Die i18n.yaml auf Theme-Ebene liegt neben den Zielformat-Ordnern, nicht
     # darin - ohne diesen Schritt exportiert man das Theme und ausgerechnet die
@@ -631,58 +709,71 @@ def export_template_cmd(
     if exported_any and theme_i18n.is_file():
         dest_i18n = destination / theme / I18N_FILENAME
         if dest_i18n.exists():
-            console.print(f"[dim]Kept existing[/dim] [yellow]{dest_i18n}[/yellow]")
+            console.print(f"[dim]{t('info.export.kept')}[/dim] [yellow]{dest_i18n}[/yellow]")
         else:
             shutil.copy2(theme_i18n, dest_i18n)
-            console.print(f"[bold green][OK][/bold green] Exported [cyan]{theme}/{I18N_FILENAME}[/cyan] to [yellow]{dest_i18n}[/yellow]")
+            console.print(
+                "[bold green][OK][/bold green] "
+                + t(
+                    "ok.export.i18n",
+                    name=f"[cyan]{theme}/{I18N_FILENAME}[/cyan]",
+                    path=f"[yellow]{dest_i18n}[/yellow]",
+                )
+            )
 
 
 
 #: Wie ein Befund in der Tabelle heisst. Der Text steht hier und nicht in
 #: contract.py: dort geht es darum, *was* der Fall ist, hier darum, wie es
 #: dasteht. Die Bilanz zaehlt ueber `Severity`, nicht ueber diese Zeichenketten.
-_STATUS_TEXT = {
-    DiagnosisStatus.OK: "[green]OK[/green]",
-    DiagnosisStatus.UNUSED: "[dim]ungenutzt[/dim]",
-    DiagnosisStatus.LABEL_MISSING: "[yellow]Label fehlt[/yellow]",
-    DiagnosisStatus.LABEL_FALLBACK: '[yellow]Label fehlt (Fallback: "{detail}")[/yellow]',
-    DiagnosisStatus.VALUE_MISSING: "[dim]Wert nicht gesetzt[/dim]",
-    DiagnosisStatus.VALUE_FALLBACK: '[yellow]Wert fehlt (Fallback: "{detail}")[/yellow]',
-    DiagnosisStatus.LABEL_AND_VALUE_FALLBACK: "[yellow]Label und Wert fehlen (Fallbacks greifen)[/yellow]",
-    DiagnosisStatus.LABEL_FALLBACK_VALUE_MISSING: '[yellow]Label fehlt (Fallback: "{detail}"), Wert fehlt[/yellow]',
-    DiagnosisStatus.LABEL_BREAKS: "[bold red]FEHLT: Label ohne Fallback![/bold red]",
-    DiagnosisStatus.META_KEY_UNKNOWN: "[bold red]FEHLT: Schlüssel unbekannt![/bold red]",
-    DiagnosisStatus.LABEL_AND_META_BREAK: "[bold red]FEHLT: Label und Schlüssel ohne Fallback![/bold red]",
+#: Befund -> (Stil, Schluessel). Getrennt, weil das eine Gestaltung ist und
+#: das andere Sprache: eine Uebersetzung soll keine Markup-Klammer schliessen
+#: muessen, um die Ausgabe heil zu lassen.
+_STATUS_STYLE = {
+    DiagnosisStatus.OK: ("green", "labels.status.ok"),
+    DiagnosisStatus.UNUSED: ("dim", "labels.status.unused"),
+    DiagnosisStatus.LABEL_MISSING: ("yellow", "labels.status.label_missing"),
+    DiagnosisStatus.LABEL_FALLBACK: ("yellow", "labels.status.label_fallback"),
+    DiagnosisStatus.VALUE_MISSING: ("dim", "labels.status.value_missing"),
+    DiagnosisStatus.VALUE_FALLBACK: ("yellow", "labels.status.value_fallback"),
+    DiagnosisStatus.LABEL_AND_VALUE_FALLBACK: ("yellow", "labels.status.label_and_value_fallback"),
+    DiagnosisStatus.LABEL_FALLBACK_VALUE_MISSING: ("yellow", "labels.status.label_fallback_value_missing"),
+    DiagnosisStatus.LABEL_BREAKS: ("bold red", "labels.status.label_breaks"),
+    DiagnosisStatus.META_KEY_UNKNOWN: ("bold red", "labels.status.meta_key_unknown"),
+    DiagnosisStatus.LABEL_AND_META_BREAK: ("bold red", "labels.status.label_and_meta_break"),
 }
 
 
 def _status_text(row) -> str:
     """Formuliert einen Befund fuer die Tabelle."""
-    template = _STATUS_TEXT.get(row.status, str(row.status.value))
-    return template.format(detail=row.status_detail or "")
+    entry = _STATUS_STYLE.get(row.status)
+    if entry is None:
+        return str(row.status.value)
+    style, key = entry
+    return f"[{style}]{t(key, detail=row.status_detail or '')}[/{style}]"
 
 
-@app.command(name="labels")
+@app.command(name="labels", help=t("cmd.labels.help"))
 def labels_cmd(
     config_file: Path = typer.Argument(
         Path("markpublish.yaml"),
-        help="Path to markpublish.yaml configuration file.",
+        help=t("opt.config_file.help"),
     ),
     target: str = typer.Option(
         "pdf",
         "--target",
         "-t",
-        help="Target format whose label cascade to show ('pdf' or 'html').",
+        help=t("opt.target_labels.help"),
     ),
     templates_dir: Optional[Path] = typer.Option(
         None,
         "--templates-dir",
-        help="Custom templates directory path.",
+        help=t("opt.templates_dir.help"),
     ),
     only_overridden: bool = typer.Option(
         False,
         "--overridden",
-        help="Show only texts a theme layer overrode (errors stay visible).",
+        help=t("opt.overridden.help"),
     ),
 ):
     """
@@ -694,7 +785,10 @@ def labels_cmd(
     the last word and is where a document names its own free metadata fields.
     """
     if not config_file.exists():
-        console.print(f"[bold red]Error:[/bold red] Configuration file '{config_file}' not found.")
+        console.print(
+            f"[bold red]{t('label.error')}[/bold red] "
+            + t("err.config.notfound", path=config_file)
+        )
         raise typer.Exit(code=1)
 
     base_dir = config_file.parent.resolve()
@@ -707,7 +801,10 @@ def labels_cmd(
 
     tgt = target.lower().strip()
     if tgt not in ("pdf", "html"):
-        console.print(f"[bold red]Error:[/bold red] Unknown target '{target}'. Choose 'pdf' or 'html'.")
+        console.print(
+            f"[bold red]{t('label.error')}[/bold red] "
+            + t("err.target.unknown_labels", target=target)
+        )
         raise typer.Exit(code=1)
 
     effective_templates_dir = templates_dir or (
@@ -722,7 +819,7 @@ def labels_cmd(
             config_base_dir=base_dir,
         )
     except Exception as e:
-        console.print(f"[bold red]Template error for {tgt}:[/bold red] {e}")
+        console.print(f"[bold red]{t('label.template_error', target=tgt)}[/bold red] {e}")
         raise typer.Exit(code=1) from e
 
     context = DocumentContext(
@@ -742,14 +839,18 @@ def labels_cmd(
             level_names=[name for name, _ in levels],
         )
     except LabelFileError as e:
-        console.print(f"[bold red]Label file error:[/bold red] {e}")
+        console.print(f"[bold red]{t('label.label_file_error')}[/bold red] {e}")
         raise typer.Exit(code=1) from e
 
     console.print(
         Panel(
-            f"Language: [cyan]{config.document.language}[/cyan] | "
-            f"Theme: [cyan]{config.theme}[/cyan] | Target: [yellow]{tgt.upper()}[/yellow]",
-            title="[bold blue]markpublish labels[/bold blue]",
+            t(
+                "panel.labels.summary",
+                language=f"[cyan]{config.document.language}[/cyan]",
+                theme=f"[cyan]{config.theme}[/cyan]",
+                target=f"[yellow]{tgt.upper()}[/yellow]",
+            ),
+            title=f"[bold blue]{t('panel.labels.title')}[/bold blue]",
             border_style="blue",
         )
     )
@@ -766,14 +867,14 @@ def labels_cmd(
     signature_errors = check_theme_contract(contract, parse_sent_arguments(probe)).errors
 
     table = Table(show_header=True, header_style="bold blue")
-    table.add_column("Key", style="bold", no_wrap=True)
-    table.add_column("Theme-Nutzung", justify="center", no_wrap=True)
-    table.add_column("Label")
-    table.add_column("i18n-Quelle", no_wrap=True)
-    table.add_column("Label-Fallback", style="dim")
-    table.add_column("Wert")
-    table.add_column("Wert-Fallback", style="dim")
-    table.add_column("Status")
+    table.add_column(t("table.labels.key"), style="bold", no_wrap=True)
+    table.add_column(t("table.labels.usage"), justify="center", no_wrap=True)
+    table.add_column(t("table.labels.label"))
+    table.add_column(t("table.labels.source"), no_wrap=True)
+    table.add_column(t("table.labels.label_fallback"), style="dim")
+    table.add_column(t("table.labels.value"))
+    table.add_column(t("table.labels.value_fallback"), style="dim")
+    table.add_column(t("table.labels.status"))
 
     breaking = [row.key for row in rows if row.severity is Severity.ERROR]
     warned = [row.key for row in rows if row.severity is Severity.WARNING]
@@ -795,7 +896,7 @@ def labels_cmd(
         elif row.i18n_label is not None:
             lbl_display = row.i18n_label
         else:
-            lbl_display = r"[red]\[fehlt!][/red]"
+            lbl_display = f"[red]\\{t('value.missing')}[/red]"
 
         if not entry:
             source_display = "[dim]-[/dim]"
@@ -815,7 +916,7 @@ def labels_cmd(
         elif row.value is not None:
             val_display = row.value
         else:
-            val_display = "[dim](nicht gesetzt)[/dim]"
+            val_display = f"[dim]{t('value.not_set')}[/dim]"
 
         usage_display = (
             "[dim]-[/dim]"
@@ -837,35 +938,39 @@ def labels_cmd(
     console.print(table)
 
     if signature_errors:
-        console.print("\n[bold red]Kritisch: Theme und Aufruf passen nicht zusammen:[/bold red]")
+        console.print(f"\n[bold red]{t('labels.signature_mismatch')}[/bold red]")
         for message in signature_errors:
             console.print(f"  {message}")
     if breaking:
         console.print(
-            f"\n[bold red]Kritisch: {len(breaking)} "
-            f"{'Schlüssel bricht' if len(breaking) == 1 else 'Schlüssel brechen'} "
-            f"den Build ab:[/bold red] {', '.join(breaking)}"
+            f"\n[bold red]{tn('labels.breaking', len(breaking))}[/bold red] "
+            + ", ".join(breaking)
         )
     if warned:
         console.print(
-            f"\n[yellow]Hinweis: bei {len(warned)} "
-            f"{'Schlüssel' if len(warned) == 1 else 'Schlüsseln'} greift ein Fallback "
-            f"oder fehlt die Beschriftung:[/yellow] {', '.join(warned)}"
+            f"\n[yellow]{tn('labels.warned', len(warned))}[/yellow] "
+            + ", ".join(warned)
         )
     if unused:
         console.print(
-            f"\n[dim]{len(unused)} Schlüssel "
-            f"{'wird' if len(unused) == 1 else 'werden'} vom Theme nicht verwendet:[/dim] "
-            f"{', '.join(unused)}"
+            f"\n[dim]{tn('labels.unused', len(unused))}[/dim] "
+            + ", ".join(unused)
         )
     if not signature_errors and not breaking and not warned and not unused:
-        console.print("\n[green]Alle Schlüssel und Labels sind vollständig aufeinander abgestimmt.[/green]")
+        console.print(f"\n[green]{t('labels.all_clear')}[/green]")
 
     # Mit dem Ebenennamen davor: die Spalte oben nennt nur "theme" oder
     # "projekt", hier steht, welche Datei das jeweils ist.
-    console.print("\n[dim]Die Kaskade, spätere Ebenen gewinnen:[/dim]")
-    console.print(f"  [bold]{LEVEL_BUILTIN:<8}[/bold] {BUILTIN_I18N_PATH}  [dim](Programmstandard)[/dim]")
+    console.print(f"\n[dim]{t('labels.cascade.intro')}[/dim]")
+    console.print(
+        f"  [bold]{LEVEL_BUILTIN:<8}[/bold] {BUILTIN_I18N_PATH}  "
+        f"[dim]{t('labels.cascade.builtin')}[/dim]"
+    )
     for name, directory in levels:
         path = directory / I18N_FILENAME
-        marker = "[green]gefunden[/green]" if path.is_file() else "[dim]nicht vorhanden[/dim]"
+        marker = (
+            f"[green]{t('labels.cascade.found')}[/green]"
+            if path.is_file()
+            else f"[dim]{t('labels.cascade.absent')}[/dim]"
+        )
         console.print(f"  [bold]{name:<8}[/bold] {path}  {marker}")

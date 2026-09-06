@@ -65,8 +65,8 @@ Issues = "https://github.com/fwdotcom/markpublish/issues"
 Changelog = "https://github.com/fwdotcom/markpublish/blob/main/CHANGELOG.md"
 
 [project.scripts]
-markpublish = "markpublish.cli:app"
-mpub = "markpublish.cli:app"
+markpublish = "markpublish.entry:main"
+mpub = "markpublish.entry:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -76,6 +76,7 @@ where = ["src"]
     "templates/**/*",
     "docs/**/*",
     "i18n.yaml",
+    "locale/*.yaml",
 ]
 
 [tool.pytest.ini_options]

@@ -13,6 +13,7 @@ import yaml
 
 from markpublish.config.models import MarkpublishConfig
 from markpublish.i18n import default_document_language, normalize_language
+from markpublish.ui import t
 
 
 def format_current_date(language: Optional[str] = None) -> str:
@@ -52,7 +53,7 @@ def load_config(config_path_or_str: Union[str, Path, Dict[str, Any]]) -> Markpub
             if isinstance(loaded, dict):
                 raw_data = loaded
             else:
-                raise FileNotFoundError(f"Configuration file not found: {config_path_or_str}")
+                raise FileNotFoundError(t("err.config.not_found_file", path=config_path_or_str))
 
     # Process date: "auto" / "today"
     doc = raw_data.get("document", {})
