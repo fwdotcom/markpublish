@@ -100,6 +100,8 @@ ok.generated: "{target} erfolgreich erzeugt: {path}"
 # --- Mitgelieferte Dokumente --------------------------------------------------
 err.bundled.missing: "Das mitgelieferte '{name}' fehlt in '{path}'. Das deutet auf eine unvollständige Installation hin - installieren Sie markpublish neu."
 err.init_template.missing: "Die mitgelieferte 'init'-Vorlage fehlt in '{path}'. Das deutet auf eine unvollständige Installation hin - installieren Sie markpublish neu."
+err.init.dir_not_empty: "Das Verzeichnis {path} besteht bereits und ist nicht leer. Wählen Sie ein leeres oder ein noch nicht vorhandenes Verzeichnis."
+err.init.target_not_a_dir: "{path} ist eine Datei, kein Verzeichnis."
 note.doc.lang_unavailable: "'{name}' gibt es nicht in {requested}. Gerendert wird stattdessen {chosen} (verfügbar: {available})."
 note.init.lang_unavailable: "Die 'init'-Vorlage gibt es nicht in {requested}. Verwendet wird stattdessen {chosen} (verfügbar: {available})."
 

@@ -317,5 +317,64 @@ parts:
     # (ausser in der Kopfzeile oben)
     lines_below_header = content_text.split("\n")[4:]  # Skip header lines
     assert not any("Kapitel Eins Mit Titel" in line for line in lines_below_header)
+def test_pdf_part_page_and_chapter_page_do_not_leave_an_empty_page(tmp_path: Path):
+    """
+    'page' auf Part und Kapitel darf keine leere Seite erzeugen.
 
+    Die Part-Ueberschrift bricht um und steht oben auf der frischen Seite.
+    Braeche das erste Kapitel dann ein zweites Mal um, bliebe eine Seite mit
+    nichts als der Part-Ueberschrift zurueck - eine Seite, die niemand
+    notiert hat und die im Druck bezahlt wird. Der Umbruch haengt deshalb
+    daran, ob auf der Seite schon etwas steht, nicht am Schluessel allein.
+    """
+    pytest.importorskip("pypdfium2")
 
+    (tmp_path / "a.md").write_text("# Kapitel A\n\nText A.\n", encoding="utf-8")
+    (tmp_path / "b.md").write_text("# Kapitel B\n\nText B.\n", encoding="utf-8")
+    (tmp_path / "markpublish.yaml").write_text(
+        """\
+document:
+  title: "Page Probe"
+  language: "de"
+  cover: false
+  document_toc: "none"
+  header: false
+  footer: false
+parts:
+  - part: "Erster Teil"
+    break_before: "page"
+    chapters:
+      - file: "a.md"
+        break_before: "page"
+      - file: "b.md"
+        break_before: "page"
+""",
+        encoding="utf-8",
+    )
+
+    config = load_config(tmp_path / "markpublish.yaml")
+    context = DocumentContext(
+        config=config,
+        content_items=[],
+        toc_tree=[],
+        template_path=resolve_template_path("pdf", "default"),
+        base_dir=tmp_path,
+        target="pdf",
+    )
+    context.content_items, context.toc_tree = MarkdownPipeline(
+        config, base_dir=tmp_path, labels=context.labels
+    ).process_document()
+
+    out = tmp_path / "probe.pdf"
+    PDFRenderer().render(context, out)
+
+    import pypdfium2 as pdfium
+
+    doc = pdfium.PdfDocument(str(out))
+    pages = [doc[i].get_textpage().get_text_range().strip() for i in range(len(doc))]
+
+    # Zwei Kapitel, zwei Seiten - die Part-Ueberschrift bekommt keine eigene.
+    assert len(pages) == 2, pages
+    assert "Erster Teil" in pages[0] and "Kapitel A" in pages[0]
+    assert "Kapitel B" in pages[1]
+    assert all(page for page in pages), "keine Seite darf leer bleiben"

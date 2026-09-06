@@ -103,6 +103,8 @@ ok.generated: "{target} successfully generated: {path}"
 # --- Mitgelieferte Dokumente --------------------------------------------------
 err.bundled.missing: "The packaged '{name}' is missing from '{path}'. This points to an incomplete installation - reinstall markpublish."
 err.init_template.missing: "The packaged 'init' template is missing from '{path}'. This points to an incomplete installation - reinstall markpublish."
+err.init.dir_not_empty: "The directory {path} already exists and is not empty. Choose an empty directory or one that does not exist yet."
+err.init.target_not_a_dir: "{path} is a file, not a directory."
 note.doc.lang_unavailable: "'{name}' is not available in {requested}. Rendering {chosen} instead (available: {available})."
 note.init.lang_unavailable: "'init' template is not available in {requested}. Using {chosen} instead (available: {available})."
 

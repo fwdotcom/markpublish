@@ -106,6 +106,40 @@ def test_cli_init_title_option_still_wins(tmp_path: Path):
     assert "ordnername" not in text
 
 
+def test_cli_init_refuses_a_target_that_is_not_empty(tmp_path: Path):
+    """
+    Liegt im Ziel schon etwas, bricht 'init' ab, statt sich dazuzulegen.
+
+    Eine Konfiguration und ein Kapitel in ein bestehendes Projekt zu streuen
+    waere im besten Fall ueberfluessig und im schlechtesten der stille Verlust
+    einer Datei gleichen Namens. Der Ausweg ist ein anderes Verzeichnis, kein
+    Schalter, der den Verlust erlaubt - deshalb nennt die Meldung den Pfad.
+    """
+    project_dir = tmp_path / "Test"
+    assert runner.invoke(app, ["init", str(project_dir)]).exit_code == 0
+
+    marker = "# von Hand geaendert\n"
+    config = project_dir / "markpublish.yaml"
+    config.write_text(marker + config.read_text(encoding="utf-8"), encoding="utf-8")
+
+    second = runner.invoke(app, ["init", str(project_dir)])
+    assert second.exit_code == 1
+    assert "Test" in " ".join(second.stdout.split())
+
+    # Nichts angefasst - auch nicht das Kapitel.
+    assert config.read_text(encoding="utf-8").startswith(marker)
+
+
+def test_cli_init_accepts_an_existing_empty_directory(tmp_path: Path):
+    """Ein leeres Verzeichnis ist kein Hindernis - da geht nichts verloren."""
+    project_dir = tmp_path / "leer"
+    project_dir.mkdir()
+
+    res = runner.invoke(app, ["init", str(project_dir)])
+    assert res.exit_code == 0, res.stdout
+    assert (project_dir / "markpublish.yaml").is_file()
+
+
 def test_cli_init_build_hint_names_the_created_config(tmp_path: Path, monkeypatch):
     """
     Der Vorschlag nach 'init' muss die Konfiguration nennen, die gerade entstand.
@@ -140,21 +174,24 @@ def test_cli_init_build_hint_stays_bare_in_the_working_directory(tmp_path: Path,
     assert "markpublish build" in flat
 
 
-def test_cli_init_scaffold_renders_only_its_one_chapter(tmp_path: Path):
+def test_cli_init_scaffold_costs_no_divider_page(tmp_path: Path):
     """
-    Der Stumpf zeigt die eine Markdown-Seite und sonst nichts.
+    Der eine Part des Stumpfes belegt keine eigene Seite.
 
-    Kein Deckblatt, kein Verzeichnis, keine Trennseite: Parts leiten
-    standardmaessig mit einer Trennseite ein, und fuer den einen Part um das
-    eine Kapitel waere das Zeremonie vor der ersten Seite, die jemand baut.
-    Deshalb notiert die erzeugte Konfiguration 'break_before: "none"'.
+    Was der Stumpf zeigt - Deckblatt, Verzeichnis - ist eine Frage des
+    Geschmacks und steht in der Vorlage. Der Aufbau ist es nicht: 'parts:' ist
+    Pflicht, hier klammert ein einziger Part ein einziges Kapitel, und dafuer
+    eine Trennseite vor die erste Seite zu setzen, die jemand baut, waere
+    Zeremonie. Die Vorlage notiert 'break_before' am Part deshalb gar nicht -
+    sie verlaesst sich auf die Vorgabe 'none'. Am Kapitel steht der Schluessel
+    sehr wohl: dessen Trennseite ist gewollt.
     """
     project_dir = tmp_path / "stub"
     assert runner.invoke(app, ["init", str(project_dir)]).exit_code == 0
 
     config = load_config(project_dir / "markpublish.yaml")
-    assert config.document.cover is False
-    assert config.document.document_toc.enabled is False
+    # Der Part notiert den Schluessel nicht - er verlaesst sich auf die Vorgabe.
+    assert config.parts[0].break_before is None
 
     items, _ = MarkdownPipeline(config, base_dir=project_dir).process_document()
     assert [item.is_part for item in items] == [False]
@@ -358,11 +395,12 @@ def test_bundled_documents_declare_the_languages_they_ship(tmp_path: Path):
     """
     from markpublish.cli import _available_doc_languages, get_bundled_doc_dir
 
-    # Alle Dokumente werden auf Deutsch gepflegt; englische Fassungen
-    # entstehen daraus, wenn die deutsche freigegeben ist.
+    # Handbuch und Kurzreferenz werden auf Deutsch gepflegt; englische
+    # Fassungen entstehen daraus, wenn die deutsche freigegeben ist. Der
+    # Projektstumpf steht zweisprachig, weil er als erstes gelesen wird.
     assert _available_doc_languages("manual") == ["de"]
     assert _available_doc_languages("cheatsheet") == ["de"]
-    assert _available_doc_languages("init") == ["de"]
+    assert _available_doc_languages("init") == ["de", "en"]
 
     # Jede gemeldete Sprache hat auch wirklich Kapitel neben ihrem Manifest.
     for name in ("manual", "cheatsheet", "init"):
@@ -384,6 +422,29 @@ def test_cli_init_lang_de(tmp_path: Path):
     assert 'welcome.md' in yaml_de
     steps_de = (p_de / "welcome.md").read_text(encoding="utf-8")
     assert "# Willkommen bei markpublish" in steps_de
+
+
+def test_cli_init_lang_en(tmp_path: Path):
+    """
+    Prueft, dass init mit --lang en die englische Vorlage kopiert.
+
+    Nicht nur uebersetzt: die Konfiguration traegt auch 'language: "en"', sonst
+    stuenden englische Kapitel unter deutschen Beschriftungen.
+    """
+    p_en = tmp_path / "proj_en"
+    res_en = runner.invoke(app, ["init", str(p_en), "--lang", "en", "--title", "My Document"])
+    assert res_en.exit_code == 0, res_en.stdout
+
+    yaml_en = (p_en / "markpublish.yaml").read_text(encoding="utf-8")
+    assert 'title: "My Document"' in yaml_en
+    assert 'language: "en"' in yaml_en
+    assert 'part: "Main Part"' in yaml_en
+    assert "welcome.md" in yaml_en
+
+    welcome_en = (p_en / "welcome.md").read_text(encoding="utf-8")
+    assert "# Welcome to markpublish" in welcome_en
+    # Der Verweis auf die Referenz haelt den Stumpf klein - in beiden Sprachen.
+    assert "markpublish cheatsheet" in welcome_en
 
 
 def test_cli_init_uses_system_language(tmp_path: Path, monkeypatch):

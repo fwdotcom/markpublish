@@ -1,17 +1,53 @@
 # markpublish.yaml
 #
-# Minimales markpublish-Projekt
+# Die Konfiguration Ihres Dokuments: was hineingehört, wie es aussieht, in
+# welcher Reihenfolge. Alle Pfade gelten relativ zu dieser Datei.
 #
+# Alle Schlüssel im Überblick: markpublish cheatsheet
+
 document:
-  title: "Willkommen!"
+  # Titel des Dokuments. Er steht auf dem Deckblatt und gibt den Dateinamen der
+  # Ausgabe vor ("Mein Bericht" wird zu mein_bericht.pdf).
+  title: "{title}"
   subtitle: "Ihr neues markpublish-Projekt"
+
+  # "auto" setzt das Datum des Bauens ein, sonst ein festes: "2026-09-06".
   date: "auto"
+
+  # Steuert Silbentrennung und die festen Texte im Dokument (Beschriftung des
+  # Inhaltsverzeichnisses, Kapitel-Marken). Ohne Angabe gilt Ihre Systemsprache.
   language: "de"
+
+  # Deckblatt aus den Angaben oben. Mit false beginnt das Dokument sofort mit
+  # dem ersten Kapitel.
   cover: true
 
+  # Weitere Angaben fürs Deckblatt.
+  # author: "Ihr Name"
+  # version: "1.0.0"
+
+  # Schalter, hier mit ihrer Vorgabe - eintragen, um sie zu ändern.
+  # document_toc: "full"   # Inhaltsverzeichnis: "none", "full" oder eine Tiefe
+  # header: true           # lebende Kopfzeile
+  # footer: true           # Fußzeile mit Seitenzahl
+
+# Die Gestaltung. "default" liegt bei; ein eigenes Theme holen Sie sich mit
+# markpublish export-template default ./templates und passen es dort an.
 theme: "default"
 
+# Der Aufbau, immer zweistufig: parts: gliedert, chapters: trägt den Inhalt.
 parts:
   - part: "Hauptteil"
+    # Ohne break_before tritt der Abschnitt selbst nicht in Erscheinung - er
+    # klammert nur seine Kapitel. "divider" gäbe ihm eine eigene Trennseite.
     chapters:
+      # Jedes Kapitel ist eine Markdown-Datei.
       - file: "welcome.md"
+
+        # Trennseite vor dem Kapitel. "page" beginnt nur eine neue Seite,
+        # "none" schließt direkt an den vorigen Text an.
+        break_before: "divider"
+
+        # Die Überschrift der Datei steht schon auf der Trennseite; auf der
+        # Textseite dahinter stünde sie sonst ein zweites Mal.
+        show_title: false

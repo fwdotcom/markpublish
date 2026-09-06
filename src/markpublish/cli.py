@@ -525,6 +525,26 @@ def init_cmd(
     the last scaffold file is gone.
     """
     target_dir = target_dir.resolve()
+
+    # In ein Ziel, in dem schon etwas liegt, schreibt 'init' nicht. Es legt eine
+    # Konfiguration und ein Kapitel an; beides in ein bestehendes Projekt zu
+    # streuen waere im besten Fall ueberfluessig und im schlechtesten der
+    # stille Verlust einer Datei gleichen Namens. Der Ausweg ist ein anderes
+    # Verzeichnis - kein Schalter, der den Verlust erlaubt.
+    if target_dir.exists() and not target_dir.is_dir():
+        console.print(
+            f"[bold red]{t('label.error')}[/bold red] "
+            + t("err.init.target_not_a_dir", path=f"[cyan]{target_dir}[/cyan]")
+        )
+        raise typer.Exit(code=1)
+
+    if target_dir.is_dir() and any(target_dir.iterdir()):
+        console.print(
+            f"[bold red]{t('label.error')}[/bold red] "
+            + t("err.init.dir_not_empty", path=f"[cyan]{target_dir}[/cyan]")
+        )
+        raise typer.Exit(code=1)
+
     target_dir.mkdir(parents=True, exist_ok=True)
 
     # Ohne --title traegt das Dokument den Namen des Projektverzeichnisses.
@@ -562,25 +582,35 @@ def init_cmd(
     yaml_src = src_dir / "markpublish.yaml"
     yaml_target = target_dir / "markpublish.yaml"
 
-    if not yaml_target.exists() and yaml_src.is_file():
-        template_text = yaml_src.read_text(encoding="utf-8")
-        filled_text = template_text.replace("{title}", doc_title)
-        yaml_target.write_text(filled_text, encoding="utf-8")
+    def _fill(text: str) -> str:
+        """
+        Setzt die Platzhalter der Vorlage.
+
+        Zwei, weil Titel und Ordnername auseinanderfallen, sobald jemand
+        --title angibt: der Titel steht im Dokument, der Ordnername in den
+        Befehlen, die das Einstiegskapitel vorfuehrt.
+        """
+        return text.replace("{title}", doc_title).replace("{dir}", target_dir.name)
+
+    # Das Ziel ist leer - geprueft, bevor irgendetwas angelegt wurde. Hier kann
+    # also nichts mehr kollidieren.
+    if yaml_src.is_file():
+        yaml_target.write_text(
+            _fill(yaml_src.read_text(encoding="utf-8")), encoding="utf-8"
+        )
 
     # Copy companion files (e.g. welcome.md, images)
-    for f in src_dir.iterdir():
+    for f in sorted(src_dir.iterdir()):
         if f.name == "markpublish.yaml" or not f.is_file() or f.suffix.lower() == ".pdf":
             continue
         dest = target_dir / f.name
-        if not dest.exists():
-            if f.suffix.lower() in (".md", ".txt", ".yaml", ".yml", ".json"):
-                try:
-                    text = f.read_text(encoding="utf-8")
-                    dest.write_text(text.replace("{title}", doc_title), encoding="utf-8")
-                except UnicodeDecodeError:
-                    shutil.copy2(f, dest)
-            else:
+        if f.suffix.lower() in (".md", ".txt", ".yaml", ".yml", ".json"):
+            try:
+                dest.write_text(_fill(f.read_text(encoding="utf-8")), encoding="utf-8")
+            except UnicodeDecodeError:
                 shutil.copy2(f, dest)
+        else:
+            shutil.copy2(f, dest)
 
     console.print(
         "[bold green][OK][/bold green] "
