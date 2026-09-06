@@ -31,104 +31,13 @@ templates/
             └── icons/
 ```
 
-### Typst als Layout-Engine
+### Was auf dem Titelblatt erscheint
 
-Typst ist eine moderne, hochperformante Satz- und Programmiersprache für Dokumente. Sie bietet mächtige Funktionen für Seitenränder, Kopf- und Fußzeilen, Farbwelten, Schriftdefinitionen und mathematischen Formelsatz.
+Das Metadatenraster des Deckblatts zeigt nicht alles, was unter `document:` steht, sondern genau die Angaben, die das Theme dafür vorsieht – im mitgelieferten Standard-Theme sind das Version, Datum, Autor, Copyright und Status, in dieser Reihenfolge. Titel, Untertitel und Zusammenfassung stehen ohnehin groß darüber.
 
-* **Weiterführende Typst-Dokumentation:**  
-  Eine vollständige Einführung in alle Möglichkeiten von Typst (Gestaltungselemente, Funktionen, Regeln und Typografie) finden Sie in der offiziellen Dokumentation unter [https://typst.app/docs](https://typst.app/docs).
+Ein eigenes Feld aus der `markpublish.yaml` erreicht das Theme, wird aber erst gedruckt, wenn das Theme es ausdrücklich aufführt. Wer `abteilung:` oder `kunde:` auf dem Deckblatt haben möchte, exportiert sich das Theme (siehe unten) und ergänzt dort eine Zeile; die Beschriftung dazu kommt aus der `i18n.yaml` des Projekts.
 
-### Exemplarischer Aufbau einer template.typ
-
-Die Datei `template.typ` definiert das Gesamterscheinungsbild des Dokuments. Ein Auszug zeigt die grundlegende Struktur unter Verwendung moderner Typst-Kontexte (`context`):
-
-```typst
-// template.typ (Auszug)
-
-#let setup-document(
-  language: "de",
-  show-cover: true,
-  show-toc: true,
-  toc-title: "Inhaltsverzeichnis",
-  meta: (:),
-  labels: (:),
-  body
-) = {
-  let title = meta.at("title").value
-  // Grundlegende Seiteneigenschaften
-  set page(
-    paper: "a4",
-    margin: (top: 2.5cm, bottom: 2.5cm, left: 2.5cm, right: 2.5cm),
-    header: context {
-      // Individuelle Kopfzeilengestaltung
-      text(9pt, fill: rgb("#64748b"))[#title]
-    },
-    footer: context {
-      // Seitennummerierung über aktuelle Labels
-      let page_num = counter(page).display()
-      let page_label = labels.at("page", default: "Seite")
-      align(center)[#text(9pt)[#page_label #page_num]]
-    }
-  )
-
-  // Grundschriftart und Absatzgestaltung
-  set text(font: "Open Sans", size: 10pt, lang: "de")
-  set par(justify: true, leading: 0.65em)
-
-  body
-}
-```
-
-### Das `meta`-Wörterbuch
-
-Sämtliche Dokumentangaben erreichen `setup-document` über das Wörterbuch `meta` – Titel und Version genauso wie ein frei ergänztes `abteilung:`. Eigene Parameter dafür gibt es nicht: Zwei Wege zur selben Angabe können auseinanderlaufen. Jeder Eintrag ist ein Datensatz mit vier Feldern:
-
-```typst
-meta.at("author")
-// -> (key: "author", label: "Autor", value: "Frank Winter", in-grid: true)
-```
-
-| Feld | Bedeutung |
-|---|---|
-| `key` | Der Schlüssel aus der `markpublish.yaml` |
-| `label` | Die Beschriftung aus der i18n-Kaskade, oder `none` |
-| `value` | Der Wert – **mit seinem Typ**: Text, Zahl, Wahrheitswert oder Liste |
-| `in-grid` | `false` für Titel, Untertitel und Summary; sie stehen oben auf dem Deckblatt und gehören nicht noch einmal ins Metadatenraster |
-
-Der Vorteil: Das Theme muss nicht wissen, welche Felder es gibt. Es zählt auf, was da ist – und erreicht damit auch die eigenen Felder, die ein Dokument unter `document:` ergänzt:
-
-```typst
-for item in meta.values().filter(it => it.in-grid and it.value != none) {
-  [#if item.label != none { item.label } else { item.key }: #item.value]
-}
-```
-
-### Reihenfolge auf dem Titelblatt
-
-Welche Angabe im Metadatenraster zuerst steht, entscheidet das Theme – eine Zeile in `template.typ`:
-
-```typst
-#let cover-order = ("version", "date", "author", "copyright", "status")
-```
-
-Schlüssel, die dort nicht vorkommen – Ihre eigenen Felder aus der `markpublish.yaml` –, folgen dahinter in der Reihenfolge der Konfiguration. Ändern Sie die Zeile, ändert sich das Titelblatt; markpublish reicht die Angaben nur weiter und mischt sich nicht ein.
-
-> [!IMPORTANT]
-> `meta.at("kunde")` **ohne** `default:` bricht den Build ab, wenn das Dokument den Schlüssel nicht kennt. markpublish meldet das vorher mit Fundstelle und Abhilfe; `markpublish labels` zeigt es ebenfalls an. Wer eine Angabe optional halten will, notiert einen Fallback: `meta.at("kunde", default: (value: ""))`.
-
-Weil der Typ erhalten bleibt, entscheidet das Theme über die Schreibweise. Ein Wahrheitswert wird über die Kaskade formuliert statt als `true` gedruckt:
-
-```typst
-#let meta-value(value, labels) = {
-  if type(value) == bool {
-    if value { labels.at("bool_true", default: "Ja") } else { labels.at("bool_false", default: "Nein") }
-  } else if type(value) == array {
-    value.map(v => str(v)).join(", ")
-  } else {
-    str(value)
-  }
-}
-```
+Welche Felder ein Theme tatsächlich abholt, zeigt `markpublish labels`: Ein Feld, das kein Theme verwendet, erscheint dort mit dem Befund *ungenutzt*.
 
 ## Eigene Themes erstellen und anpassen
 
@@ -139,6 +48,8 @@ markpublish export-template default ./templates --target pdf
 ```
 
 Dieser Befehl kopiert das Standard-Theme vollständig in das lokale Verzeichnis `templates/default/`. Sie können die Dateien anschließend direkt bearbeiten, Schriften anpassen, Farben ändern oder Ihr Firmenlogo einbinden. markpublish greift beim nächsten `build` automatisch auf Ihre angepasste Projektvorlage zu.
+
+Die Layoutdatei `template.typ` ist in der Satzsprache Typst geschrieben und im Standard-Theme durchgehend kommentiert. Wer sie über Farben und Schriften hinaus umbauen möchte, findet die vollständige Sprachreferenz unter [https://typst.app/docs](https://typst.app/docs).
 
 ---
 

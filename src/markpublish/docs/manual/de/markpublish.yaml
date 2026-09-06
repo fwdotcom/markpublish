@@ -46,7 +46,7 @@ parts:
         show_title: false
 
       - file: "chapters/05_template_system.md"
-        summary: "Theme-Struktur mit Typst, 3-stufige Auflösungshierarchie und Textkaskade (i18n)."
+        summary: "Theme-Struktur, dreistufige Auflösungshierarchie und Textkaskade (i18n)."
         break_before: "divider"
         show_title: false
 

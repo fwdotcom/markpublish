@@ -509,12 +509,6 @@ CORE_METADATA_KEYS = (
     "copyright",
 )
 
-#: Die drei Angaben, die das Titelblatt gross oben setzt statt als Zeile im
-#: Metadatenraster. Eine Liste, nicht drei -- sie stand vorher dreimal
-#: hingeschrieben (zweimal in contract.py, einmal im Template) und ist damit
-#: dreimal zu pflegen gewesen.
-HEADLINE_METADATA_KEYS = ("title", "subtitle", "summary")
-
 
 @dataclass
 class MetadataEntry:
@@ -522,9 +516,6 @@ class MetadataEntry:
     key: str
     label: Optional[str]
     value: Any
-    #: Steht die Angabe im Metadatenraster? Die Kopfangaben (Titel, Untertitel,
-    #: Summary) setzt das Titelblatt an eigener Stelle.
-    in_grid: bool = True
     #: Wurde der Wert von markpublish erzeugt statt im Dokument notiert?
     #: Heute nur `date: "auto"`.
     is_default: bool = False
@@ -553,7 +544,6 @@ def build_document_metadata(
             key=key,
             label=labels.get(key),
             value=val,
-            in_grid=key not in HEADLINE_METADATA_KEYS,
             is_default=is_default,
         )
 
@@ -566,7 +556,6 @@ def build_document_metadata(
             key=key,
             label=labels.get(key),
             value=val,
-            in_grid=True,
             is_default=False,
         )
 

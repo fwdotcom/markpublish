@@ -35,7 +35,34 @@ markpublish build [CONFIG_FILE] [OPTIONEN]
 
 ### Erläuterungen
 
-Wird kein `--output` angegeben, erzeugt markpublish die Datei im selben Verzeichnis wie die Konfigurationsdatei (standardmäßig im Projektordner). Der Dateiname leitet sich automatisch aus dem Dokumententitel ab (z. B. `mein_dokument.pdf`).
+Ohne Argument sucht markpublish die Datei `markpublish.yaml` im aktuellen Verzeichnis – im Projektordner genügt also der blanke Aufruf `markpublish build`. Wird ein anderer Pfad angegeben, gilt dessen Verzeichnis als Projektordner: Sämtliche relativen Angaben der Konfiguration (Kapiteldateien, Bilder, Vorlagen) werden von dort aus aufgelöst, nicht vom aktuellen Arbeitsverzeichnis.
+
+Wird kein `--output` angegeben, erzeugt markpublish die Datei im Projektordner. Der Dateiname leitet sich automatisch aus dem Dokumententitel ab (z. B. `mein_dokument.pdf`).
+
+`--templates-dir` erwartet das Sammelverzeichnis, nicht das Theme selbst. Welches Theme verwendet wird, entscheidet ausschließlich `theme:` in der `markpublish.yaml` (Standard: `default`); eine Option dafür hat `build` nicht. markpublish setzt beide Angaben zusammen und sucht unter `<verzeichnis>/<theme>/<zielformat>`:
+
+```text
+meine-vorlagen/          <- hierhin zeigt --templates-dir
+└── firma/               <- diesen Namen trägt theme: in der markpublish.yaml
+    └── pdf/             <- das Zielformat
+        ├── template.typ
+        └── i18n.yaml
+```
+
+Der zugehörige Aufruf lautet damit:
+
+```bash
+markpublish build --templates-dir meine-vorlagen
+```
+
+Ein relativer Pfad wird vom Projektordner aus gelesen. Dasselbe Verzeichnis lässt sich auch dauerhaft hinterlegen; es gilt die erste Angabe, die vorhanden ist:
+
+1. `--templates-dir` auf der Kommandozeile
+2. `templates_dir:` in der `markpublish.yaml`
+3. die Umgebungsvariable `MARKPUBLISH_TEMPLATES_DIR`
+4. ein Ordner `templates/` neben der Konfigurationsdatei
+
+Das so bestimmte Verzeichnis ist nur eine der drei Ebenen, die markpublish durchsucht; eine gleichnamige Vorlage im Home-Verzeichnis hat weiterhin Vorrang (siehe Kapitel *Templates und Mehrsprachigkeit*).
 
 Beispiele:
 
@@ -103,8 +130,6 @@ markpublish cheatsheet [OPTIONEN]
 ### Erläuterungen
 
 Wird beim Aufruf von `manual` oder `cheatsheet` keine Sprache mit `--lang` angegeben, ermittelt markpublish automatisch die Sprache Ihres Betriebssystems. Ist für diese Sprache keine Übersetzung vorhanden, wird auf die erste im Paket vorhandene Sprache zurückgegriffen (beim Handbuch derzeit `de`).
-
-Für eigene Dokumente gilt: Die Sprachwahl (`language: "de"`) in der `markpublish.yaml` steuert die statischen Textvariablen (wie „Inhaltsverzeichnis“, „Kapitel“, „Seite X von Y“). Diese müssen vom verwendeten Theme in dessen `i18n.yaml` bereitgestellt bzw. unterstützt werden.
 
 Beispiel:
 
@@ -198,7 +223,9 @@ Die Spalte **i18n-Quelle** nennt die Ebene der Kaskade, aus der ein Text stammt:
 | `target` | `<theme>/<zielformat>/i18n.yaml` |
 | `projekt` | `i18n.yaml` neben Ihrer `markpublish.yaml` |
 
-Grün hervorgehoben sind die Ebenen, die den Programmstandard ersetzt haben – genau diese zeigt `--overridden` allein. Der Sprachblock steht nur dann in Klammern dabei, wenn er von der Dokumentsprache abweicht: `(*)` für einen sprachunabhängigen Eintrag, `(en)` für einen Rückfall auf die Fallback-Sprache. Am Fuß der Ausgabe stehen die vollständigen Pfade zu allen vier Ebenen.
+Grün hervorgehoben sind die Ebenen, die den Programmstandard ersetzt haben – auf diese beschränkt `--overridden` die Ausgabe. Zeilen, die den Build zum Abbruch bringen würden, bleiben dabei immer sichtbar: ein Filter, der einen Fehler verschweigt, wäre eine Falle.
+
+Der Sprachblock steht nur dann in Klammern dabei, wenn er von der Dokumentsprache abweicht: `(*)` für einen sprachunabhängigen Eintrag, `(en)` für einen Rückfall auf die Fallback-Sprache. Am Fuß der Ausgabe stehen die vollständigen Pfade zu allen vier Ebenen, jeweils mit dem Vermerk, ob die Datei dort vorhanden ist.
 
 Zusätzlich prüft der Befehl das Theme gegen den Aufruf, den markpublish beim Rendern erzeugt. Ein Theme, dessen `setup-document` einen gesendeten Parameter nicht deklariert, wird hier gemeldet – vor dem Bauen statt währenddessen.
 
@@ -212,48 +239,9 @@ Folgende Optionen stehen global für alle Befehle zur Verfügung:
 | :--- | :--- |
 | `--version`, `-v` | Gibt die installierte Version von markpublish aus und beendet das Programm. |
 | `--help` | Zeigt die integrierte Hilfe und Parameterübersicht im Terminal an. |
-| `--ui-lang` | Sprache der Kommandozeile für diesen Aufruf (`en`, `de`). |
-
----
-
-## Sprache der Kommandozeile
-
-markpublish spricht Deutsch und Englisch. Gemeint ist damit die Oberfläche –
-Hilfetexte, Statusmeldungen und Fehlermeldungen im Terminal.
-
-> [!IMPORTANT]
-> Die Sprache der Oberfläche und die Sprache des Dokuments sind zwei
-> verschiedene Dinge. `language:` in der `markpublish.yaml` steuert, was im
-> PDF steht: Überschrift des Inhaltsverzeichnisses, Beschriftungen auf dem
-> Deckblatt, Titel der Hinweisboxen. Die Oberflächensprache steuert nur, was
-> im Terminal erscheint. Wer ein englisches Handbuch setzt und dabei deutsche
-> Meldungen lesen will, bekommt genau das.
-
-Ohne Zutun richtet sich markpublish nach der Sprache Ihres Systems. Wer sie
-für einen einzelnen Aufruf oder dauerhaft umstellen will, hat zwei Wege:
+| `--ui-lang` | Sprache der Kommandozeilenausgaben für diesen Aufruf (`en`, `de`). |
 
 ```bash
-# Nur für diesen Aufruf
+# Gibt Meldungen auf Englisch aus
 markpublish --ui-lang en build
-
-# Für diese Shell-Sitzung
-export MARKPUBLISH_UI_LANG=en    # Windows: $env:MARKPUBLISH_UI_LANG = "en"
-markpublish build
 ```
-
-Es gilt jeweils die Angabe, die dem Aufruf am nächsten steht:
-
-1. `--ui-lang` auf der Kommandozeile
-2. die Umgebungsvariable `MARKPUBLISH_UI_LANG`
-3. die Sprache Ihres Systems (`LANGUAGE`, `LC_ALL`, `LC_MESSAGES`, `LANG`;
-   unter Windows die Anzeigesprache)
-4. Englisch
-
-Eine regionale Angabe wird auf ihre Basissprache zurückgeführt: `de-AT` und
-`de_DE` ergeben beide Deutsch. Für eine Sprache, zu der keine Übersetzung
-vorliegt, fällt markpublish auf Englisch zurück – geraten wird nicht.
-
-> [!NOTE]
-> Bewusst nicht dabei ist die `markpublish.yaml`. Die Terminalsprache gehört
-> zur Arbeitsumgebung eines Menschen, nicht zum Projekt – zwei Personen an
-> einem Repository sollen sie unabhängig voneinander wählen können.

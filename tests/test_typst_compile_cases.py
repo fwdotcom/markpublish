@@ -22,7 +22,10 @@ from markpublish.config.loader import load_config
 from markpublish.markdown.engine import MarkdownPipeline
 from markpublish.renderers.base import DocumentContext
 from markpublish.renderers.pdf import PDFRenderer
-from markpublish.templates.resolver import resolve_template_path
+from markpublish.templates.resolver import (
+    get_package_templates_dir,
+    resolve_template_path,
+)
 
 
 def _compile_pdf(tmp_path: Path, yaml_text: str, files: dict[str, str | bytes]) -> Path:
@@ -267,6 +270,31 @@ Here is a footnote reference[^1].
     assert "Definition 1" in text
 
 
+def _theme_with_extra_cover_field(tmp_path: Path, name: str, key: str) -> None:
+    """
+    Legt unter `tmp_path/templates/<name>` eine Kopie des Standard-Themes an,
+    deren `cover-fields` zusaetzlich `key` druckt.
+
+    Gebraucht, weil ein frei ergaenztes Feld das Titelblatt nur erreicht, wenn
+    das Theme es ausdruecklich auffuehrt -- genau dieser Weg wird hier gesetzt
+    und nicht bloss behauptet.
+    """
+    import shutil
+
+    source = get_package_templates_dir() / "default"
+    destination = tmp_path / "templates" / name
+    shutil.copytree(source, destination)
+
+    template = destination / "pdf" / "template.typ"
+    text = template.read_text(encoding="utf-8")
+    marker = '  meta.at("copyright", default: none),'
+    assert marker in text, "cover-fields im Standard-Theme nicht gefunden"
+    template.write_text(
+        text.replace(marker, f'  meta.at("{key}", default: none),\n{marker}', 1),
+        encoding="utf-8",
+    )
+
+
 def test_metadata_special_characters_in_key_and_value_compiles_cleanly(tmp_path: Path):
     """
     Tests that quotes and special characters in custom metadata keys and values
@@ -276,6 +304,7 @@ def test_metadata_special_characters_in_key_and_value_compiles_cleanly(tmp_path:
 document:
   title: "Meta Quote Test"
   cover: true
+  status: 'Freigegeben "mit" $Zeichen$'
   'quo"te': 'value with "quotes" and $math$ and #tags'
 parts:
   - title: "Part"
@@ -288,22 +317,39 @@ parts:
     out_pdf = _compile_pdf(tmp_path, yaml_text, {"a.md": a_md})
     doc = pdfium.PdfDocument(out_pdf)
     assert len(doc) >= 1
-    # Check cover page text contains value
     text = doc[0].get_textpage().get_text_range()
-    assert 'value with "quotes"' in text
+
+    # Der gedruckte Wert: hier faellt eine kaputte Maskierung als falscher
+    # Satz auf, nicht erst als Kompilierfehler.
+    assert 'Freigegeben "mit" $Zeichen$' in text
+
+    # Das freie Feld erreicht den Typst-Quelltext -- eine kaputte Maskierung
+    # braechte den Build ab -- steht aber nicht auf dem Titelblatt: dorthin
+    # kommt nur, was das Theme in `cover-fields` auffuehrt.
+    assert 'value with "quotes"' not in text
 
 
 def test_custom_metadata_with_project_i18n_renders_localized_label_on_cover(tmp_path: Path):
     """
-    Tests that Level 4 project-level i18n.yaml provides the localized label
-    for a custom extra metadata field, and that the label appears on the PDF cover page.
+    Ein Zusatzfeld erscheint auf dem Titelblatt, sobald das Theme es fuehrt --
+    mit der Beschriftung aus der Projekt-i18n.yaml, der letzten Stufe der
+    Kaskade.
+
+    Beides gehoert zusammen geprueft: das Theme entscheidet ueber das Ob, die
+    Kaskade ueber die Beschriftung. Faellt eine der beiden Seiten aus, steht
+    entweder nichts auf dem Blatt oder der rohe Schluessel.
     """
+    _theme_with_extra_cover_field(tmp_path, "mit-abteilung", "department")
+
     yaml_text = """\
 document:
   title: "Projektbericht"
   language: "de"
   cover: true
   department: "F&E"
+
+theme: "mit-abteilung"
+
 parts:
   - title: "Hauptteil"
     break_before: "none"
@@ -327,14 +373,17 @@ de:
 
 
 
-def test_the_theme_decides_the_order_of_the_cover_metadata(tmp_path: Path):
+def test_the_theme_decides_the_cover_metadata(tmp_path: Path):
     """
-    Die Reihenfolge im Metadatenraster ist Gestaltung und steht im Theme
-    (`cover-order` in template.typ) -- nicht in der Reihenfolge einer
-    Python-Konstante, wo sie niemand vermutet.
+    Was im Metadatenraster steht und in welcher Reihenfolge, entscheidet das
+    Theme (`cover-fields` in template.typ) -- nicht die markpublish.yaml.
+
+    Ein frei ergaenztes Feld erreicht das Theme ueber `meta`, erscheint aber
+    nicht von selbst auf dem Titelblatt. Sonst stuende dort jeder Tippfehler
+    aus der Konfiguration als zusaetzliche Zeile.
 
     Geprueft wird am gesetzten Dokument, nicht am Quelltext: nur so faellt auf,
-    wenn die Sortierung wirkungslos wird.
+    wenn die Auswahl wirkungslos wird.
     """
     yaml_text = """\
 document:
@@ -358,18 +407,19 @@ parts:
     out_pdf = _compile_pdf(tmp_path, yaml_text, {"a.md": "# A\n\nText.\n"})
     cover = pdfium.PdfDocument(out_pdf)[0].get_textpage().get_text_range()
 
-    # cover-order im mitgelieferten Theme: version, date, author, copyright,
-    # status -- und alles Freie dahinter.
+    # cover-fields im mitgelieferten Theme, in genau dieser Reihenfolge.
     expected = [
         "VERSIONSNUMMER",
         "DATUMSWERT",
         "AUTORNAME",
         "COPYRIGHTZEILE",
         "STATUSWERT",
-        "FREIERWERT",
     ]
     positions = [cover.find(value) for value in expected]
     assert all(p >= 0 for p in positions), f"nicht alle Werte gesetzt: {positions}"
+
+    # Das Theme fuehrt `eigenes_feld` nicht -- also steht es nicht darauf.
+    assert "FREIERWERT" not in cover
     assert positions == sorted(positions), (
         f"Reihenfolge weicht ab: {list(zip(expected, positions, strict=True))}"
     )

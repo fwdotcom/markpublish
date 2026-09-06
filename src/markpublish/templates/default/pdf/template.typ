@@ -64,13 +64,27 @@
   ]
 }
 
-// Reihenfolge der Angaben im Metadatenraster des Titelblatts.
+// Welche Angaben das Metadatenraster des Titelblatts zeigt -- und in welcher
+// Reihenfolge.
 //
-// Gestaltung gehoert ins Theme: markpublish reicht die Angaben als
-// Woerterbuch, welche zuerst steht, entscheidet diese Zeile. Was hier fehlt --
-// jedes frei ergaenzte Feld -- folgt dahinter in der Reihenfolge der
-// markpublish.yaml.
-#let cover-order = ("version", "date", "author", "copyright", "status")
+// Die Liste ist abschliessend, nicht nur eine Sortierung: markpublish reicht
+// saemtliche Angaben aus `document:` als Woerterbuch herein, gedruckt wird
+// davon nur, was hier steht. Ein frei ergaenztes Feld erreicht das Theme also,
+// erscheint aber erst, wenn es hier aufgenommen wird -- sonst fuellte jeder
+// Tippfehler in der markpublish.yaml das Titelblatt: `abteilnug: "F&E"`
+// stuende als zusaetzliche Zeile darauf, und niemand haette sie angeordnet.
+//
+// Jeder Eintrag steht als eigener Zugriff da statt als Schluesselname in einer
+// Schleife. Damit liest `markpublish labels` diesem Theme ab, welche Angaben
+// es tatsaechlich druckt, und kann ein Feld melden, das die markpublish.yaml
+// setzt und dieses Theme nicht kennt.
+#let cover-fields(meta) = (
+  meta.at("version", default: none),
+  meta.at("date", default: none),
+  meta.at("author", default: none),
+  meta.at("copyright", default: none),
+  meta.at("status", default: none),
+)
 
 // Wie ein Metadatenwert im Titelblatt erscheint.
 //
@@ -310,24 +324,14 @@
 
     // Metadata Grid
     v(1fr)
-    // `in-grid` kommt aus markpublish: Titel, Untertitel und Summary stehen
-    // oben auf dieser Seite und gehoeren nicht noch einmal ins Raster. Welche
-    // das sind, steht an einer Stelle im Programm statt hier abgeschrieben.
+    // Gezeigt wird, was `cover-fields` nennt -- in genau dieser Reihenfolge.
+    // Beides ist Gestaltung und steht deshalb dort, nicht im Programm.
     //
-    // Aufgezaehlt statt aufgelistet: so erscheint ein frei ergaenztes Feld aus
-    // der markpublish.yaml ohne Aenderung an diesem Theme.
-    let meta-items = meta.values().filter(
-      it => it.in-grid and it.value != "" and it.value != none and it.value != ()
+    // Ein Schluessel, den dieses Dokument nicht setzt, faellt still weg; das
+    // Raster hat dann eine Zeile weniger.
+    let meta-items = cover-fields(meta).filter(
+      it => it != none and it.value != "" and it.value != none and it.value != ()
     )
-
-    // Die Reihenfolge auf dem Titelblatt ist Gestaltung und steht deshalb hier,
-    // nicht im Programm. Bearbeiten Sie diese Zeile, um sie zu aendern.
-    // Schluessel, die nicht darin vorkommen -- die eigenen Felder aus der
-    // markpublish.yaml -- folgen dahinter in der Reihenfolge der Konfiguration.
-    let meta-items = meta-items.enumerate().sorted(key: pair => {
-      let rank = cover-order.position(k => k == pair.at(1).key)
-      if rank == none { cover-order.len() + pair.at(0) } else { rank }
-    }).map(pair => pair.at(1))
 
     grid(
       columns: (auto, 1fr),

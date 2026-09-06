@@ -741,11 +741,10 @@ def diagnose_labels_and_metadata(
         # setzt: `meta.at("version")` findet den Schluessel, der Wert ist leer.
         known_metadata = key in meta_entries or key in CORE_METADATA_KEYS
 
-        # Zaehlt das Theme `meta` auf, erreicht es jede Angabe des Rasters --
-        # aber keine, die das Titelblatt oben setzt.
-        reached_by_iteration = (
-            contract.has_meta_iteration and entry is not None and entry.in_grid
-        )
+        # Zaehlt das Theme `meta` auf, erreicht es jede Angabe des Dokuments.
+        # Welche es davon tatsaechlich druckt, laesst sich dann nicht mehr
+        # ablesen -- lieber nichts behaupten als faelschlich "ungenutzt".
+        reached_by_iteration = contract.has_meta_iteration and entry is not None
 
         uses_key = (
             key in label_keys

@@ -186,8 +186,7 @@ class PDFRenderer(BaseRenderer):
             lbl_escaped = f'"{typst_string(entry.label)}"' if entry.label else "none"
             metadata_lines.append(
                 f'    "{k_clean}": (key: "{k_clean}", label: {lbl_escaped}, '
-                f"value: {typst_value(entry.value)}, "
-                f"in-grid: {str(entry.in_grid).lower()}),"
+                f"value: {typst_value(entry.value)}),"
             )
         metadata_str = "\n".join(metadata_lines)
 

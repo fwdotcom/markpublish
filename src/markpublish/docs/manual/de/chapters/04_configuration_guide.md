@@ -31,7 +31,7 @@ Nummerierungsregeln
 
 #### Eigene Metadatenfelder
 
-Unter `document:` sind über die bekannten Schlüssel hinaus **beliebige eigene Felder** erlaubt. Sie erscheinen ohne weiteres Zutun im Metadatenraster des Deckblatts:
+Unter `document:` sind über die bekannten Schlüssel hinaus **beliebige eigene Felder** erlaubt. Sie erreichen das Theme, werden aber nicht von selbst gedruckt:
 
 ```yaml
 document:
@@ -41,9 +41,16 @@ document:
   freigegeben: true
 ```
 
+Das Metadatenraster des Deckblatts zeigt ausschließlich die Angaben, die das verwendete Theme dafür vorsieht – im mitgelieferten Standard-Theme sind das Version, Datum, Autor, Copyright und Status. Ein eigenes Feld kommt erst dazu, wenn das Theme es ausdrücklich aufführt (siehe Kapitel *Templates und Mehrsprachigkeit*).
+
+> [!NOTE] Warum nicht automatisch?
+> Würde jedes freie Feld ungefragt auf dem Deckblatt landen, stünde dort auch jeder Tippfehler: Aus `abteilnug: "Controlling"` würde eine zusätzliche Zeile, die niemand angeordnet hat. So bleibt das Titelblatt die Entscheidung des Themes.
+
 Drei Dinge sind dabei zu wissen:
 
-* **Die Beschriftung kommt aus der i18n-Kaskade.** Findet sich dort kein Eintrag für den Schlüssel, druckt das Deckblatt den Schlüssel selbst – also `abteilung` statt `Abteilung`. Legen Sie dafür eine `i18n.yaml` neben Ihre `markpublish.yaml`:
+* **Ungenutzte Felder meldet `markpublish labels`.** Ein Feld, das kein Theme abholt, erscheint dort mit dem Befund *ungenutzt* und am Fuß der Ausgabe noch einmal gesammelt – genau hier fällt auch ein vertippter Schlüssel auf. Ein Blick dorthin vor dem ersten Bauen erspart die Suche.
+
+* **Die Beschriftung kommt aus der i18n-Kaskade.** Sobald ein Theme das Feld druckt, braucht es dazu einen Text; findet sich keiner, druckt das Deckblatt den Schlüssel selbst – also `abteilung` statt `Abteilung`. Legen Sie dafür eine `i18n.yaml` neben Ihre `markpublish.yaml`:
 
   ```yaml
   # i18n.yaml, im Projektverzeichnis
@@ -56,8 +63,6 @@ Drei Dinge sind dabei zu wissen:
   Diese Datei ist die letzte Stufe der Kaskade und gewinnt damit gegen Programm und Theme (siehe Kapitel *Templates und Mehrsprachigkeit*).
 
 * **Der Typ bleibt erhalten.** Ein `true` ist ein Wahrheitswert und kein Text: Das Deckblatt setzt `Ja` beziehungsweise `Yes`, je nach Dokumentsprache. Die beiden Wörter stehen als `bool_true` und `bool_false` in der i18n-Kaskade.
-
-* **Ein Tippfehler wird gedruckt, nicht gemeldet.** `titel:` statt `title:` ergibt kein Fehlerbild, sondern eine zusätzliche Zeile auf dem Deckblatt. `markpublish labels` zeigt jedes Feld mit seinem Befund an – ein Blick dorthin vor dem ersten Bauen erspart die Suche.
 
 ### Parts (Abschnitte)
 

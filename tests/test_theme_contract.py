@@ -841,8 +841,8 @@ def test_metadata_keeps_its_yaml_type_on_the_way_to_typst(tmp_path: Path):
     (tmp_path / "a.md").write_text("# A\n\nText.\n", encoding="utf-8")
 
     source = _assemble(tmp_path)
-    assert "value: true," in source
-    assert "value: 42," in source
+    assert "value: true)" in source
+    assert "value: 42)" in source
     assert '"True"' not in source
 
 

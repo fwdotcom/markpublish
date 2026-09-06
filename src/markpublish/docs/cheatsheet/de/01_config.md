@@ -21,7 +21,8 @@ Metadaten und globale Layout-Schalter. Pflicht ist allein `title`.
 | `autonum_reset` / `pagenum_reset` | `false` | Zähler bzw. Seitenzahl neu beginnen |
 
 Außerdem `summary` (Deckblatt), `status`, `copyright` (Fußzeile). Eigene
-Zusatzfelder gehen über das Wörterbuch `meta` (`meta.at("mein_schluessel").value`) ans Theme.
+Zusatzfelder gehen über das Wörterbuch `meta` (`meta.at("mein_schluessel").value`) ans Theme –
+gedruckt werden sie erst, wenn das Theme sie aufführt.
 
 ## parts und chapters
 
