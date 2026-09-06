@@ -1,0 +1,54 @@
+# markpublish.yaml
+#
+# Your document's configuration: what goes into it, how it looks, in which
+# order. All paths are relative to this file.
+#
+# Every key at a glance: markpublish cheatsheet
+
+document:
+  # The title of the document. It appears on the cover page and sets the name
+  # of the output file ("My Report" becomes my_report.pdf).
+  title: "Test"
+  subtitle: "Your new markpublish project"
+
+  # "auto" inserts the date of the build, otherwise a fixed one: "2026-09-06".
+  date: "auto"
+
+  # Controls hyphenation and the fixed texts inside the document (heading of
+  # the table of contents, chapter tags). Without it your system language
+  # applies.
+  language: "en"
+
+  # Cover page, built from the entries above. With false the document starts
+  # right away with the first chapter.
+  cover: true
+
+  # Further entries for the cover page.
+  # author: "Your name"
+  # version: "1.0.0"
+
+  # Switches, shown with their default - notate one to change it.
+  # document_toc: "full"   # table of contents: "none", "full" or a depth
+  # header: true           # running header
+  # footer: true           # footer with page number
+
+# The design. "default" ships with markpublish; fetch your own theme with
+# markpublish export-template default ./templates and adjust it there.
+theme: "default"
+
+# The structure, always two levels: parts: divides, chapters: carries the text.
+parts:
+  - part: "Main Part"
+    # Without break_before the part itself does not appear - it only brackets
+    # its chapters. "divider" would give it a divider page of its own.
+    chapters:
+      # Every chapter is one Markdown file.
+      - file: "welcome.md"
+
+        # Divider page before the chapter. "page" only begins a new page,
+        # "none" continues right after the preceding text.
+        break_before: "divider"
+
+        # The heading of the file is already on the divider page; on the text
+        # page behind it, it would stand there a second time.
+        show_title: false
