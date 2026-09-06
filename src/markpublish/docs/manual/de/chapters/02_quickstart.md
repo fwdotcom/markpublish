@@ -41,7 +41,7 @@ Dieser Befehl erzeugt einen neuen Ordner `mein-dokument/` mit folgender Grundstr
 ```text
 mein-dokument/
 ├── markpublish.yaml
-└── next-steps.md
+└── welcome.md
 ```
 
 ### In das Projektverzeichnis wechseln
@@ -68,9 +68,9 @@ Das generierte PDF befindet sich nun direkt in Ihrem Projektverzeichnis:
 
 ```text
 mein-dokument/
-└── new_document.pdf
+└── mein_dokument.pdf
 ```
 
-*(Hinweis: Der Dateiname der Ausgabe leitet sich automatisch aus dem in der `markpublish.yaml` hinterlegten Dokumententitel ab; standardmäßig ist dies `New Document` $\rightarrow$ `new_document.pdf`.)*
+*(Hinweis: Der Dateiname der Ausgabe leitet sich automatisch aus dem in der `markpublish.yaml` hinterlegten Dokumententitel ab – Leerzeichen und Bindestriche werden dabei zu Unterstrichen. Ohne `--title` trägt das neue Dokument den Namen des Projektordners, hier also `mein-dokument` $\rightarrow$ `mein_dokument.pdf`.)*
 
 Öffnen Sie die Datei mit einem beliebigen PDF-Betrachter, um das Ergebnis zu begutachten. Das Dokument enthält die formatierte Einstiegsseite mit Kopf- und Fußzeilen.

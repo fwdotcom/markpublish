@@ -8,6 +8,8 @@ import pytest
 from typer.testing import CliRunner
 
 from markpublish.cli import app
+from markpublish.config.loader import load_config
+from markpublish.markdown.engine import MarkdownPipeline
 
 runner = CliRunner()
 
@@ -71,6 +73,91 @@ def test_cli_init_stays_minimal(tmp_path: Path):
     # Der Verweis auf das Cheat Sheet ist der einzige Grund, warum der Stumpf
     # so klein sein darf - faellt er weg, steht der Nutzer ohne Referenz da.
     assert "markpublish cheatsheet" in (project_dir / "welcome.md").read_text(encoding="utf-8")
+
+
+def test_cli_init_titles_the_document_after_its_folder(tmp_path: Path):
+    """
+    Ohne --title heisst das Dokument wie sein Ordner.
+
+    Ein fester Platzhalter stand nicht nur auf dem Deckblatt, sondern auch im
+    Dateinamen der Ausgabe - er fiel damit oft erst am fertigen PDF auf.
+    """
+    project_dir = tmp_path / "mein-dokument"
+    assert runner.invoke(app, ["init", str(project_dir)]).exit_code == 0
+
+    text = (project_dir / "markpublish.yaml").read_text(encoding="utf-8")
+    assert 'title: "mein-dokument"' in text
+    assert "New Document" not in text
+
+    build_res = runner.invoke(app, ["build", str(project_dir / "markpublish.yaml")])
+    assert build_res.exit_code == 0, build_res.stdout
+    assert (project_dir / "mein_dokument.pdf").is_file()
+
+
+def test_cli_init_title_option_still_wins(tmp_path: Path):
+    """--title schlaegt den Ordnernamen; der Ordner ist nur die Vorgabe."""
+    project_dir = tmp_path / "ordnername"
+    assert runner.invoke(
+        app, ["init", str(project_dir), "--title", "Ganz anderer Titel"]
+    ).exit_code == 0
+
+    text = (project_dir / "markpublish.yaml").read_text(encoding="utf-8")
+    assert 'title: "Ganz anderer Titel"' in text
+    assert "ordnername" not in text
+
+
+def test_cli_init_build_hint_names_the_created_config(tmp_path: Path, monkeypatch):
+    """
+    Der Vorschlag nach 'init' muss die Konfiguration nennen, die gerade entstand.
+
+    'build' sucht ohne Argument die markpublish.yaml im Arbeitsverzeichnis -
+    nach 'init <ordner>' liegt sie eine Ebene tiefer, und der abgetippte
+    Vorschlag lief ins Leere. Ein Pfad mit Leerzeichen kommt in
+    Anfuehrungszeichen, sonst zerfaellt er beim Abschicken in zwei Argumente.
+    """
+    monkeypatch.chdir(tmp_path)
+
+    res = runner.invoke(app, ["init", "Test"])
+    assert res.exit_code == 0, res.stdout
+    expected = str(Path("Test") / "markpublish.yaml")
+    assert f"markpublish build {expected}" in " ".join(res.stdout.split())
+
+    res_space = runner.invoke(app, ["init", "Angebot Q4"])
+    assert res_space.exit_code == 0, res_space.stdout
+    expected_space = str(Path("Angebot Q4") / "markpublish.yaml")
+    assert f'markpublish build "{expected_space}"' in " ".join(res_space.stdout.split())
+
+
+def test_cli_init_build_hint_stays_bare_in_the_working_directory(tmp_path: Path, monkeypatch):
+    """Liegt die Konfiguration schon im Arbeitsverzeichnis, genuegt der nackte Aufruf."""
+    monkeypatch.chdir(tmp_path)
+
+    res = runner.invoke(app, ["init", "."])
+    assert res.exit_code == 0, res.stdout
+
+    flat = " ".join(res.stdout.split())
+    assert "markpublish build markpublish.yaml" not in flat
+    assert "markpublish build" in flat
+
+
+def test_cli_init_scaffold_renders_only_its_one_chapter(tmp_path: Path):
+    """
+    Der Stumpf zeigt die eine Markdown-Seite und sonst nichts.
+
+    Kein Deckblatt, kein Verzeichnis, keine Trennseite: Parts leiten
+    standardmaessig mit einer Trennseite ein, und fuer den einen Part um das
+    eine Kapitel waere das Zeremonie vor der ersten Seite, die jemand baut.
+    Deshalb notiert die erzeugte Konfiguration 'break_before: "none"'.
+    """
+    project_dir = tmp_path / "stub"
+    assert runner.invoke(app, ["init", str(project_dir)]).exit_code == 0
+
+    config = load_config(project_dir / "markpublish.yaml")
+    assert config.document.cover is False
+    assert config.document.document_toc.enabled is False
+
+    items, _ = MarkdownPipeline(config, base_dir=project_dir).process_document()
+    assert [item.is_part for item in items] == [False]
 
 
 def test_cli_cheatsheet_renders_into_the_working_directory(tmp_path: Path, monkeypatch):

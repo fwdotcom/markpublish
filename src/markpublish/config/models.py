@@ -147,7 +147,11 @@ class DocumentConfig(BaseModel):
     )
 
     # Global Layout Switches
-    cover: bool = Field(default=True, description="Enable cover page")
+    # Aus, solange es niemand einschaltet. Ein Deckblatt ist eine Entscheidung
+    # ueber das Dokument, keine Grundausstattung - wer ein paar Seiten Markdown
+    # setzt, bekaeme sonst ein Titelblatt, das er nicht bestellt hat, und
+    # muesste erst herausfinden, welcher Schluessel es wieder wegnimmt.
+    cover: bool = Field(default=False, description="Enable cover page")
     # Das grosse Verzeichnis vorn. 'none' laesst es ganz weg, sonst gibt der
     # Wert die Vorgabe fuer die gleichnamige Angabe an den Kapiteln
     document_toc: TocScope = Field(
@@ -380,7 +384,7 @@ class PartItem(BaseModel):
     summary: Optional[str] = Field(default=None, description="Part summary for divider page")
     break_before: Optional[BreakBefore] = Field(
         default=None,
-        description="How this part is set off: 'divider', 'page' or 'none' (default: 'divider')",
+        description="How this part is set off: 'divider', 'page' or 'none' (default: 'none')",
     )
     document_toc: Optional[TocScope] = Field(
         default=None,
@@ -464,9 +468,17 @@ class PartItem(BaseModel):
 
     @property
     def effective_break_before(self) -> BreakBefore:
+        """
+        Ohne Angabe gliedert ein Part, ohne sich selbst zu zeigen.
+
+        Eine Trennseite als Vorgabe hiess: wer 'parts:' nur benutzt, weil der
+        Aufbau sie verlangt - zwei Stufen, eine davon oft nur eine Klammer um
+        die Kapitel -- bekam eine ganze Seite dafuer, die er nicht notiert
+        hatte. Wer eine will, schreibt sie hin; das ist eine Zeile.
+        """
         if self.break_before is not None:
             return self.break_before
-        return BreakBefore.DIVIDER
+        return BreakBefore.NONE
 
     @property
     def is_part(self) -> bool:

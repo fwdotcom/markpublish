@@ -703,6 +703,7 @@ document:
   title: "T"
 parts:
   - part: "Anhaenge"
+    break_before: "divider"
     autonum_style: "decimal"
     autonum_from_level: 2
     chapters:
@@ -778,6 +779,7 @@ document:
   title: "Doc"
 parts:
   - part: "Hauptabschnitt"
+    break_before: "divider"
     chapters:
       - file: "c1.md"
         toc_title: "Kurztitel im TOC"
@@ -987,6 +989,7 @@ document:
   title: "Doc"
 parts:
   - part: "Hauptteil"
+    break_before: "divider"
     chapters:
       - file: "chapter.md"
         show_title: false

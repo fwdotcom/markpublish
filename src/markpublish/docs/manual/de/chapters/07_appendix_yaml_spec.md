@@ -19,7 +19,7 @@ Die Sektion `document:` legt globale Metadaten, Layoutschalter, Verzeichnisvorga
 | `date` | String | `"auto"` | Datum des Dokuments. Bei `"auto"` oder `"today"` wird das aktuelle Tagesdatum eingesetzt. |
 | `version` | String | `None` | Versionskennung (z. B. `"2.0.0"`). Wird nur gedruckt, wenn explizit gesetzt. |
 | `language` | String | *(Systemsprache)* | ISO-Sprachcode (z. B. `"de"` oder `"en"`). Steuert Silbentrennung und UI-Texte. |
-| `cover` | Boolean | `true` | Steuert, ob eine gestaltete Deckblattseite erzeugt wird. |
+| `cover` | Boolean | `false` | Steuert, ob eine gestaltete Deckblattseite erzeugt wird. Ohne Angabe beginnt das Dokument mit dem ersten Inhalt. |
 | `header` | Boolean | `true` | Aktiviert oder deaktiviert die laufende Kopfzeile im Dokument. |
 | `footer` | Boolean | `true` | Aktiviert oder deaktiviert die laufende Fußzeile (inkl. Seitennummerierung). |
 | `document_toc` | Scope | `"full"` | Tiefe des Haupt-Inhaltsverzeichnisses (`"none"`, `"full"` oder Zahl $\ge 1$). |
@@ -55,7 +55,7 @@ Die Liste `parts:` unterteilt das Dokument in übergeordnete Abschnitte. Ein Abs
 | `divider_title` | String | `None` | Optionaler abweichender Titel auf der Abschnitts-Trennseite (Standard: `part`). |
 | `subtitle` | String | `None` | Untertitel des Abschnitts (erscheint auf der Trennseite). |
 | `summary` | String | `None` | Kurzbeschreibung des Abschnitts (erscheint auf der Trennseite). |
-| `break_before` | String | `"divider"` | Umbruchverhalten vor dem Abschnitt: `"divider"` (Trennseite), `"page"` (Seitenwechsel) oder `"none"`. |
+| `break_before` | String | `"none"` | Umbruchverhalten vor dem Abschnitt: `"divider"` (Trennseite), `"page"` (Überschrift auf neuer Seite) oder `"none"` – der Abschnitt gliedert dann nur die Konfiguration und belegt keine eigene Seite. |
 | `document_toc` | Scope | `None` | Überschreibt den Beitrag dieses Abschnitts zum Haupt-Inhaltsverzeichnis. |
 | `part_toc` | Scope | `None` | Steuert das lokale Inhaltsverzeichnis auf der Abschnitts-Trennseite. |
 | `chapter_toc` | Scope | `None` | Vererbt die Vorgabe für Kapitelverzeichnisse an alle Kapitel des Abschnitts. |

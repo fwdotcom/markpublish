@@ -93,7 +93,7 @@ markpublish init [ZIELORDNER] [OPTIONEN]
 | Option | Default | Bedeutung |
 | :--- | :--- | :--- |
 | `ZIELORDNER` *(Argument)* | `.` *(aktueller Ordner)* | Zielverzeichnis, in dem das Projekt initialisiert werden soll. |
-| `--title`, `-t` | `New Document` | Titel des neuen Dokuments in der erzeugten Konfiguration. |
+| `--title`, `-t` | *(Name des Zielordners)* | Titel des neuen Dokuments in der erzeugten Konfiguration. |
 | `--lang`, `-l` | *(Systemsprache)* | Sprache der Vorlage (`de`, `en`). |
 
 ### Erläuterungen

@@ -120,7 +120,7 @@ document:
                                  # your system language applies
 
   # Layout Toggles
-  cover: true                    # Enable cover page
+  cover: true                    # Enable cover page (off unless you ask for it)
   document_toc: 2                # Large TOC, two levels deep
   autonum_style: "decimal"       # "decimal" (1, 1.1), "roman", "legal", "none"
   chapter_toc: 2                 # Default for the chapters' divider-page TOC

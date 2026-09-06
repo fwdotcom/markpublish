@@ -5,7 +5,13 @@ Tests for configuration parsing and data models.
 import datetime
 
 from markpublish.config.loader import format_current_date, load_config
-from markpublish.config.models import AutonumStyle, BreakBefore, TocScope
+from markpublish.config.models import (
+    AutonumStyle,
+    BreakBefore,
+    ChapterItem,
+    PartItem,
+    TocScope,
+)
 
 
 def test_format_current_date():
@@ -202,6 +208,28 @@ def test_part_and_chapter_naming_and_title_tolerance():
     assert p1.part == "Zweiter Abschnitt"
     assert p1.display_title == "Zweiter Abschnitt"
     assert p1.chapters[0].chapter is None
+def test_break_before_defaults_are_quiet():
+    """
+    Ohne Angabe zeigt sich ein Part gar nicht, ein Kapitel beginnt auf neuer Seite.
 
+    Eine Trennseite als Vorgabe fuer Parts hiess: wer 'parts:' nur benutzt,
+    weil der Aufbau zwei Stufen verlangt, bekam eine ganze Seite fuer eine
+    Klammer, die er nicht notiert hatte. Wer eine Trennseite will, schreibt
+    sie hin.
+    """
+    klammer = PartItem(part="Nur eine Klammer", chapters=[ChapterItem(file="01.md")])
+    assert klammer.effective_break_before is BreakBefore.NONE
+    assert ChapterItem(file="01.md").break_before is BreakBefore.PAGE
 
+    # Notiert man den Schluessel, gilt er unveraendert.
+    notiert = PartItem(part="P", break_before="divider", chapters=[ChapterItem(file="01.md")])
+    assert notiert.effective_break_before is BreakBefore.DIVIDER
 
+    config = load_config(
+        {
+            "document": {"title": "T"},
+            "parts": [{"part": "Hauptteil", "chapters": [{"file": "01.md"}]}],
+        }
+    )
+    assert config.parts[0].effective_break_before is BreakBefore.NONE
+    assert config.parts[0].chapters[0].break_before is BreakBefore.PAGE

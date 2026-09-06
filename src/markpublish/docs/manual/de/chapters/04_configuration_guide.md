@@ -70,7 +70,7 @@ Ein Dokument wird durch `parts:` in übergeordnete Abschnitte gegliedert (z. B. 
 
 * Ein Abschnitt fasst logisch zusammengehörige Kapitel zusammen.
 
-* Abschnitte können mit Trennseiten (`break_before: "divider"`) oder einfachen Seitenumbrüchen (`break_before: "page"`) eingeleitet werden.
+* Ohne Angabe tritt ein Abschnitt selbst nicht in Erscheinung (`break_before: "none"`): er klammert seine Kapitel und vererbt seine Einstellungen, belegt aber keine Seite und erscheint nicht im Inhaltsverzeichnis. Mit `break_before: "divider"` erhält er eine gestaltete Trennseite, mit `break_before: "page"` eine Überschrift auf einer neuen Seite.
 
 * Auf Abschnittsebene gesetzte Einstellungen (z. B. Verzeichnistiefe oder Nummerierungspräfixe wie `autonum_prefix: "A."`) vererben sich automatisch auf alle darin enthaltenen Kapitel.
 

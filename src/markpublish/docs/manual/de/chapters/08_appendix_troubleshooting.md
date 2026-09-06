@@ -72,11 +72,23 @@ Sollte ein Kompiliervorgang mit einer Fehlermeldung der Typst-Engine abbrechen, 
 
 ### Wie verhindere ich eine Trennseite vor einem Kapitel?
 
-Standardmäßig leitet ein Kapitel mit `break_before: "page"` ein, während Abschnitte (`parts:`) mit `break_before: "divider"` eine repräsentative Trennseite erzeugen. Wenn ein Kapitel oder Abschnitt direkt ohne neue Trennseite anschließen soll, setzen Sie:
+Standardmäßig leitet ein Kapitel mit `break_before: "page"` auf einer neuen Seite ein; eine Trennseite entsteht nur, wo Sie sie notieren. Wenn ein Kapitel direkt ohne Seitenwechsel anschließen soll, setzen Sie:
 
 ```yaml
 break_before: "none"
 ```
+
+### Warum erscheint mein Abschnitt nirgends im Dokument?
+
+Abschnitte (`parts:`) sind standardmäßig auf `break_before: "none"` gesetzt: Sie klammern ihre Kapitel und vererben ihre Einstellungen, belegen aber keine eigene Seite und stehen deshalb auch nicht im Inhaltsverzeichnis. Soll der Abschnitt sichtbar werden, notieren Sie ihn:
+
+```yaml
+parts:
+  - part: "Anhänge"
+    break_before: "divider"   # gestaltete Trennseite
+```
+
+Mit `break_before: "page"` erhält der Abschnitt statt der Trennseite eine Überschrift auf einer neuen Seite.
 
 ### Wie kann ich die Seitennummerierung für jedes Kapitel neu starten?
 

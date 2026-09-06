@@ -17,7 +17,7 @@ Metadaten und globale Layout-Schalter. Pflichtangabe ist allein `title`.
 | `status` | – | Dokumentstatus auf dem Deckblatt (z. B. `Entwurf`, `Freigegeben`) |
 | `copyright` | – | Copyright-Hinweis auf dem Deckblatt |
 | `language` | Systemsprache | ISO-Sprachcode für statische Beschriftungen (`de`, `en`) |
-| `cover` | `true` | Deckblatt erzeugen (`true` oder `false`) |
+| `cover` | `false` | Deckblatt erzeugen (`true` oder `false`) |
 | `header` | `true` | Lebende Kopfzeilen aktivieren (`true` oder `false`) |
 | `footer` | `true` | Fußzeilen aktivieren (`true` oder `false`) |
 | `document_toc` | `full` | Haupt-Inhaltsverzeichnis: `none`, `full` oder Tiefe als Zahl |
@@ -50,7 +50,7 @@ individuell steuern.
 | `divider_title` | Part / Kapitel | `part` / Datei-H1 | Titel auf der Trennseite |
 | `subtitle` | Part / Kapitel | – | Untertitel auf der Trennseite |
 | `summary` | Part / Kapitel | – | Kurzbeschreibung auf der Trennseite |
-| `break_before` | Part / Kapitel | `divider` / `page` | Seitenumbruch: `divider` (Trennseite), `page` oder `none` |
+| `break_before` | Part / Kapitel | `none` / `page` | Seitenumbruch: `divider` (Trennseite), `page` oder `none` |
 | `document_toc` | Part / Kapitel | geerbt | Beitrag zum Haupt-Inhaltsverzeichnis (`none`, `full`, Tiefe) |
 | `part_toc` | Part | geerbt | Lokales Verzeichnis auf der Part-Trennseite |
 | `chapter_toc` | Part / Kapitel | geerbt | Lokales Verzeichnis auf der Kapitel-Trennseite |

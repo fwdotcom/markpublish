@@ -112,6 +112,10 @@ def main(
 #: und README es ebenfalls sind.
 DEFAULT_DOC_LANGUAGE = "en"
 
+#: Titel fuer 'init', wenn weder --title noch der Ordnername etwas hergeben -
+#: das trifft nur die Laufwerkswurzel, wo Path.name leer ist.
+FALLBACK_INIT_TITLE = "New Document"
+
 #: Wurzel der mitgelieferten Dokumente. Handbuch und Kurzreferenz liegen darin
 #: nebeneinander, je Sprache ein Unterordner - dieselbe Form fuer beide, damit
 #: eine dritte Uebersetzung nur ein Verzeichnis kostet.
@@ -470,14 +474,37 @@ def build_cmd(
     )
 
 
+def _build_command_for(config_file: Path) -> str:
+    """
+    Der Bauaufruf, der die eben angelegte Konfiguration wirklich trifft.
+
+    'build' sucht ohne Argument die markpublish.yaml im Arbeitsverzeichnis -
+    nach 'init <ordner>' ist das die falsche oder gar keine. Der Vorschlag
+    nennt deshalb den Pfad, und zwar relativ zum Arbeitsverzeichnis: von dort
+    tippt der Nutzer die Zeile ab. Nur ein Ziel ausserhalb bleibt absolut.
+    """
+    try:
+        shown = config_file.relative_to(Path.cwd())
+    except ValueError:
+        shown = config_file
+
+    if shown == Path("markpublish.yaml"):
+        return "markpublish build"
+
+    text = str(shown)
+    # Ein Pfad mit Leerzeichen muss als ein Argument ankommen, sonst laeuft der
+    # kopierte Vorschlag in einen Fehler.
+    return f'markpublish build "{text}"' if " " in text else f"markpublish build {text}"
+
+
 @app.command(name="init", help=t("cmd.init.help"))
 def init_cmd(
     target_dir: Path = typer.Argument(
         Path("."),
         help=t("opt.target_dir.help"),
     ),
-    title: str = typer.Option(
-        "New Document",
+    title: Optional[str] = typer.Option(
+        None,
         "--title",
         "-t",
         help=t("opt.title.help"),
@@ -499,6 +526,13 @@ def init_cmd(
     """
     target_dir = target_dir.resolve()
     target_dir.mkdir(parents=True, exist_ok=True)
+
+    # Ohne --title traegt das Dokument den Namen des Projektverzeichnisses.
+    # Ein fester Platzhalter waere in fast jedem Projekt falsch -- und faellt
+    # spaet auf: er steht nicht nur im Deckblatt, sondern auch im Dateinamen
+    # der Ausgabe ('New Document' -> new_document.pdf). Der Ordnername ist das
+    # einzige, was der Nutzer an dieser Stelle schon benannt hat.
+    doc_title = title or target_dir.name.strip() or FALLBACK_INIT_TITLE
 
     available = _available_doc_languages("init")
     if not available:
@@ -530,7 +564,7 @@ def init_cmd(
 
     if not yaml_target.exists() and yaml_src.is_file():
         template_text = yaml_src.read_text(encoding="utf-8")
-        filled_text = template_text.replace("{title}", title)
+        filled_text = template_text.replace("{title}", doc_title)
         yaml_target.write_text(filled_text, encoding="utf-8")
 
     # Copy companion files (e.g. welcome.md, images)
@@ -542,7 +576,7 @@ def init_cmd(
             if f.suffix.lower() in (".md", ".txt", ".yaml", ".yml", ".json"):
                 try:
                     text = f.read_text(encoding="utf-8")
-                    dest.write_text(text.replace("{title}", title), encoding="utf-8")
+                    dest.write_text(text.replace("{title}", doc_title), encoding="utf-8")
                 except UnicodeDecodeError:
                     shutil.copy2(f, dest)
             else:
@@ -552,7 +586,9 @@ def init_cmd(
         "[bold green][OK][/bold green] "
         + t("ok.init.done", path=f"[cyan]{target_dir}[/cyan]")
     )
-    console.print(t("init.next.build", command="[bold cyan]markpublish build[/bold cyan]"))
+    console.print(
+        t("init.next.build", command=f"[bold cyan]{_build_command_for(yaml_target)}[/bold cyan]")
+    )
     console.print(
         t("init.next.cheatsheet", command="[bold cyan]markpublish cheatsheet[/bold cyan]")
     )

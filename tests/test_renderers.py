@@ -197,6 +197,7 @@ def test_pdf_toc_title_and_divider_title_rendering(tmp_path: Path):
 document:
   title: "TOC Test Dokument"
   document_toc: "full"
+  cover: true
 parts:
   - part: "Hauptabschnitt"
     break_before: "divider"

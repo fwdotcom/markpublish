@@ -9,7 +9,7 @@ Es besteht aus zwei Dateien: `markpublish.yaml` und diesem Kapitel.
 Zum Test der PDF-Erstellung:
 
 ```bash
-cd {title}                              # das neu erstellte Projekt-Verzeichnis
+cd Test                              # das neu erstellte Projekt-Verzeichnis
 markpublish build                       # PDF erstellen
 ```
 
