@@ -398,8 +398,8 @@ def test_bundled_documents_declare_the_languages_they_ship(tmp_path: Path):
     # Handbuch und Kurzreferenz werden auf Deutsch gepflegt; englische
     # Fassungen entstehen daraus, wenn die deutsche freigegeben ist. Der
     # Projektstumpf steht zweisprachig, weil er als erstes gelesen wird.
-    assert _available_doc_languages("manual") == ["de"]
-    assert _available_doc_languages("cheatsheet") == ["de"]
+    assert _available_doc_languages("manual") == ["de", "en"]
+    assert _available_doc_languages("cheatsheet") == ["de", "en"]
     assert _available_doc_languages("init") == ["de", "en"]
 
     # Jede gemeldete Sprache hat auch wirklich Kapitel neben ihrem Manifest.

@@ -66,3 +66,7 @@ def main() -> None:
     from markpublish.cli import app
 
     app(args=argv, prog_name="markpublish")
+
+
+if __name__ == "__main__":
+    main()

@@ -28,11 +28,7 @@ app = typer.Typer(
 console = Console()
 
 #: Sprachen, die ohne --lang gebaut werden.
-#:
-#: Nur Deutsch: das Handbuch wird auf Deutsch geschrieben, die englische
-#: Fassung entsteht daraus, wenn die deutsche steht. Sie bei jedem Lauf
-#: mitzubauen erzeugte nur ein PDF aus veralteter Quelle.
-DEFAULT_LANGUAGES = ("de",)
+DEFAULT_LANGUAGES = ("de", "en")
 
 
 SCRIPT_DIR = Path(__file__).resolve().parent

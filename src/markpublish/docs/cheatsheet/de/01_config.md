@@ -43,7 +43,7 @@ individuell steuern.
 | Schlüssel | Ebene | Standard | Bedeutung |
 | :--- | :--- | :--- | :--- |
 | `part` | Part | *Pflichtangabe* | Name des Abschnitts |
-| `chapters` | Part / Kapitel | *Pflichtangabe* | Liste der Kapitel bzw. Unterkapitel (mindestens eines) |
+| `chapters` | Part / Kapitel | Part: *Pflicht* / Kap.: optional | Liste der Kapitel bzw. Unterkapitel |
 | `file` | Kapitel | *Pflichtangabe* | Pfad zur Markdown-Datei (relativ zur Konfiguration) |
 | `show_title` | Kapitel | `true` | Datei-H1 auf der Inhaltsseite anzeigen (`false` blendet sie aus) |
 | `toc_title` | Part / Kapitel | Datei-H1 / `part` | Titel für Haupt-Inhaltsverzeichnis und Kopfzeilen |
@@ -57,8 +57,8 @@ individuell steuern.
 | `autonum_style` | Part / Kapitel | geerbt | Lokaler Zählstil (`decimal`, `roman`, `legal`, `none`) |
 | `autonum_from_level` | Part / Kapitel | geerbt | Ebene, ab der nummeriert wird |
 | `autonum_prefix` | Part / Kapitel | geerbt | Präfix für Nummern in diesem Abschnitt |
-| `autonum_reset` | Part / Kapitel | `false` | Zähler am Beginn des Abschnitts/Kapitels zurücksetzen |
-| `pagenum_reset` | Part / Kapitel | `false` | Seitennummerierung am Beginn zurücksetzen |
+| `autonum_reset` | Part / Kapitel | geerbt | Zähler am Beginn des Abschnitts/Kapitels zurücksetzen |
+| `pagenum_reset` | Part / Kapitel | geerbt | Seitennummerierung am Beginn zurücksetzen |
 
 `document_toc: 1` listet ein Kapitel ohne seine Unterüberschriften; am Part
 gesetzt, flacht es alle enthaltenen Kapitel auf einmal ab. Optionen mit dem

@@ -1,0 +1,30 @@
+# Source of the quick reference rendered by "markpublish cheatsheet".
+#
+# Bundled in the package and re-rendered on invocation, always matching
+# the installed version.
+#
+# Symmetrical to ../de: identical chapters, identical order,
+# identical tables. Only the language differs.
+document:
+  title: "markpublish Quick Reference"
+  subtitle: "Configuration and Templates"
+  author: null
+  date: "auto"
+  language: "en"
+
+  cover: false
+  document_toc: "none"
+  autonum_style: "none"
+  header: true
+  footer: true
+
+theme: "default"
+
+parts:
+  - part: "Quick Reference"
+    break_before: "none"
+    chapters:
+      - file: "01_config.md"
+
+      - file: "02_templates.md"
+

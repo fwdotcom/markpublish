@@ -1,0 +1,69 @@
+# markpublish.yaml for the official User Manual (English).
+
+document:
+  title: "markpublish User Manual"
+  subtitle: "Modern PDF Document Publishing from Markdown"
+  summary: "Practical guide and reference for configuration, CLI usage, theme design, and document publishing with markpublish."
+  author: "Frank Winter"
+  status: "Released"
+  copyright: "© 2026 Frank Winter"
+  date: "auto"
+  version: "2.0.0"
+  language: "en"
+
+  cover: true
+  document_toc: 2
+  chapter_toc: 2
+  part_toc: 2
+
+  header: true
+  footer: true
+
+parts:
+  - part: "Main Part"
+    break_before: "none"
+    document_toc: "none"
+
+    chapters:
+      - file: "chapters/01_introduction.md"
+        summary: "Motivation, core features, and architecture of markpublish."
+        break_before: "divider"
+        show_title: false
+
+      - file: "chapters/02_quickstart.md"
+        summary: "The direct path from installation to your first finished PDF."
+        break_before: "divider"
+        show_title: false
+
+      - file: "chapters/03_cli_reference.md"
+        summary: "Detailed command overview and complete option reference for all commands."
+        break_before: "divider"
+        show_title: false
+
+      - file: "chapters/04_configuration_guide.md"
+        summary: "Structuring documents into Document, Parts, and Chapters with practical examples."
+        break_before: "divider"
+        show_title: false
+
+      - file: "chapters/05_template_system.md"
+        summary: "Theme structure, three-tier resolution hierarchy, and text cascade (i18n)."
+        break_before: "divider"
+        show_title: false
+
+      - file: "chapters/06_markdown_features.md"
+        summary: "Markup and typographical presentation of callouts, definition lists, task lists, and mathematical formulas."
+        break_before: "divider"
+        show_title: false
+
+  - part: "Appendices"
+    summary: "Complete specification tables and troubleshooting guidance."
+    break_before: "divider"
+    autonum_from_level: 2
+    
+    chapters:
+      - file: "chapters/07_appendix_yaml_spec.md"
+        autonum_prefix: "A."
+
+      - file: "chapters/08_appendix_troubleshooting.md"
+        autonum_prefix: "B."
+

@@ -3,289 +3,52 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 
-**markpublish** is a modern, modular, and extensible publishing tool for Markdown documents. It compiles structured Markdown chapters into print-ready **PDFs** (powered by [WeasyPrint](https://weasyprint.org/) and W3C CSS Paged Media) and standalone **HTML** previews, fully configured via a clean YAML manifest.
+## Modern PDF Document Publishing from Markdown
 
----
+markpublish typesets structured Markdown chapters into print-ready PDFs.
+Structure, metadata and design live in a single `markpublish.yaml` —
+everything else is your text.
 
-## Key Features
+- **One manifest instead of a command line full of options**: title, cover,
+  tables of contents, headers and footers, order of chapters.
+- **Parts and chapters with divider pages**: with subtitle, summary and a
+  local table of contents of their own — configurable per level.
+- **Themes in Typst**: `markpublish export-template default ./templates` puts
+  the default theme into your project and the next build picks up your
+  version. The font ships with the theme, so output does not depend on the
+  machine.
+- **Markdown that does more**: GitHub-style alerts, footnotes, task lists,
+  definition lists, math, syntax highlighting.
+- **Bilingual both ways**: the document language drives labels and
+  hyphenation, the interface language follows your system (`--ui-lang`).
+- **Self-documenting**: `markpublish cheatsheet` and `markpublish manual`
+  render the reference and the manual from the installed package — always
+  matching the version you are running.
 
-- 📄 **WeasyPrint PDF Engine**: Native support for CSS Paged Media (`@page`, `@top-left`, `@top-right`, `@bottom-left`, `@bottom-right`, page counters, leaders, target counters).
-- 🌐 **Multi-Format Pipeline**: First-class support for **PDF** and **HTML** (extensible architecture for EPUB, DOCX).
-- ⚙️ **Declarative YAML Configuration**: Configure metadata, covers, TOCs, headers, and footers in `markpublish.yaml`.
-- 📁 **Modular Chapters & Parts**: Split your content into separate `.md` files, organize them hierarchically, and group them under overarching **Parts** (e.g. *Appendices*).
-- 🎨 **Target-Based Template Hierarchy**:
-  - `templates/<theme>/pdf` and `templates/<theme>/html`
-  - 3-tier resolution: **User directory** > **Common/Project folder** > **Package built-ins**.
-- 🔤 **Bundled font**: Open Sans ships with the theme as a variable font and is embedded into the PDF, so output does not depend on what is installed on the build machine.
-- 📑 **Running Headers & Footers**: Real markup in the page margins via CSS running elements -- any number of lines, per-line styling, columns top-aligned.
-- 🔢 **Autonumbering & TOC**:
-  - Global TOC reflecting chapter depth and heading levels.
-  - Per-chapter local TOCs with configurable `max_depth` (rendered on the PDF divider page).
-  - Configurable autonumbering schemes (`decimal`, `roman`, `legal`, `none`).
-- 💻 **Cross-Platform**: Works seamlessly on Linux, macOS, and Windows.
+## Manual
 
----
-
-## Showcase / Sample Output
-
-The entire official user guide was written in Markdown and rendered directly with `markpublish` — two languages, both target formats, all four built by `python build_manuals.py`:
-
-| Document | PDF | HTML |
+| | Deutsch | English |
 | :--- | :--- | :--- |
-| 🇩🇪 markpublish Benutzerhandbuch | **[view](https://github.com/fwdotcom/markpublish/blob/main/manual/markpublish_benutzerhandbuch.pdf)** | [download](https://raw.githubusercontent.com/fwdotcom/markpublish/main/manual/markpublish_benutzerhandbuch.html) |
-| 🇬🇧 markpublish User Guide | **[view](https://github.com/fwdotcom/markpublish/blob/main/manual/markpublish_user_guide.pdf)** | [download](https://raw.githubusercontent.com/fwdotcom/markpublish/main/manual/markpublish_user_guide.html) |
+| Handbuch · Manual | [Benutzerhandbuch (PDF)](https://github.com/fwdotcom/markpublish/blob/main/manual/markpublish_benutzerhandbuch.pdf) | [User Manual (PDF)](https://github.com/fwdotcom/markpublish/blob/main/manual/markpublish_user_manual.pdf) |
+| Kurzreferenz · Quick reference | [Kurzreferenz (PDF)](https://github.com/fwdotcom/markpublish/blob/main/manual/markpublish_kurzreferenz.pdf) | [Quick Reference (PDF)](https://github.com/fwdotcom/markpublish/blob/main/manual/markpublish_quick_reference.pdf) |
 
-The PDFs open straight in the browser. The HTML files are **single, self-contained
-documents** — fonts and images are embedded as data URIs, so one file is the whole
-publication, with nothing to unpack and no assets folder beside it. GitHub serves
-them as plain text rather than rendering them, so save the file and open it locally.
-
-Together they demonstrate the built-in capabilities in practice: cover layout,
-multi-level global TOC, running multi-line headers and footers, GitHub callout
-admonitions, Pygments syntax highlighting, task lists, and the part/chapter
-hierarchy — and in the HTML case a sidebar TOC and a responsive layout instead of
-the print furniture.
-
----
+All four are typeset with markpublish itself.
 
 ## Installation
 
 ```bash
 pip install markpublish
+
+# create a project
+markpublish init my-project
+
+# build the PDF
+markpublish build my-project/markpublish.yaml      
 ```
 
-For development:
-```bash
-git clone https://github.com/fwdotcom/markpublish.git
-cd markpublish
-pip install -e ".[dev]"
-```
+(requires Python 3.10 or newer)
 
----
+## Lizenz · License
 
-## Quickstart
-
-### 1. Initialize a new project
-```bash
-markpublish init my-book --title "My Architecture Guide"
-cd my-book
-```
-
-This creates a minimal stub: `markpublish.yaml` plus one chapter, both directly
-in the directory. It is meant to be replaced by your own content.
-
-### 2. Look things up
-```bash
-markpublish cheatsheet [--lang de|en]   # two-page reference card
-markpublish manual     [--lang de|en]   # the full user guide
-```
-
-`cheatsheet` renders a two-page reference -- every key of `markpublish.yaml` on
-page one, themes and templates on page two. `manual` renders the complete user
-guide. Both ship in German and English, their sources inside the package, and
-are rendered on demand -- so they describe the version you actually have rather
-than whatever was current when someone last rebuilt a PDF, and a successful run
-also confirms that the rendering toolchain works.
-
-`--lang` selects the source, not just the labels: each translation carries its
-own `language:` and pulls in the matching static texts by itself. Without it,
-your system language decides; where no translation exists, English appears.
-
-### 3. Build PDF and HTML
-```bash
-# Build PDF
-markpublish build
-
-# Build standalone HTML
-markpublish build --target html
-
-# Build both PDF and HTML
-markpublish build --target all
-```
-
----
-
-## Configuration Reference (`markpublish.yaml`)
-
-```yaml
-# Document Metadata & Layout
-document:
-  title: "Cloud Architecture Guide"
-  subtitle: "Best Practices & Standards"
-  summary: "Comprehensive guide for modern enterprise cloud environments."
-  author: "Frank Mustermann"
-  date: "auto"                    # "auto" for current date, or "2026-08-31"
-  version: "1.0.0"              # optional; omitted -> no version on the cover
-  language: "de"                 # Localization and hyphenation; omit it and
-                                 # your system language applies
-
-  # Layout Toggles
-  cover: true                    # Enable cover page (off unless you ask for it)
-  document_toc: 2                # Large TOC, two levels deep
-  autonum_style: "decimal"       # "decimal" (1, 1.1), "roman", "legal", "none"
-  chapter_toc: 2                 # Default for the chapters' divider-page TOC
-  header: true                   # Enable running header (laid out in the theme)
-  footer: true                   # Enable running footer (laid out in the theme)
-
-# Template selection
-theme: "default"
-templates_dir: "./templates"     # Optional: custom shared templates directory
-
-# Parts and Chapters (hierarchical structure)
-parts:
-  # Main part (no part divider page, chapters listed directly in TOC)
-  - title: "Main"
-    break_before: "none"
-    document_toc: "none"
-    chapters:
-      - file: "chapters/01_introduction.md"
-        title: "Introduction"
-        summary: "Scope and motivation."
-        break_before: "divider"      # Dedicated divider/separator page
-        chapter_toc: "none"
-
-      - file: "chapters/02_architecture.md"
-        title: "Core Architecture"
-        summary: "System components and flows."
-        break_before: "divider"
-        chapter_toc: 2               # Local chapter TOC up to depth 2
-
-  # Overarching Part / Section (e.g. Appendices)
-  - title: "Appendices"
-    summary: "Glossary and reference tables."
-    break_before: "divider"          # Dedicated Part separator page
-    autonum_from_level: 2            # Number sub-headings (A.1, A.2)
-    document_toc: 2                  # Include down to depth 2 in front TOC
-    chapters:
-      - file: "chapters/appendix_a.md"
-        title: "Appendix A: Reference"
-        autonum_prefix: "A."
-      - file: "chapters/appendix_b.md"
-        title: "Appendix B: Troubleshooting"
-        autonum_prefix: "B."
-```
-
-For simple documents (e.g. leaflets or short reports), the `parts:` layer is optional; you can also write `chapters: [...]` directly at the top level.
-
-`break_before` decides how far a chapter is set off from the one before it, on a
-single axis: `page` (the default) starts it at the top of a fresh page,
-`divider` gives it a separator page of its own, and `none` lets it run on.
-
-A document has two tables of contents and one key each, written the same way in
-the `document` block and on a chapter: `document_toc` for the large one at the
-front, `chapter_toc` for the small ones on the divider pages. Under `document`
-they set the default, on a chapter or part they override it. Both take `none`, `full` or
-a depth counted from the chapter's own heading, so `document_toc: 1` contributes
-the chapter title and nothing below it.
-
-`document_toc`, `autonum_style`, `autonum_from_level`, and `autonum_prefix` are inherited downwards from a part, which is why one line on the `Appendices` part configures every appendix at once. `chapter_toc` is not chained; it falls back to `document.chapter_toc`.
-
----
-
-## Template System
-
-Templates are organized by theme first, then by target format:
-```
-templates/
-└── default/
-  ├── pdf/
-  │   ├── layout.html          # Jinja2 layout
-  │   ├── styles.css           # CSS Paged Media (@page, @top-left, @bottom-right)
-  │   ├── cover.html           # Cover page
-  │   ├── part_divider.html    # Part separator page
-  │   ├── chapter_divider.html # Chapter separator page & local TOC (PDF only)
-  │   └── toc.html             # Global TOC
-  └── html/
-    └── ...
-```
-
-### Template Resolution Order:
-When rendering `pdf` with theme `default`:
-1. **User directory**: `~/.markpublish/templates/default/pdf/` (or OS config dir)
-2. **Common / Project directory**: `<templates_dir>/default/pdf/` (configured via `--templates-dir`, YAML `templates_dir`, `MARKPUBLISH_TEMPLATES_DIR`, or `./templates`)
-3. **Package built-ins**: Embedded inside `markpublish`.
-
-
-### Static texts and language
-
-Fixed labels (table of contents heading, chapter tags, cover labels, page footer,
-callout titles) live in `i18n.yaml` files rather than in the templates. The language
-comes from `document.language`; `de` and `en` ship with the package, regional forms map
-onto them (`de-AT` -> `de`), and an unknown language falls back to English. Leave the key
-out and the system language applies -- `markpublish init` writes it down, so a document
-builds the same on every machine.
-
-*i18n* is the source data across all languages; *labels* is what it resolves to for one
-document in one language, i.e. what a template sees as `{{ labels.chapter }}`.
-
-Three levels, all built the same way -- language code, then key/text. Each level
-overrides the one above it, and only for the keys it actually sets:
-
-| Level | Location |
-| :--- | :--- |
-| 1 | `markpublish/i18n.yaml` (complete, `de` + `en`) |
-| 2 | `<templates>/<theme>/i18n.yaml` |
-| 3 | `<templates>/<theme>/<target>/i18n.yaml` |
-
-Levels 2 and 3 always come from the **one** theme the template resolution picked
-(user > project > package); a project theme does not inherit the texts of the
-package theme of the same name. A document cannot override texts -- give it its
-own theme (`markpublish export-template`) instead.
-
-```yaml
-# any of the three levels
-"*":                       # applies to every language
-  version: "Rev."
-de:
-  part: "Abschnitt"
-en:
-  part: "Section"
-```
-
-A flat mapping without the language level is shorthand for `"*"`. Levels 2 and 3 apply
-**only to the selected language**, so a theme's English block never leaks into German
-output. Level 1 additionally layers English underneath the document language, so every
-program text always resolves. A missing `i18n.yaml` is fine; a malformed one aborts the
-build naming the file.
-
-#### Free labels
-
-A theme may define keys the program knows nothing about -- for the static texts of the
-template itself -- and read them back with `{{ labels.imprint_title }}`. There is no
-program default to fall back on for those, so the rule is strict: a label written in a
-template must resolve in the cascade, otherwise the build **aborts** and names the key,
-the file and line that used it, the document language, and the `i18n.yaml` files that
-were searched. Keep every language of a free label filled in, or put it under `"*"`.
-An empty string in a finished PDF goes unnoticed; an abort does not.
-
-The bundled `default` theme ships all three template-side files as commented patterns,
-and `markpublish export-template` copies them along with the templates.
-
-Run `markpublish labels [--target html] [--overridden]` to see the resolved table and
-which level supplied each value.
-
-### Exporting Templates for Customization:
-```bash
-markpublish export-template default
-```
-
----
-
-## CLI Commands
-
-| Command | Description |
-| :--- | :--- |
-| `markpublish build [config.yaml]` | Builds PDF/HTML outputs (`-t pdf`, `-t html`, `-t all`) |
-| `markpublish init [path]` | Scaffolds a new project with chapters and configuration |
-| `markpublish cheatsheet` | Renders the two-page reference card (`--lang`, `--target`) |
-| `markpublish manual` | Renders the full user guide (`--lang`, `--target`) |
-| `markpublish templates` | Lists available templates across User, Common, and Package sources |
-| `markpublish export-template [theme]` | Copies a built-in template to project directory |
-| `markpublish labels` | Shows the resolved static texts and their cascade origin |
-
----
-
-## License
-
-MIT License. See [LICENSE](https://github.com/fwdotcom/markpublish/blob/main/LICENSE) for details.
-
+MIT © 2026 Frank Winter —
+[LICENSE](https://github.com/fwdotcom/markpublish/blob/main/LICENSE)

@@ -54,7 +54,7 @@ prüfen Sie die Kaskade vor dem Bauen.
 
 | Befehl | Wichtige Optionen | Bedeutung |
 | :--- | :--- | :--- |
-| `markpublish build` | `--theme`, `--target`, `-o`, `--templates-dir` | Dokument nach PDF oder HTML kompilieren |
+| `markpublish build` | `--theme`, `--target`, `-o`, `--templates-dir` | Dokument nach PDF kompilieren |
 | `markpublish init` | `[ZIEL]`, `--title`, `--lang` | Minimales Starterprojekt einrichten |
 | `markpublish cheatsheet` | `--lang`, `--theme`, `-o`, `--templates-dir` | Diese Schnellreferenz als PDF erzeugen |
 | `markpublish manual` | `--lang`, `--theme`, `-o`, `--templates-dir` | Vollständiges Benutzerhandbuch erzeugen |
