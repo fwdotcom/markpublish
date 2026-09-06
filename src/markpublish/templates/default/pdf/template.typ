@@ -207,11 +207,25 @@
       v(if it.level == 1 { 2.2em } else if it.level == 2 { 1.7em } else if it.level == 3 { 1.3em } else { 1.1em })
       let num = if it.numbering != none { counter(heading).display(it.numbering) } else { none }
       let h-text = if num != none and str(num).trim() != "" [ #num #it.body ] else [ #it.body ]
+      // `sticky: true` haelt die Ueberschrift bei ihrem Text: stuende sie sonst
+      // als letzte Zeile am Seitenfuss, wandert sie mit auf die naechste Seite.
+      // Typsts eingebaute Ueberschrift bringt das mit -- diese Regel ersetzt sie
+      // und muesste es sonst mit ihr verlieren.
+      //
+      // Der Block steht *innerhalb* von `text`, und `above`/`below` kommen aus
+      // `par.spacing`: beides zusammen haelt die Abstaende auf den Werten von
+      // vorher. Ohne den Block war der Ueberschriftentext ein Absatz im Fluss
+      // und brachte seinen Absatzabstand mit, aufgeloest an der Schriftgroesse
+      // der Ueberschrift -- 1.5em sind bei 18pt eben 27pt, nicht 15pt. Ein
+      // Block ausserhalb von `text` loeste dieselben 1.5em an der Grundschrift
+      // auf und verschoebe damit das ganze Dokument.
       text(
         fill: rgb("0f172a"),
         weight: "bold",
         size: if it.level == 1 { 18pt } else if it.level == 2 { 14pt } else if it.level == 3 { 11.5pt } else { 10.5pt },
-      )[#h-text]
+      )[
+        #context block(width: 100%, above: par.spacing, below: par.spacing, sticky: true)[#h-text]
+      ]
       v(if it.level == 1 { 0.6em } else if it.level == 2 { 0.5em } else { 0.4em })
     }
   }
