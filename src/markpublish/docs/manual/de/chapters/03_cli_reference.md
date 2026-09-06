@@ -43,7 +43,7 @@ Beispiele:
 # Standard-Build im aktuellen Projekt
 markpublish build
 
-# Anderes Konfigurationsfile und Ausgabeordner festlegen
+# Andere Konfigurationsdatei und anderen Ausgabeordner festlegen
 markpublish build projekte/bericht.yaml --output dist/
 ```
 
@@ -97,7 +97,7 @@ markpublish cheatsheet [OPTIONEN]
 | `--lang`, `-l` | *(Systemsprache)* | Sprachauswahl des Dokuments (z. B. `de` oder `en`). |
 | `--target`, `-t` | `pdf` | Ausgabeformat (`pdf`). |
 | `--output`, `-o` | `.` *(aktueller Ordner)* | Zielpfad für das generierte Dokument. |
-| `--theme` | `None` | Render-Vorgabe mit einem alternativen Theme anstelle des Standard-Themes. |
+| `--theme` | `None` | Rendert mit einem alternativen Theme anstelle des Standard-Themes. |
 | `--templates-dir` | `None` | Pfad zu einem benutzerdefinierten Vorlagen-Verzeichnis. |
 
 ### Erläuterungen
@@ -198,9 +198,9 @@ Die Spalte **i18n-Quelle** nennt die Ebene der Kaskade, aus der ein Text stammt:
 | `target` | `<theme>/<zielformat>/i18n.yaml` |
 | `projekt` | `i18n.yaml` neben Ihrer `markpublish.yaml` |
 
-Grün hervorgehoben sind die Ebenen, die den Programmstandard ersetzt haben — genau diese zeigt `--overridden` allein. Der Sprachblock steht nur dann in Klammern dabei, wenn er von der Dokumentsprache abweicht: `(*)` für einen sprachunabhängigen Eintrag, `(en)` für einen Rückfall auf die Fallback-Sprache. Am Fuß der Ausgabe stehen die vollständigen Pfade zu allen vier Ebenen.
+Grün hervorgehoben sind die Ebenen, die den Programmstandard ersetzt haben – genau diese zeigt `--overridden` allein. Der Sprachblock steht nur dann in Klammern dabei, wenn er von der Dokumentsprache abweicht: `(*)` für einen sprachunabhängigen Eintrag, `(en)` für einen Rückfall auf die Fallback-Sprache. Am Fuß der Ausgabe stehen die vollständigen Pfade zu allen vier Ebenen.
 
-Zusätzlich prüft der Befehl das Theme gegen den Aufruf, den markpublish beim Rendern erzeugt. Ein Theme, dessen `setup-document` einen gesendeten Parameter nicht deklariert, wird hier gemeldet — vor dem Bauen statt währenddessen.
+Zusätzlich prüft der Befehl das Theme gegen den Aufruf, den markpublish beim Rendern erzeugt. Ein Theme, dessen `setup-document` einen gesendeten Parameter nicht deklariert, wird hier gemeldet – vor dem Bauen statt währenddessen.
 
 ---
 
@@ -218,7 +218,7 @@ Folgende Optionen stehen global für alle Befehle zur Verfügung:
 
 ## Sprache der Kommandozeile
 
-markpublish spricht Deutsch und Englisch. Gemeint ist damit die Oberfläche —
+markpublish spricht Deutsch und Englisch. Gemeint ist damit die Oberfläche –
 Hilfetexte, Statusmeldungen und Fehlermeldungen im Terminal.
 
 > [!IMPORTANT]
@@ -241,7 +241,7 @@ export MARKPUBLISH_UI_LANG=en    # Windows: $env:MARKPUBLISH_UI_LANG = "en"
 markpublish build
 ```
 
-Es gilt, was am nächsten am Aufruf steht:
+Es gilt jeweils die Angabe, die dem Aufruf am nächsten steht:
 
 1. `--ui-lang` auf der Kommandozeile
 2. die Umgebungsvariable `MARKPUBLISH_UI_LANG`
@@ -250,10 +250,10 @@ Es gilt, was am nächsten am Aufruf steht:
 4. Englisch
 
 Eine regionale Angabe wird auf ihre Basissprache zurückgeführt: `de-AT` und
-`de_DE` ergeben beide Deutsch. Eine Sprache, für die keine Übersetzung
-vorliegt, führt auf Englisch — geraten wird nicht.
+`de_DE` ergeben beide Deutsch. Für eine Sprache, zu der keine Übersetzung
+vorliegt, fällt markpublish auf Englisch zurück – geraten wird nicht.
 
 > [!NOTE]
 > Bewusst nicht dabei ist die `markpublish.yaml`. Die Terminalsprache gehört
-> zur Arbeitsumgebung eines Menschen, nicht zum Projekt — zwei Personen an
+> zur Arbeitsumgebung eines Menschen, nicht zum Projekt – zwei Personen an
 > einem Repository sollen sie unabhängig voneinander wählen können.

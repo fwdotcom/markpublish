@@ -4,7 +4,7 @@
 
 Markdown ist das führende Format für technische Dokumentationen, Notizen und Projektberichte. Seine Stärke liegt in der Einfachheit und Lesbarkeit im reinen Textformat. Sobald jedoch aus diesen Texten hochwertige, druckfertige Berichte, Handbücher oder Whitepapers entstehen sollen, stoßen herkömmliche Werkzeuge an ihre Grenzen. Häufig folgt ein zeitaufwendiger manueller Nachbearbeitungsschritt in Textverarbeitungs- oder Layoutprogrammen.
 
-**markpublish** schließt diese Lücke: Es verwandelt strukturierte Markdown-Dateien über eine einfache, aber mächtige Konfiguration vollautomatisch in typografisch anspruchsvolle, professionell gestaltete PDF-Dokumente. 
+**markpublish** schließt diese Lücke: Es verwandelt strukturierte Markdown-Dateien über eine einfache, aber mächtige Konfiguration vollautomatisch in typografisch anspruchsvolle, professionell gestaltete PDF-Dokumente.
 
 Das Ziel von markpublish ist es, Entwicklern, technischen Redakteuren und Autoren einen nahtlosen Veröffentlichungsprozess zu bieten. Inhalte werden in einfachem Markdown verfasst, während markpublish die vollständige Kontrolle über Layout, Gliederung, Trennseiten, Nummerierung, Verzeichnisse und Typografie übernimmt.
 
@@ -14,7 +14,7 @@ markpublish zeichnet sich durch einen klaren Fokus auf Dokumentenqualität, Gesc
 
 * **Moderne Satzqualität durch Typst:** Durch die Verwendung der innovativen Satz-Engine Typst entstehen Dokumente mit herausragender typografischer Präzision, perfektem Randausgleich und ästhetischem Layout.
 
-* **Extrem hohe Kompiliergeschwindigkeit:** Selbst umfangreiche Dokumente mit dutzenden Seiten, Abbildungen und Tabellen werden in rund ein bis zwei Sekunden vollständig gesetzt.
+* **Hohe Kompiliergeschwindigkeit:** Selbst umfangreiche Dokumente mit Dutzenden von Seiten, Abbildungen und Tabellen werden in rund ein bis zwei Sekunden vollständig gesetzt.
 
 * **Einfache Installation und Portabilität:** Als reguläres Python-Paket lässt sich markpublish plattformübergreifend auf Windows, macOS und Linux ohne komplizierte Einrichtung betreiben.
 
@@ -26,31 +26,13 @@ markpublish zeichnet sich durch einen klaren Fokus auf Dokumentenqualität, Gesc
 
 * **Umfassende Markdown-Erweiterungen:** Standardmäßige Unterstützung von GitHub-konformen Hinweisboxen (Admonitions/Callouts), Tabellen, Definitionslisten, Fußnoten, Aufgabenlisten und Quellcode mit Syntax-Highlighting.
 
-* **Kaskadierende Mehrsprachigkeit (i18n):** Integrierte Unterstützung für mehrsprachige Templates, um statische Texte (wie Autor, Inhaltsverzeichnis, Seite) in der richtigen Sprache anzuzeigen [^1]
-
-[^1]: Aktuell wird Deutsch und Englisch unterstützt.
+* **Kaskadierende Mehrsprachigkeit (i18n):** Integrierte Unterstützung für mehrsprachige Templates, um statische Texte (wie Autor, Inhaltsverzeichnis, Seite) in der richtigen Sprache anzuzeigen.
 
 ## Architektur im Überblick
 
 Die Arbeitsweise von markpublish folgt einer klaren Verarbeitungs-Pipeline:
 
-```text
-Eingaben:
-  ├── Konfiguration    (markpublish.yaml)
-  ├── Inhalte          (chapters/*.md)
-  └── Layout           (templates/<theme>/)
-           │
-           ▼
-  [ markpublish Pipeline ]
-           │
-           ▼
-  [ Typst Satz-Engine ]
-           │
-           ▼
-  [ Fertiges PDF-Dokument ]
-```
-
-1. **Konfigurations- und Dokumentenanalyse:** markpublish liest die `markpublish.yaml` ein, validiert sämtliche Einstellungen und baut die Gliederungshierarchie aus Abschnitten und Kapiteln auf.
+1. **Konfigurations- und Dokumentenanalyse:** markpublish liest die Datei `markpublish.yaml` ein, validiert sämtliche Einstellungen und baut die Gliederungshierarchie aus Abschnitten und Kapiteln auf.
 
 2. **Inhaltsaufbereitung:** Die Markdown-Dateien der Kapitel werden eingelesen und strukturiert aufbereitet. Überschriften erhalten ihre exakte Nummerierung, Sprungmarken werden gesetzt und Verzeichniseinträge synchron erfasst.
 

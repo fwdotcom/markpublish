@@ -343,6 +343,7 @@ class TypstSerializer:
         items: List[str] = []
         indent = "  " * depth
         marker = "+" if is_ordered else "-"
+        has_task_item = False
 
         for child in elem:
             if child.tag.lower() != "li":
@@ -383,6 +384,7 @@ class TypstSerializer:
             li_text = "".join(inline_parts).strip()
 
             if is_task:
+                has_task_item = True
                 chk_str = "true" if checked else "false"
                 item_line = f"{indent}#task-item(checked: {chk_str})[{li_text}]"
             else:
@@ -393,7 +395,20 @@ class TypstSerializer:
 
             items.append(item_line)
 
-        return "\n".join(items)
+        rendered = "\n".join(items)
+
+        # Aufgabenlisten sind keine Typst-Liste, sondern eine Folge einzelner
+        # `#task-item`-Bloecke. Ohne Klammer ringsum wirkt deren enger
+        # Innenabstand auch nach aussen: die Liste klebt am einleitenden Absatz,
+        # der Abstand davor faellt sogar kleiner aus als der zwischen den
+        # Eintraegen, und die erste Zeile liest sich wie Teil des Absatzes.
+        # Ein `#block` darum gibt der Gruppe den normalen Absatzabstand und
+        # laesst die Eintraege untereinander eng. Nur auf oberster Ebene --
+        # verschachtelte Listen gehoeren in ihren Elterneintrag.
+        if has_task_item and depth == 0:
+            return "#block[\n" + rendered + "\n]"
+
+        return rendered
 
     def _visit_table(self, table_elem: etree.Element) -> str:
         """Renders an HTML table into a clean Typst #table(...) block."""

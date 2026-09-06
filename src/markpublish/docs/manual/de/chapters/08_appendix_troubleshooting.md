@@ -26,7 +26,7 @@ Sollte ein Kompiliervorgang mit einer Fehlermeldung der Typst-Engine abbrechen, 
 
 **Problem:** Typst bricht mit einer Meldung wie `image not found` ab.
 
-**Lösung:** 
+**Lösung:**
 
 * Pfade zu Abbildungen im Markdown (z. B. `![Diagramm](images/architektur.png)`) werden immer **relativ zur jeweiligen Markdown-Datei** aufgelöst.
 

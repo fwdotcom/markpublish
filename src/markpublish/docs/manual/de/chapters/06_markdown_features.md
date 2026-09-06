@@ -1,16 +1,14 @@
 # Besondere Markdown-Features
 
-markpublish unterstützt den vollen Funktionsumfang des modernen CommonMark- und GitHub Flavored Markdown-Standards. Grundlegende Elemente wie Überschriften, Absätze, Textauszeichnungen (*kursiv*, **fett**), Tabellen, Aufzählungen, Quellcode-Blöcke und Weblinks funktionieren exakt wie gewohnt.
+markpublish unterstützt den vollen Funktionsumfang des modernen CommonMark- und GitHub-Flavored-Markdown-Standards. Grundlegende Elemente wie Überschriften, Absätze, Textauszeichnungen (*kursiv*, **fett**), Tabellen, Aufzählungen, Quellcode-Blöcke und Weblinks funktionieren exakt wie gewohnt.
 
-Dieses Kapitel konzentriert sich ausschließlich auf die darüber hinausgehenden Spezialfeatures und typografischen Erweiterungen von markpublish.
+Dieses Kapitel konzentriert sich ausschließlich auf die darüber hinausgehenden Spezialfeatures und typografischen Erweiterungen von markpublish. Jeder Abschnitt zeigt zuerst die Auszeichnung im Markdown und unmittelbar darunter das Ergebnis, wie es in diesem Handbuch gesetzt wurde.
 
 ---
 
 ## Hinweisboxen (Admonitions und Callouts)
 
-Zur optischen Hervorhebung wichtiger Passagen unterstützt markpublish GitHub-konforme Callout-Blöcke. 
-
-### Syntax
+Zur optischen Hervorhebung wichtiger Passagen unterstützt markpublish GitHub-konforme Callout-Blöcke. Sie werden als Zitatblock notiert, dessen erste Zeile den Typ der Box in eckigen Klammern nennt:
 
 ```markdown
 > [!NOTE]
@@ -29,9 +27,7 @@ Zur optischen Hervorhebung wichtiger Passagen unterstützt markpublish GitHub-ko
 > Kritischer Sicherheitshinweis vor potenziellen Datenverlusten.
 ```
 
-### Live-Darstellung im Dokument
-
-Die obige Auszeichnung wird im PDF wie folgt als gestaltete Boxen mit farbigem Rahmen und Icon gerendert:
+Im PDF entstehen daraus gestaltete Boxen mit farbigem Rahmen und Icon:
 
 > [!NOTE]
 > Dies ist ein allgemeiner Informationstext mit nützlichen Details.
@@ -48,9 +44,19 @@ Die obige Auszeichnung wird im PDF wie folgt als gestaltete Boxen mit farbigem R
 > [!CAUTION]
 > Kritischer Sicherheitshinweis vor potenziellen Datenverlusten.
 
+Wird ein eigener Titel gewünscht, kann dieser direkt hinter dem Typ in der ersten Zeile angegeben werden:
+
+```markdown
+> [!NOTE] Individuelle Überschrift
+> Eigener Inhalt mit spezifischem Titel.
+```
+
+> [!NOTE] Individuelle Überschrift
+> Eigener Inhalt mit spezifischem Titel.
+
 ### Automatische Lokalisierung über i18n-Labels
 
-Die Titelleiste der Hinweisboxen („Hinweis“, „Tipp“, „Wichtig“, „Warnung“, „Achtung“) wird automatisch über die Beschriftungsdatei `i18n.yaml` der gewählten Dokumentensprache bezogen:
+Ohne eigenen Titel wird die Titelleiste der Hinweisboxen („Hinweis“, „Tipp“, „Wichtig“, „Warnung“, „Achtung“) automatisch über die Beschriftungsdatei `i18n.yaml` der gewählten Dokumentsprache bezogen:
 
 | Box-Typ | Verwendeter i18n-Schlüssel | Deutsche Beschriftung |
 | :--- | :--- | :--- |
@@ -60,23 +66,35 @@ Die Titelleiste der Hinweisboxen („Hinweis“, „Tipp“, „Wichtig“, „W
 | `[!WARNING]` | `alert_warning` | Warnung |
 | `[!CAUTION]` | `alert_caution` | Achtung |
 
-Wird im Markdown ein eigener Titel gewünscht, kann dieser in der ersten Zeile direkt angegeben werden:
+### Alternative Schreibweise mit `!!!`
+
+Neben der GitHub-Notation versteht markpublish auch die aus MkDocs bekannte Admonition-Schreibweise. Der Typ folgt auf drei Ausrufezeichen, ein optionaler Titel steht in Anführungszeichen dahinter, der Inhalt wird um vier Leerzeichen eingerückt:
 
 ```markdown
-> [!NOTE] Individuelle Überschrift
-> Eigener Inhalt mit spezifischem Titel.
+!!! warning "Eigener Titel"
+    Der eingerückte Inhalt darf mehrere Absätze umfassen.
 ```
 
-> [!NOTE] Individuelle Überschrift
-> Eigener Inhalt mit spezifischem Titel.
+!!! warning "Eigener Titel"
+    Der eingerückte Inhalt darf mehrere Absätze umfassen.
+
+Beide Schreibweisen erzeugen dieselbe gestaltete Box. Ein Unterschied bleibt allerdings: Ohne eigenen Titel setzt `!!!` die englische Vorgabe der Erweiterung („Note“, „Tip“, „Warning“) statt der Beschriftung aus der i18n-Kaskade. Wer die lokalisierte Titelzeile möchte, notiert entweder `> [!NOTE]` oder gibt bei `!!!` einen ausdrücklich leeren Titel an:
+
+```markdown
+!!! note ""
+    Die Titelzeile stammt dann aus der i18n-Kaskade.
+```
+
+!!! note ""
+    Die Titelzeile stammt dann aus der i18n-Kaskade.
+
+Ein unbekannter Typ (etwa `!!! info`) wird als Hinweis-Box gesetzt und behält seinen Namen als Titelzeile.
 
 ---
 
 ## Definitionslisten
 
-Für Glossare, Begriffserklärungen oder Parameterübersichten bieten Definitionslisten eine besonders saubere typografische Struktur.
-
-### Syntax
+Für Glossare, Begriffserklärungen oder Parameterübersichten bieten Definitionslisten eine besonders saubere typografische Struktur. Der Begriff steht in einer eigenen Zeile, die zugehörige Erläuterung folgt darunter, eingeleitet durch einen Doppelpunkt:
 
 ```markdown
 Markdown
@@ -92,7 +110,7 @@ Typst
 : Moderne, hochperformante Satz-Engine, die markpublish zur typografischen Erzeugung von Druck-PDFs nutzt.
 ```
 
-### Live-Darstellung im Dokument
+Gesetzt wird daraus ein Block aus hervorgehobenem Begriff und eingerückter Erläuterung:
 
 Markdown
 : Einfache, lesbare Auszeichnungssprache für formatierte Texte im Klartextformat.
@@ -110,9 +128,7 @@ Typst
 
 ## Aufgabenlisten (Tasklists)
 
-Zur Darstellung von Checklisten, To-Do-Listen oder Meilensteinen stehen Aufgabenlisten zur Verfügung. markpublish setzt Aufgabenlisten typografisch sauber ohne vorangestellte Aufzählungspunkte (Bullets) direkt mit der Checkbox und dem Text; mehrzeilige Beschreibungen brechen bündig unter der ersten Zeile um.
-
-### Syntax
+Zur Darstellung von Checklisten, To-do-Listen oder Meilensteinen stehen Aufgabenlisten zur Verfügung. Notiert werden sie als Aufzählung, deren Einträge mit einer leeren oder angekreuzten Klammer beginnen:
 
 ```markdown
 - [x] Python 3.10 oder neuer bereitstellen
@@ -120,7 +136,7 @@ Zur Darstellung von Checklisten, To-Do-Listen oder Meilensteinen stehen Aufgaben
 - [ ] Erstes eigenes Dokument veröffentlichen
 ```
 
-### Live-Darstellung im Dokument
+markpublish setzt Aufgabenlisten typografisch sauber ohne vorangestellte Aufzählungspunkte (Bullets) direkt mit der Checkbox und dem Text; mehrzeilige Beschreibungen brechen bündig unter der ersten Zeile um:
 
 - [x] Python 3.10 oder neuer bereitstellen
 
@@ -134,18 +150,7 @@ Zur Darstellung von Checklisten, To-Do-Listen oder Meilensteinen stehen Aufgaben
 
 markpublish unterstützt die klassische Markdown-Notation für Fußnoten. Damit lassen sich weiterführende Hinweise, Quellenangaben oder detaillierte Erläuterungen elegant auslagern, ohne den Lesefluss des Haupttextes zu unterbrechen.
 
-Die Notation erfolgt zweistufig: An der gewünschten Textstelle wird ein Fußnotenverweis wie `[^1]` oder ein sprechender Bezeichner wie `[^hinweis]` eingefügt. Die zugehörige Textdefinition kann an beliebiger Stelle im Markdown-Dokument notiert werden – üblicherweise am Ende des jeweiligen Abschnitts oder Kapitels.
-
-markpublish überführt diese Notationen vollautomatisch in echte Typst-Fußnoten (`#footnote[...]`):
-
-* **Seitengenaue Platzierung:** Fußnoten werden typografisch sauber am unteren Rand genau der Druckseite ausgegeben, auf der sich der Verweis befindet.
-* **Automatische Nummerierung:** Ziffern und textuelle Bezeichner werden kapitel- bzw. dokumentweit fortlaufend nummeriert.
-* **Interaktive Hyperlinks:** Im erzeugten PDF sind Verweisziffer und Fußnotentext gegenseitig verlinkt.
-
-> [!NOTE] Fußnoten vs. laufende Fußzeilen
-> In markpublish wird begrifflich klar zwischen inhaltlichen **Fußnoten** (Anmerkungen am Seitenende via `[^1]`) und **laufenden Fußzeilen** (Seitenzahl, Kolumnentitel und Copyright-Zeile am Blattrand) unterschieden. Die laufende Kopf- und Fußzeile wird nicht im Markdown notiert, sondern global in der `markpublish.yaml` über `footer: true` bzw. `footer: false` gesteuert (siehe Kapitel *Konfigurations-Handbuch*).
-
-### Syntax
+Die Notation erfolgt zweistufig: An der gewünschten Textstelle wird ein Fußnotenverweis wie `[^1]` oder ein sprechender Bezeichner wie `[^hinweis]` eingefügt. Die zugehörige Textdefinition kann an beliebiger Stelle im Markdown-Dokument notiert werden – üblicherweise am Ende des jeweiligen Abschnitts oder Kapitels:
 
 ```markdown
 Dieser Satz enthält eine nummerierte Fußnote[^1] sowie eine Notiz mit Text-Schlüssel[^hinweis].
@@ -154,11 +159,20 @@ Dieser Satz enthält eine nummerierte Fußnote[^1] sowie eine Notiz mit Text-Sch
 [^hinweis]: Text-Schlüssel werden bei der Ausgabe automatisch in die richtige Ziffer umgewandelt.
 ```
 
-### Live-Darstellung im Dokument
-
-Dieser Beispielsatz demonstriert eine echte Fußnote im Handbuch[^fn-demo].
+Der folgende Beispielsatz demonstriert eine echte Fußnote in diesem Handbuch[^fn-demo].
 
 [^fn-demo]: Dies ist eine echte Fußnote in diesem Handbuch. Im PDF wird sie automatisch am unteren Rand dieser Druckseite platziert.
+
+markpublish überführt diese Notationen vollautomatisch in echte Typst-Fußnoten (`#footnote[...]`):
+
+* **Seitengenaue Platzierung:** Fußnoten werden typografisch sauber am unteren Rand genau der Druckseite ausgegeben, auf der sich der Verweis befindet.
+
+* **Automatische Nummerierung:** Ziffern und textuelle Bezeichner werden kapitel- bzw. dokumentweit fortlaufend nummeriert.
+
+* **Interaktive Hyperlinks:** Im erzeugten PDF sind Verweisziffer und Fußnotentext gegenseitig verlinkt.
+
+> [!NOTE] Fußnoten und laufende Fußzeilen
+> In markpublish wird begrifflich klar zwischen inhaltlichen **Fußnoten** (Anmerkungen am Seitenende via `[^1]`) und **laufenden Fußzeilen** (Seitenzahl, Kolumnentitel und Copyright-Zeile am Blattrand) unterschieden. Die laufende Kopf- und Fußzeile wird nicht im Markdown notiert, sondern global in der `markpublish.yaml` über `footer: true` bzw. `footer: false` gesteuert (siehe Kapitel *Projektkonfiguration mit markpublish.yaml*).
 
 ---
 
@@ -166,9 +180,7 @@ Dieser Beispielsatz demonstriert eine echte Fußnote im Handbuch[^fn-demo].
 
 markpublish ermöglicht das direkte Setzen mathematischer Formeln im Fließtext oder als abgesetzte Formelblöcke. Die Formeln werden über die Satz-Engine Typst typografisch präzise gerendert.
 
-Unterstützt werden gängige mathematische Ausdrücke wie Brüche (`\frac{a}{b}`), Wurzeln (`\sqrt{x}`), Summen (`\sum`), Integrale (`\int`), griechische Symbole (`\alpha`, `\pi`, `\sigma` etc.) sowie die native Typst-Math-Syntax.
-
-### Syntax
+Unterstützt werden gängige mathematische Ausdrücke wie Brüche (`\frac{a}{b}`), Wurzeln (`\sqrt{x}`), Summen (`\sum`), Integrale (`\int`), griechische Symbole (`\alpha`, `\pi`, `\sigma` etc.) sowie die native Typst-Math-Syntax. Formeln im Fließtext stehen zwischen einfachen Dollarzeichen, abgesetzte Formelblöcke zwischen doppelten:
 
 ```markdown
 Die berühmte Energie-Masse-Äquivalenz lautet $E = m c^2$.
@@ -178,16 +190,16 @@ Abgesetzte Kreisflächenberechnung und quadratische Lösungsformel:
 $$ A = \pi \cdot r^2 \quad \text{und} \quad x = \frac{-b \pm \sqrt{b^2 - 4 a c}}{2 a} $$
 ```
 
-*Typografischer Hinweis zu Variablen:*  
-In Typst Math stehen mehrbuchstabige Wörter für Funktionen oder Bezeichner (wie `sin`, `cos`, `sqrt`). Die Multiplikation einzelner Variablen wird deshalb durch ein Leerzeichen getrennt notiert (z. B. `m c^2` oder `4 a c`).
-
-### Live-Darstellung im Dokument
+Im Satz ergibt das:
 
 Die berühmte Energie-Masse-Äquivalenz lautet $E = m c^2$.
 
 Abgesetzte Kreisflächenberechnung und quadratische Lösungsformel:
 
 $$ A = \pi \cdot r^2 \quad \text{und} \quad x = \frac{-b \pm \sqrt{b^2 - 4 a c}}{2 a} $$
+
+*Typografischer Hinweis zu Variablen:*  
+In Typst Math stehen mehrbuchstabige Wörter für Funktionen oder Bezeichner (wie `sin`, `cos`, `sqrt`). Die Multiplikation einzelner Variablen wird deshalb durch ein Leerzeichen getrennt notiert (z. B. `m c^2` oder `4 a c`).
 
 ---
 
@@ -204,8 +216,10 @@ markpublish unterstützt über Standard-Markdown hinaus feine typografische Text
 | **Geviertstrich (Em-Dash)** | `Einwurf --- oder nicht` | Einwurf --- oder nicht | Gedanklicher Einschub, Sprechpause |
 | **Auslassungspunkte (Ellipse)** | `Warten...` | Warten... | Satzabbrüche, Auslassungen |
 
-> [!TIP] Fließtext vs. mathematischer Formelsatz
+> [!TIP] Fließtext und mathematischer Formelsatz
 > Die Auszeichnungen `^hochgestellt^` und `~tiefgestellt~` eignen sich ideal für gebräuchliche Einheiten ($m^2$) und chemische Formeln ($H_2O$) im Fließtext. Für mathematische Gleichungen und Variablenformeln empfiehlt sich die native Formelumgebung mit `$...$` bzw. `$$...$$` (siehe Abschnitt *Mathematische Formeln*).
+
+---
 
 ## Automatische Symbole und Pfeile
 

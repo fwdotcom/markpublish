@@ -16,6 +16,7 @@ document
 ### Document (Dokumentebene)
 
 Die oberste Ebene `document:` beschreibt das Gesamtdokument:
+
 Metadaten
 : Titel, Untertitel, Autoren, Version, Datum, Sprache, Status und Copyright-Hinweise.
 
@@ -42,7 +43,7 @@ document:
 
 Drei Dinge sind dabei zu wissen:
 
-* **Die Beschriftung kommt aus der i18n-Kaskade.** Findet sich dort kein Eintrag für den Schlüssel, druckt das Deckblatt den Schlüssel selbst — also `abteilung` statt `Abteilung`. Legen Sie dafür eine `i18n.yaml` neben Ihre `markpublish.yaml`:
+* **Die Beschriftung kommt aus der i18n-Kaskade.** Findet sich dort kein Eintrag für den Schlüssel, druckt das Deckblatt den Schlüssel selbst – also `abteilung` statt `Abteilung`. Legen Sie dafür eine `i18n.yaml` neben Ihre `markpublish.yaml`:
 
   ```yaml
   # i18n.yaml, im Projektverzeichnis
@@ -52,11 +53,11 @@ Drei Dinge sind dabei zu wissen:
     freigegeben: "Freigegeben"
   ```
 
-  Diese Datei ist die letzte Stufe der Kaskade und gewinnt damit gegen Programm und Theme (siehe Kapitel *Template- und Designsystem*).
+  Diese Datei ist die letzte Stufe der Kaskade und gewinnt damit gegen Programm und Theme (siehe Kapitel *Templates und Mehrsprachigkeit*).
 
-* **Der Typ bleibt erhalten.** Ein `true` ist ein Wahrheitswert und kein Text: das Deckblatt setzt `Ja` beziehungsweise `Yes`, je nach Dokumentsprache. Die beiden Wörter stehen als `bool_true` und `bool_false` in der i18n-Kaskade.
+* **Der Typ bleibt erhalten.** Ein `true` ist ein Wahrheitswert und kein Text: Das Deckblatt setzt `Ja` beziehungsweise `Yes`, je nach Dokumentsprache. Die beiden Wörter stehen als `bool_true` und `bool_false` in der i18n-Kaskade.
 
-* **Ein Tippfehler wird gedruckt, nicht gemeldet.** `titel:` statt `title:` ergibt kein Fehlerbild, sondern eine zusätzliche Zeile auf dem Deckblatt. `markpublish labels` zeigt jedes Feld mit seinem Befund an — ein Blick dorthin vor dem ersten Bauen erspart die Suche.
+* **Ein Tippfehler wird gedruckt, nicht gemeldet.** `titel:` statt `title:` ergibt kein Fehlerbild, sondern eine zusätzliche Zeile auf dem Deckblatt. `markpublish labels` zeigt jedes Feld mit seinem Befund an – ein Blick dorthin vor dem ersten Bauen erspart die Suche.
 
 ### Parts (Abschnitte)
 
@@ -74,7 +75,7 @@ Die Liste `chapters:` innerhalb eines Abschnitts verweist auf die eigentlichen M
 
 * Jedes Kapitel verweist auf seine Markdown-Datei (`file:`). Autoren können in ihren Markdown-Dateien ganz natürlich mit einer `#`-Überschrift beginnen.
 
-* Über **`show_title:`** (`true` oder `false`, Standard: `true`) lässt sich steuern, ob die `#`-Überschrift der Markdown-Datei auf der Inhaltsseite gerendert werden soll. Wird vor dem Kapitel eine Trennseite erzeugt (`break_before: "divider"`), kann mit `show_title: false` verhindert werden, dass der Titel auf der Folgeseite doppelt erscheint — die Inhaltsseite beginnt dann direkt mit dem Fließtext oder der ersten Zwischenüberschrift.
+* Über **`show_title:`** (`true` oder `false`, Standard: `true`) lässt sich steuern, ob die `#`-Überschrift der Markdown-Datei auf der Inhaltsseite gerendert werden soll. Wird vor dem Kapitel eine Trennseite erzeugt (`break_before: "divider"`), kann mit `show_title: false` verhindert werden, dass der Titel auf der Folgeseite doppelt erscheint – die Inhaltsseite beginnt dann direkt mit dem Fließtext oder der ersten Zwischenüberschrift.
 
 * Über die optionalen Schlüssel **`toc_title:`** (für Inhaltsverzeichnisse und Kopfzeilen) und **`divider_title:`** (für Trennseiten) können gezielt abweichende Titel vergeben werden (z. B. eine prägnante Kurzform im Inhaltsverzeichnis gegenüber einer ausführlichen Überschrift auf der Textseite). Fehlen die Schlüssel, erben beide automatisch die `#`-Überschrift der Datei.
 

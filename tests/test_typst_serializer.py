@@ -190,3 +190,31 @@ def test_serialize_tasklist_without_bullet():
     assert "- #task-item" not in typst_output
     assert "- Regulär" in typst_output
 
+
+def test_tasklist_is_wrapped_in_block():
+    """
+    Die Aufgabenliste braucht eine Klammer, sonst klebt sie am Absatz davor.
+
+    `#task-item` setzt einen engen Innenabstand, damit die Eintraege dicht
+    untereinander stehen. Ohne `#block` ringsum gilt der auch nach aussen: der
+    Abstand zum einleitenden Absatz faellt dann kleiner aus als der zwischen
+    den Eintraegen, und die erste Zeile liest sich wie Teil des Absatzes.
+    """
+    from markpublish.markdown.engine import MarkdownEngine
+    from markpublish.markdown.typst_serializer import TypstSerializer, html_to_tree
+
+    md = """Einleitender Absatz:
+
+- [x] Fertig
+- [ ] Offen
+
+* Normale Liste
+* Zweiter Eintrag
+"""
+    typst_output = TypstSerializer().serialize(html_to_tree(MarkdownEngine().convert(md)))
+
+    assert "#block[\n#task-item(checked: true)[Fertig]" in typst_output
+    # Die normale Liste ist eine echte Typst-Liste und bringt ihren
+    # Absatzabstand selbst mit -- sie darf keine Klammer bekommen.
+    assert "#block[\n- Normale Liste" not in typst_output
+
