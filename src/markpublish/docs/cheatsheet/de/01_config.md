@@ -1,48 +1,66 @@
 # markpublish.yaml
 
-Oberste Ebene: `document`, `theme`, `parts`, optional `templates_dir`. Pfade
-relativ zu dieser Datei. Bauen: `markpublish build [datei] -t pdf`.
+Oberste Ebene der Konfigurationsdatei: `document`, `theme`, `parts`, optional `templates_dir`. Sämtliche Pfade gelten relativ zum Verzeichnis dieser Datei. Bauen mit: `markpublish build [CONFIG_FILE] [OPTIONEN]`.
 
 ## document
 
-Metadaten und globale Layout-Schalter. Pflicht ist allein `title`.
+Metadaten und globale Layout-Schalter. Pflichtangabe ist allein `title`.
 
 | Schlüssel | Standard | Bedeutung |
 | :--- | :--- | :--- |
-| `title` / `subtitle` | *title nötig* | Deckblatt, Kopfzeile, Dateiname |
-| `author` | – | Deckblatt |
-| `date` / `version` | `auto` / – | `auto` oder `today` für das Baudatum |
-| `language` | Systemsprache | Wählt die Beschriftungen, sonst `en` |
-| `cover` / `header` / `footer` | `true` | Deckblatt, Kopf- und Fußzeile |
-| `document_toc` | `full` | Großes Verzeichnis: `none`, `full` oder Tiefe |
-| `part_toc` / `chapter_toc` | `full` | Trennseiten-Verzeichnisse, gleiche Formen |
-| `autonum_style` | `decimal` | `decimal`, `roman`, `legal`, `none` |
-| `autonum_from_level` | `1` | Ab welcher Überschriftenebene gezählt wird |
-| `autonum_reset` / `pagenum_reset` | `false` | Zähler bzw. Seitenzahl neu beginnen |
+| `title` | *Pflichtangabe* | Titel des Dokuments (Deckblatt, Kopfzeile, Dateiname) |
+| `subtitle` | – | Untertitel auf dem Deckblatt |
+| `summary` | – | Zusammenfassung / Abstract auf dem Deckblatt |
+| `author` | – | Name des Autors (Deckblatt) |
+| `date` | `auto` | Datum auf dem Deckblatt (`auto` oder `today` für das Baudatum) |
+| `version` | – | Versionsnummer auf dem Deckblatt und in der Fußzeile |
+| `status` | – | Dokumentstatus auf dem Deckblatt (z. B. `Entwurf`, `Freigegeben`) |
+| `copyright` | – | Copyright-Hinweis auf dem Deckblatt |
+| `language` | Systemsprache | ISO-Sprachcode für statische Beschriftungen (`de`, `en`) |
+| `cover` | `true` | Deckblatt erzeugen (`true` oder `false`) |
+| `header` | `true` | Lebende Kopfzeilen aktivieren (`true` oder `false`) |
+| `footer` | `true` | Fußzeilen aktivieren (`true` oder `false`) |
+| `document_toc` | `full` | Haupt-Inhaltsverzeichnis: `none`, `full` oder Tiefe als Zahl |
+| `part_toc` | `full` | Vorgabe für Part-Trennseiten: `none`, `full` oder Tiefe |
+| `chapter_toc` | `full` | Vorgabe für Kapitel-Trennseiten: `none`, `full` oder Tiefe |
+| `autonum_style` | `decimal` | Zählstil für Überschriften: `decimal`, `roman`, `legal`, `none` |
+| `autonum_from_level` | `1` | Ab welcher Ebene nummeriert wird (1 = H1, 2 = H2, ...) |
+| `autonum_prefix` | – | Präfix vor Überschriftennummern (z. B. `A.` für A.1) |
+| `autonum_reset` | `false` | Zähler für Überschriften bei jedem Kapitel neu beginnen |
+| `pagenum_reset` | `false` | Seitennummerierung für jeden Part oder Kapitel neu beginnen |
 
-Außerdem `summary` (Deckblatt), `status`, `copyright` (Fußzeile). Eigene
-Zusatzfelder gehen über das Wörterbuch `meta` (`meta.at("mein_schluessel").value`) ans Theme –
-gedruckt werden sie erst, wenn das Theme sie aufführt.
+Eigene Zusatzfelder unter `document:` (z. B. `abteilung: "F&E"`, `projekt: "Alpha"`)
+werden über das Wörterbuch `meta` an das Theme weitergereicht (`meta.at("feld").value`)
+und gedruckt, sofern das Theme sie vorsieht. Statische Beschriftungen gehören in die
+`i18n.yaml`, nicht in `document:`.
 
 ## parts und chapters
 
 Genau zwei Stufen: `parts:` gliedert, `chapters:` trägt den Inhalt. Seitentitel
-stammen aus der Datei-H1, Verzeichnis- und Trennseitentitel lassen sich steuern.
+stammen aus der H1 der Markdown-Datei; Verzeichnis- und Trennseitentitel lassen sich
+individuell steuern.
 
-| Schlüssel | Gilt für | Bedeutung |
-| :--- | :--- | :--- |
-| `part` | Part | Name des Parts, Pflicht |
-| `chapters` | Part | Liste der Kapitel, mindestens eines |
-| `file` | Kapitel | Pfad zur Markdown-Datei |
-| `show_title` | Kapitel | `true` (Standard); `false` unterdrückt die Datei-H1 auf der Seite |
-| `toc_title` | beide | Titel für Inhaltsverzeichnis und Kopfzeilen |
-| `divider_title` | beide | Titel auf der Trennseite |
-| `subtitle` / `summary` | beide | Untertitel und Kurzbeschreibung auf Trennseiten |
-| `break_before` | beide | `page`, `divider` (Trennseite) oder `none` |
-| `document_toc` | beide | Anteil am Verzeichnis vorn |
-| `part_toc` / `chapter_toc` | Part / Kapitel | Verzeichnis auf der Trennseite |
-| `autonum_*`, `pagenum_reset` | beide | Wie unter `document`, hier lokal |
+| Schlüssel | Ebene | Standard | Bedeutung |
+| :--- | :--- | :--- | :--- |
+| `part` | Part | *Pflichtangabe* | Name des Abschnitts |
+| `chapters` | Part / Kapitel | *Pflichtangabe* | Liste der Kapitel bzw. Unterkapitel (mindestens eines) |
+| `file` | Kapitel | *Pflichtangabe* | Pfad zur Markdown-Datei (relativ zur Konfiguration) |
+| `show_title` | Kapitel | `true` | Datei-H1 auf der Inhaltsseite anzeigen (`false` blendet sie aus) |
+| `toc_title` | Part / Kapitel | Datei-H1 / `part` | Titel für Haupt-Inhaltsverzeichnis und Kopfzeilen |
+| `divider_title` | Part / Kapitel | `part` / Datei-H1 | Titel auf der Trennseite |
+| `subtitle` | Part / Kapitel | – | Untertitel auf der Trennseite |
+| `summary` | Part / Kapitel | – | Kurzbeschreibung auf der Trennseite |
+| `break_before` | Part / Kapitel | `divider` / `page` | Seitenumbruch: `divider` (Trennseite), `page` oder `none` |
+| `document_toc` | Part / Kapitel | geerbt | Beitrag zum Haupt-Inhaltsverzeichnis (`none`, `full`, Tiefe) |
+| `part_toc` | Part | geerbt | Lokales Verzeichnis auf der Part-Trennseite |
+| `chapter_toc` | Part / Kapitel | geerbt | Lokales Verzeichnis auf der Kapitel-Trennseite |
+| `autonum_style` | Part / Kapitel | geerbt | Lokaler Zählstil (`decimal`, `roman`, `legal`, `none`) |
+| `autonum_from_level` | Part / Kapitel | geerbt | Ebene, ab der nummeriert wird |
+| `autonum_prefix` | Part / Kapitel | geerbt | Präfix für Nummern in diesem Abschnitt |
+| `autonum_reset` | Part / Kapitel | `false` | Zähler am Beginn des Abschnitts/Kapitels zurücksetzen |
+| `pagenum_reset` | Part / Kapitel | `false` | Seitennummerierung am Beginn zurücksetzen |
 
 `document_toc: 1` listet ein Kapitel ohne seine Unterüberschriften; am Part
-gesetzt, flacht es alle Anhänge auf einmal ab. `autonum_*` und `document_toc`
-vererben von `document` über den Part zum Kapitel — der tiefere Wert gewinnt.
+gesetzt, flacht es alle enthaltenen Kapitel auf einmal ab. Optionen mit dem
+Vermerk *geerbt* übernehmen ihren Standardwert von `document` über den Part
+zum Kapitel – die tiefere Angabe gewinnt.

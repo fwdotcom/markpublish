@@ -1,7 +1,7 @@
-# Quelle der zweiseitigen Kurzreferenz, die "markpublish cheatsheet" rendert.
+# Quelle der Kurzreferenz, die "markpublish cheatsheet" rendert.
 #
 # Sie liegt im Paket und wird bei jedem Aufruf neu gerendert, passt also immer
-# zur installierten Version. Zwei Seiten sind Bedingung, nicht Zufall.
+# zur installierten Version.
 #
 # Inhaltlich deckungsgleich mit ../en: gleiche Kapitel, gleiche Reihenfolge,
 # gleiche Tabellen. Nur die Sprache unterscheidet sich.

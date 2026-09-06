@@ -25,7 +25,7 @@ def test_cli_init_and_build(tmp_path: Path):
     init_res = runner.invoke(app, ["init", str(project_dir), "--title", "CLI Test Doc"])
     assert init_res.exit_code == 0
     assert (project_dir / "markpublish.yaml").is_file()
-    assert (project_dir / "next-steps.md").is_file()
+    assert (project_dir / "welcome.md").is_file()
 
     # 2. Test build HTML shows notice
     build_html_res = runner.invoke(app, ["build", str(project_dir / "markpublish.yaml"), "--target", "html"])
@@ -66,12 +66,11 @@ def test_cli_init_stays_minimal(tmp_path: Path):
     assert runner.invoke(app, ["init", str(project_dir)]).exit_code == 0
 
     created = sorted(p.name for p in project_dir.iterdir())
-    assert created == ["markpublish.yaml", "next-steps.md"]
+    assert created == ["markpublish.yaml", "welcome.md"]
 
     # Der Verweis auf das Cheat Sheet ist der einzige Grund, warum der Stumpf
     # so klein sein darf - faellt er weg, steht der Nutzer ohne Referenz da.
-    assert "markpublish cheatsheet" in (project_dir / "markpublish.yaml").read_text(encoding="utf-8")
-    assert "markpublish cheatsheet" in (project_dir / "next-steps.md").read_text(encoding="utf-8")
+    assert "markpublish cheatsheet" in (project_dir / "welcome.md").read_text(encoding="utf-8")
 
 
 def test_cli_cheatsheet_renders_into_the_working_directory(tmp_path: Path, monkeypatch):
@@ -295,9 +294,9 @@ def test_cli_init_lang_de(tmp_path: Path):
     assert 'title: "Mein Dokument"' in yaml_de
     assert 'language: "de"' in yaml_de
     assert 'part: "Hauptteil"' in yaml_de
-    assert 'next-steps.md' in yaml_de
-    steps_de = (p_de / "next-steps.md").read_text(encoding="utf-8")
-    assert "# Nächste Schritte" in steps_de
+    assert 'welcome.md' in yaml_de
+    steps_de = (p_de / "welcome.md").read_text(encoding="utf-8")
+    assert "# Willkommen bei markpublish" in steps_de
 
 
 def test_cli_init_uses_system_language(tmp_path: Path, monkeypatch):
@@ -401,4 +400,30 @@ def test_cli_labels_theme_flag_overrides_yaml(tmp_path: Path):
     )
     assert res_ok.exit_code == 0
     assert "custom-theme" in res_ok.stdout
+
+
+def test_cli_init_ignores_pdf_and_handles_binary_files(tmp_path: Path):
+    """
+    Stellt sicher, dass versehentliche PDF-Artefakte im Vorlagenordner ignoriert
+    werden und binaere Begleitdateien sauber kopiert werden, ohne UnicodeDecodeError.
+    """
+    from markpublish.cli import get_bundled_doc_dir
+    src_dir = get_bundled_doc_dir("init") / "de"
+
+    dummy_pdf = src_dir / "accidental_build.pdf"
+    dummy_bin = src_dir / "sample_logo.png"
+    dummy_pdf.write_bytes(b"%PDF-1.7\n%\x80\x80\x80\x80\n")
+    dummy_bin.write_bytes(b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR")
+
+    try:
+        project_dir = tmp_path / "init_binary_test"
+        res = runner.invoke(app, ["init", str(project_dir), "--lang", "de"])
+        assert res.exit_code == 0
+        assert not (project_dir / "accidental_build.pdf").exists()
+        assert (project_dir / "sample_logo.png").read_bytes() == b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR"
+    finally:
+        if dummy_pdf.exists():
+            dummy_pdf.unlink()
+        if dummy_bin.exists():
+            dummy_bin.unlink()
 

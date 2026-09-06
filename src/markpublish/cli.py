@@ -533,13 +533,20 @@ def init_cmd(
         filled_text = template_text.replace("{title}", title)
         yaml_target.write_text(filled_text, encoding="utf-8")
 
-    # Copy companion files (e.g. next-steps.md)
+    # Copy companion files (e.g. welcome.md, images)
     for f in src_dir.iterdir():
-        if f.name == "markpublish.yaml" or not f.is_file():
+        if f.name == "markpublish.yaml" or not f.is_file() or f.suffix.lower() == ".pdf":
             continue
         dest = target_dir / f.name
         if not dest.exists():
-            dest.write_text(f.read_text(encoding="utf-8"), encoding="utf-8")
+            if f.suffix.lower() in (".md", ".txt", ".yaml", ".yml", ".json"):
+                try:
+                    text = f.read_text(encoding="utf-8")
+                    dest.write_text(text.replace("{title}", title), encoding="utf-8")
+                except UnicodeDecodeError:
+                    shutil.copy2(f, dest)
+            else:
+                shutil.copy2(f, dest)
 
     console.print(
         "[bold green][OK][/bold green] "
