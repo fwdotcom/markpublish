@@ -43,7 +43,7 @@ configured individually.
 | Key | Level | Default | Description |
 | :--- | :--- | :--- | :--- |
 | `part` | Part | *Required* | Name of the section |
-| `chapters` | Part / Chapter | Part: *Required* / Chap.: optional | List of chapters or subchapters |
+| `chapters` | Part | *Required* | List of chapters in this section |
 | `file` | Chapter | *Required* | Path to markdown file (relative to config) |
 | `show_title` | Chapter | `true` | Show file H1 on content page (`false` hides it) |
 | `toc_title` | Part / Chapter | File H1 / `part` | Title for main table of contents and headers |

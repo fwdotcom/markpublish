@@ -144,14 +144,12 @@ class TypstSerializer:
 
     def __init__(
         self,
-        base_level_offset: int = 0,
         file_base_dir: Optional[Path] = None,
         images_dir: Optional[Path] = None,
         labels: Optional[Dict[str, str]] = None,
         allowed_toc_slugs: Optional[Set[str]] = None,
         known_labels: Optional[Set[str]] = None,
     ):
-        self.base_level_offset = base_level_offset
         self.file_base_dir = file_base_dir
         self.images_dir = images_dir
         self.labels = labels or {}
@@ -222,7 +220,7 @@ class TypstSerializer:
         heading_match = re.match(r"^h([1-6])$", tag)
         if heading_match:
             orig_level = int(heading_match.group(1))
-            effective_level = max(1, min(6, orig_level + self.base_level_offset))
+            effective_level = orig_level
             slug = elem.attrib.get("id", "")
             number_prefix = elem.attrib.get("data-number", "")
 
@@ -800,7 +798,6 @@ def process_tree_headings_and_toc(
     root: etree.Element,
     numbering_ctx: NumberingContext,
     autonum_override: Optional[AutonumStyle] = None,
-    base_level_offset: int = 0,
     autonum_from_level: int = 1,
     autonum_prefix: Optional[str] = None,
 ) -> List[TOCNode]:
@@ -826,7 +823,6 @@ def process_tree_headings_and_toc(
             continue
 
         orig_level = int(match.group(1))
-        effective_level = orig_level + base_level_offset
         plain_text = "".join(elem.itertext()).strip()
 
         # Slug
@@ -854,7 +850,7 @@ def process_tree_headings_and_toc(
         node = TOCNode(
             title=plain_text,
             slug=slug,
-            level=effective_level,
+            level=orig_level,
             number=number_str,
         )
         toc_nodes.append(node)

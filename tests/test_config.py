@@ -146,6 +146,35 @@ def test_parts_must_have_name():
     assert config.parts[0].title == "Hauptteil"
 
 
+def test_nested_chapters_are_rejected():
+    """
+    'chapters' in einem Kapitel bricht ab - mit eigener Meldung.
+
+    Ueber die allgemeine Unbekannter-Schluessel-Pruefung liefe der Vorschlag
+    auf das Alt-Feld 'chapter' hinaus, das nichts tut. Verschachtelte Kapitel
+    sind ersatzlos entfallen, und genau das muss dastehen.
+    """
+    import pytest
+    from pydantic import ValidationError
+
+    raw = {
+        "document": {"title": "Test"},
+        "parts": [
+            {
+                "title": "Hauptteil",
+                "chapters": [
+                    {
+                        "file": "01.md",
+                        "chapters": [{"file": "02.md"}],
+                    }
+                ],
+            }
+        ],
+    }
+    with pytest.raises(ValidationError, match="chapters does not exist inside a chapter"):
+        load_config(raw)
+
+
 def test_pagenum_reset_configuration():
     """Prueft, dass pagenum_reset auf Part- und Kapitel-Ebene korrekt geladen wird."""
     raw = {

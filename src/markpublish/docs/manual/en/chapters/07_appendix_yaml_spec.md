@@ -75,7 +75,7 @@ The `parts:` list subdivides the document into high-level sections. A part group
 
 ## Chapter Level (chapters)
 
-The `chapters:` list specifies the content files. Chapters can be declared under `parts:` or nested within other chapters.
+The `chapters:` list specifies the content files. Chapters always sit directly under an entry of `parts:`.
 
 The chapter heading on the content page is determined by default by the file's leading `#` heading (suppressible via `show_title: false`). For tables of contents and divider pages, two explicit title overrides are available:
 
@@ -95,7 +95,6 @@ The chapter heading on the content page is determined by default by the file's l
 | `autonum_prefix` | String | `None` | Prefix for heading numbers in this chapter. |
 | `autonum_reset` | Boolean | `None` | Resets the heading counter to 1 at the start of this chapter. |
 | `pagenum_reset` | Boolean | `None` | Resets page numbering to 1 at the start of this chapter. |
-| `chapters` | List | `[]` | Optional list of nested subchapters (recursively processed and validated). |
 
 > [!IMPORTANT]
 > Under `parts:` and `chapters:`, **only** the keys listed above are allowed. Any unrecognized key halts compilation and provides fuzzy spelling suggestions – catching mistakes like `break_befor` before chapters are rendered with incorrect breaks. Custom metadata fields belong exclusively under `document:`.

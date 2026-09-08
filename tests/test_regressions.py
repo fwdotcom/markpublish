@@ -30,7 +30,7 @@ from markpublish.templates.resolver import resolve_template_path
 # Fixtures
 # --------------------------------------------------------------------------
 
-NESTED_YAML = """
+SAMPLE_YAML = """
 document:
   title: "Regression Test"
   author: "Test"
@@ -43,26 +43,24 @@ parts:
   - title: "Main"
     break_before: "none"
     chapters:
-      - file: "chapters/01_parent.md"
-        title: "Parent"
+      - file: "chapters/01_first.md"
+        title: "First"
         chapter_toc: 2
-        chapters:
-          - file: "chapters/02_child.md"
-            title: "Child"
-            chapters:
-              - file: "chapters/03_grandchild.md"
-                title: "Grandchild"
+      - file: "chapters/02_second.md"
+        title: "Second"
+      - file: "chapters/03_third.md"
+        title: "Third"
 """
 
 MARKERS = {
-    "01_parent": "MARKER-PARENT-BODY",
-    "02_child": "MARKER-CHILD-BODY",
-    "03_grandchild": "MARKER-GRANDCHILD-BODY",
+    "01_first": "MARKER-FIRST-BODY",
+    "02_second": "MARKER-SECOND-BODY",
+    "03_third": "MARKER-THIRD-BODY",
 }
 
 
 @pytest.fixture
-def nested_project(tmp_path: Path) -> Path:
+def sample_project(tmp_path: Path) -> Path:
     chapters = tmp_path / "chapters"
     chapters.mkdir()
     for name, marker in MARKERS.items():
@@ -72,7 +70,7 @@ def nested_project(tmp_path: Path) -> Path:
             f"### Unterabschnitt {name}\n\nText.\n",
             encoding="utf-8",
         )
-    (tmp_path / "markpublish.yaml").write_text(NESTED_YAML, encoding="utf-8")
+    (tmp_path / "markpublish.yaml").write_text(SAMPLE_YAML, encoding="utf-8")
     return tmp_path
 
 
@@ -150,45 +148,25 @@ def render_pdf_text(project: Path) -> str:
 
 
 # --------------------------------------------------------------------------
-# C1 - Verschachtelte Unterkapitel verschwanden aus der Ausgabe
+# C1 - Kapitelruempfe verschwanden aus der Ausgabe
 # --------------------------------------------------------------------------
 
-def test_c1_nested_chapter_bodies_are_rendered(nested_project: Path):
-    text = render_pdf_text(nested_project)
+def test_c1_chapter_bodies_are_rendered(sample_project: Path):
+    text = render_pdf_text(sample_project)
     for name, marker in MARKERS.items():
         assert marker in text, f"Rumpf von {name}.md fehlt in der Ausgabe"
 
 
-def test_s4_nested_chapter_heading_levels(nested_project: Path):
-    """
-    S4: Die Ueberschriftenebene eines Kapitels folgt seiner Verschachtelung.
-
-    Geprueft wird die an Typst uebergebene Quelle, nicht `typst_content` --
-    siehe assemble_typst_source().
-    """
-    levels = typst_headings(assemble_typst_source(nested_project))
-
-    # Die Kapitel-h1: Elternkapitel auf Ebene 1, Kind auf 2, Enkel auf 3.
-    assert levels["Ueberschrift 01_parent"] == 1
-    assert levels["Ueberschrift 02_child"] == 2
-    assert levels["Ueberschrift 03_grandchild"] == 3
-
-    # Und die Ueberschriften *innerhalb* der Kapitel wandern mit.
-    assert levels["Abschnitt 01_parent"] == 2
-    assert levels["Abschnitt 02_child"] == 3
-    assert levels["Unterabschnitt 02_child"] == 4
-
-
-def test_s4_typst_levels_match_the_toc_tree(nested_project: Path):
+def test_s4_typst_levels_match_the_toc_tree(sample_project: Path):
     """
     S4: TOC-Baum und gesetzte Ebene duerfen nicht auseinanderlaufen.
 
-    Das war der eigentliche Schaden: das Verzeichnis fuehrte ein Unterkapitel
-    eine Ebene tiefer, das PDF-Outline setzte es als Geschwister seines
-    Elternkapitels.
+    Jedes Kapitel steht auf Ebene 1, seine '##' auf 2, seine '###' auf 3 --
+    im Verzeichnis wie in der an Typst uebergebenen Quelle. Geprueft wird
+    letztere, nicht `typst_content`; siehe assemble_typst_source().
     """
-    config = load_config(nested_project / "markpublish.yaml")
-    _, toc_tree = MarkdownPipeline(config, base_dir=nested_project).process_document()
+    config = load_config(sample_project / "markpublish.yaml")
+    _, toc_tree = MarkdownPipeline(config, base_dir=sample_project).process_document()
 
     toc_levels: dict = {}
 
@@ -200,7 +178,7 @@ def test_s4_typst_levels_match_the_toc_tree(nested_project: Path):
     walk(toc_tree)
 
     compared = 0
-    for title, depth in typst_headings(assemble_typst_source(nested_project)).items():
+    for title, depth in typst_headings(assemble_typst_source(sample_project)).items():
         if title not in toc_levels:
             continue
         compared += 1
@@ -215,16 +193,16 @@ def test_s4_typst_levels_match_the_toc_tree(nested_project: Path):
 # C2 / C3 - Kopfzeile und TOC-Seitenzahlen im PDF
 # --------------------------------------------------------------------------
 
-def test_c2_running_header_has_no_stray_glyph(nested_project: Path):
-    text = render_pdf_text(nested_project)
+def test_c2_running_header_has_no_stray_glyph(sample_project: Path):
+    text = render_pdf_text(sample_project)
     assert "਱" not in text
     assert "2026-08-31" in text or "31.08.2026" in text or "Regression Test" in text
 
 
-def test_c3_toc_entries_carry_page_numbers(nested_project: Path):
-    text = render_pdf_text(nested_project)
-    assert "01_parent" in text
-    assert "02_child" in text
+def test_c3_toc_entries_carry_page_numbers(sample_project: Path):
+    text = render_pdf_text(sample_project)
+    assert "01_first" in text
+    assert "02_second" in text
 
 
 # --------------------------------------------------------------------------
@@ -248,7 +226,7 @@ def test_h2_toc_config_controls_local_toc(tmp_path: Path, toc_value, expected):
     (tmp_path / "a.md").write_text("# K\n\n## A\n\n### B\n", encoding="utf-8")
     item = ChapterItem(file="a.md", chapter_toc=toc_value)
     pipeline = MarkdownPipeline(None, base_dir=tmp_path)
-    nodes = pipeline._build_local_toc(item, 1)
+    nodes = pipeline._build_local_toc(item)
     if expected:
         assert len(nodes) > 0, f"Erwartet TOC fuer {toc_value!r}, war leer"
     else:
@@ -270,18 +248,18 @@ def test_toc_keys_reject_what_they_cannot_mean(bad):
 # M1 / M2 - Kapitel-TOC: eigene Ueberschrift raus, Tiefe kapitelrelativ
 # --------------------------------------------------------------------------
 
-def test_m1_m2_local_toc_scope(nested_project: Path):
-    config = load_config(nested_project / "markpublish.yaml")
-    content_items, _ = MarkdownPipeline(config, base_dir=nested_project).process_document()
+def test_m1_m2_local_toc_scope(sample_project: Path):
+    config = load_config(sample_project / "markpublish.yaml")
+    content_items, _ = MarkdownPipeline(config, base_dir=sample_project).process_document()
 
-    parent = content_items[0]
-    titles = [n.title for n in parent.local_toc_items]
+    first = content_items[0]
+    titles = [n.title for n in first.local_toc_items]
 
     # M1: die eigene Kapitelueberschrift gehoert nicht in "Inhalt dieses Kapitels"
-    assert "Ueberschrift 01_parent" not in titles
+    assert "Ueberschrift 01_first" not in titles
     # chapter_toc: 2 -> genau die h2-Ebene, nicht h3
-    assert "Abschnitt 01_parent" in titles
-    assert "Unterabschnitt 01_parent" not in titles
+    assert "Abschnitt 01_first" in titles
+    assert "Unterabschnitt 01_first" not in titles
 
 
 # --------------------------------------------------------------------------

@@ -186,6 +186,15 @@ err.config.chapters_toplevel: |
         chapters:
           - file: "kapitel/01.md"
   Ein Part ohne eigene Trennseite bekommt break_before: "none".
+err.config.chapters_nested: |
+  chapters gibt es in einem Kapitel nicht - der Aufbau hat genau zwei Stufen:
+    parts:
+      - title: "Hauptteil"
+        chapters:
+          - file: "kapitel/01.md"
+          - file: "kapitel/02.md"
+  Verschachtelte Unterkapitel sind ersatzlos entfallen. Tiefer gliedert man
+  innerhalb der Markdown-Datei mit '##', '###' und so fort.
 
 # --- Kapitelverarbeitung ------------------------------------------------------
 chapter.desc.in_file: "in '{file}'"

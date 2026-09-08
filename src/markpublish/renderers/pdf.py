@@ -335,14 +335,13 @@ class PDFRenderer(BaseRenderer):
         def _synthetic_heading() -> str:
             t_esc = typst_string(getattr(chapter_item, "toc_title", None) or chapter_item.display_title)
             num_prefix = getattr(chapter_item, "number_prefix", None)
-            eff_level = max(1, getattr(chapter_item, "base_level", 1))
             ch_slug = getattr(chapter_item, "slug", "")
             lbl_str = f" <{ch_slug}>" if (ch_slug and (not has_file_h1 or not show_title)) else ""
             if num_prefix:
                 num_esc = typst_string(num_prefix)
-                return f'#place(top + left)[#hide[#heading(level: {eff_level}, outlined: true, numbering: (..nums) => "{num_esc}")[{t_esc}]{lbl_str}]]\n'
+                return f'#place(top + left)[#hide[#heading(level: 1, outlined: true, numbering: (..nums) => "{num_esc}")[{t_esc}]{lbl_str}]]\n'
             else:
-                return f'#place(top + left)[#hide[#heading(level: {eff_level}, outlined: true, numbering: none)[{t_esc}]{lbl_str}]]\n'
+                return f'#place(top + left)[#hide[#heading(level: 1, outlined: true, numbering: none)[{t_esc}]{lbl_str}]]\n'
 
         synth_placed_on_divider = False
         if bb_val == "divider":
@@ -389,15 +388,8 @@ class PDFRenderer(BaseRenderer):
         images_dir = build_dir / "images"
         element_tree = getattr(chapter_item, "element_tree", None)
         file_base_dir = getattr(chapter_item, "file_base_dir", None)
-        # Ein Unterkapitel auf Ebene 2 setzt seine h1 als '==', nicht als '='.
-        # Der Offset muss derselbe sein, mit dem die Pipeline schon die
-        # TOC-Ebenen gerechnet hat, sonst zeigt das PDF-Outline Unterkapitel
-        # als Geschwister ihres Elternkapitels.
-        base_level_offset = max(0, getattr(chapter_item, "base_level", 1) - 1)
-
         if element_tree is not None:
             serializer = TypstSerializer(
-                base_level_offset=base_level_offset,
                 file_base_dir=file_base_dir,
                 images_dir=images_dir,
                 labels=labels,
@@ -419,7 +411,6 @@ class PDFRenderer(BaseRenderer):
                     from markpublish.markdown.typst_serializer import html_to_tree
                     tree = html_to_tree(raw_md)
                     serializer = TypstSerializer(
-                        base_level_offset=base_level_offset,
                         file_base_dir=file_base_dir,
                         images_dir=images_dir,
                         labels=labels,

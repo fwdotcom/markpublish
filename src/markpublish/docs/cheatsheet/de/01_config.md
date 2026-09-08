@@ -43,7 +43,7 @@ individuell steuern.
 | Schlüssel | Ebene | Standard | Bedeutung |
 | :--- | :--- | :--- | :--- |
 | `part` | Part | *Pflichtangabe* | Name des Abschnitts |
-| `chapters` | Part / Kapitel | Part: *Pflicht* / Kap.: optional | Liste der Kapitel bzw. Unterkapitel |
+| `chapters` | Part | *Pflichtangabe* | Liste der Kapitel dieses Abschnitts |
 | `file` | Kapitel | *Pflichtangabe* | Pfad zur Markdown-Datei (relativ zur Konfiguration) |
 | `show_title` | Kapitel | `true` | Datei-H1 auf der Inhaltsseite anzeigen (`false` blendet sie aus) |
 | `toc_title` | Part / Kapitel | Datei-H1 / `part` | Titel für Haupt-Inhaltsverzeichnis und Kopfzeilen |

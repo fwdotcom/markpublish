@@ -319,19 +319,22 @@ class ChapterItem(BaseModel):
     autonum_prefix: Optional[str] = Field(default=None, description="Optional prefix for generated numbers; inherited downwards")
     autonum_reset: Optional[bool] = Field(default=None, description="Whether to reset counter at chapter start; inherited downwards")
     pagenum_reset: Optional[bool] = Field(default=None, description="Reset page numbers at chapter start")
-    # Unterkapitel. Bis eben trug sie `extra: allow` unbemerkt mit -- als rohe
-    # Dicts, an jeder Pruefung vorbei: ein Tippfehler in einem Unterkapitel
-    # fiel damit nirgends auf. Deklariert werden sie rekursiv geprueft wie
-    # die oberste Ebene auch.
-    chapters: List["ChapterItem"] = Field(
-        default_factory=list, description="Nested sub-chapters"
-    )
-
     model_config = ConfigDict(extra="forbid")
 
     @model_validator(mode="before")
     @classmethod
     def reject_unknown_chapter_keys(cls, data: Any) -> Any:
+        """
+        Ein 'chapters' *im* Kapitel bekommt eine eigene Meldung.
+
+        Ueber den allgemeinen Weg liefe es auf "unbekannter Schluessel
+        'chapters' -- meinten Sie 'chapter'?" hinaus, und 'chapter' ist ein
+        Alt-Feld, das nichts tut. Der Vorschlag schickte also genau in die
+        falsche Richtung. Verschachtelte Kapitel gab es frueher; sie sind
+        ersatzlos entfallen, und das gehoert in die Meldung.
+        """
+        if isinstance(data, dict) and "chapters" in data:
+            raise ValueError(t("err.config.chapters_nested"))
         return reject_unknown_keys(data, cls, "chapters")
 
     @field_validator("chapter_toc", mode="before")

@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed
+- **Breaking: nested subchapters (`chapters:` inside a chapter)**: A chapter no longer takes a `chapters:` list of its own; the structure is exactly two levels, `parts:` → `chapters:`. The nesting was a relic of earlier versions and is not pursued further. A configuration that still notates it aborts naming that reason.
+
 ## [2.0.0] - 2026-09-06
 
 ### Added

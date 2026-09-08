@@ -135,7 +135,6 @@ class ContentItem:
         typst_content: str = "",
         element_tree: Any = None,
         file_base_dir: Optional[Path] = None,
-        base_level: int = 1,
         toc_title: Optional[str] = None,
         divider_title: Optional[str] = None,
         has_h1: bool = False,
@@ -163,11 +162,6 @@ class ContentItem:
         self.divider_title = divider_title
         self.has_h1 = has_h1
         self.show_title = show_title
-        # Verschachtelungstiefe des Kapitels, 1 = oberste Ebene. Der Renderer
-        # serialisiert den element_tree selbst neu und braucht denselben Offset,
-        # den auch typst_content bekommen hat -- sonst laufen Fallback und
-        # tatsaechliche Ausgabe auseinander (S4).
-        self.base_level = base_level
         self.children: List[ContentItem] = []
 
     @property
@@ -238,8 +232,8 @@ class MarkdownPipeline:
         self.engine = MarkdownEngine(language=lang, labels=labels)
         self.numbering_ctx = NumberingContext(default_autonum_style=autonum_style)
 
-    def _build_local_toc(self, chapter_cfg: ChapterItem, base_level: int = 1) -> List[TOCNode]:
-        item, _ = self._process_chapter(chapter_cfg, base_level=base_level)
+    def _build_local_toc(self, chapter_cfg: ChapterItem) -> List[TOCNode]:
+        item, _ = self._process_chapter(chapter_cfg)
         return item.local_toc_items
 
     def process_document(self) -> Tuple[List[ContentItem], List[TOCNode]]:
@@ -310,57 +304,23 @@ class MarkdownPipeline:
             inherited_autonum_reset = part_cfg.autonum_reset
             inherited_pagenum_reset = effective_part_pagenum_reset
 
-            def _traverse_chapters(
-                cfg_list: List[ChapterItem],
-                level: int,
-                doc_toc=inherited_document_toc,
-                part_toc=effective_part_toc,
-                ch_toc=inherited_chapter_toc,
-                autonum=inherited_autonum,
-                from_level=inherited_autonum_from_level,
-                prefix=inherited_autonum_prefix,
-                autoreset=inherited_autonum_reset,
-                page_reset=inherited_pagenum_reset,
-                in_doc_toc=part_in_document_toc,
-                toc_children=part_toc_children,
-            ):
-                for ch_cfg in cfg_list:
-                    ch_item, ch_toc_nodes = self._process_chapter(
-                        ch_cfg,
-                        base_level=level,
-                        inherited_document_toc=doc_toc,
-                        inherited_part_toc=part_toc,
-                        inherited_chapter_toc=ch_toc,
-                        inherited_autonum=autonum,
-                        inherited_autonum_from_level=from_level,
-                        inherited_autonum_prefix=prefix,
-                        inherited_autonum_reset=autoreset,
-                        inherited_pagenum_reset=page_reset,
-                    )
-                    content_items.append(ch_item)
-                    if in_doc_toc:
-                        toc_children.extend(ch_toc_nodes)
-                    else:
-                        global_toc_tree.extend(build_toc_tree(ch_toc_nodes))
-
-                    sub_chapters = ch_cfg.get("chapters") if isinstance(ch_cfg, dict) else getattr(ch_cfg, "chapters", None)
-                    if sub_chapters:
-                        _traverse_chapters(
-                            sub_chapters,
-                            level + 1,
-                            doc_toc=doc_toc,
-                            part_toc=part_toc,
-                            ch_toc=ch_toc,
-                            autonum=autonum,
-                            from_level=from_level,
-                            prefix=prefix,
-                            autoreset=autoreset,
-                            page_reset=page_reset,
-                            in_doc_toc=in_doc_toc,
-                            toc_children=toc_children,
-                        )
-
-            _traverse_chapters(part_cfg.chapters, 1)
+            for ch_cfg in part_cfg.chapters:
+                ch_item, ch_toc_nodes = self._process_chapter(
+                    ch_cfg,
+                    inherited_document_toc=inherited_document_toc,
+                    inherited_part_toc=effective_part_toc,
+                    inherited_chapter_toc=inherited_chapter_toc,
+                    inherited_autonum=inherited_autonum,
+                    inherited_autonum_from_level=inherited_autonum_from_level,
+                    inherited_autonum_prefix=inherited_autonum_prefix,
+                    inherited_autonum_reset=inherited_autonum_reset,
+                    inherited_pagenum_reset=inherited_pagenum_reset,
+                )
+                content_items.append(ch_item)
+                if part_in_document_toc:
+                    part_toc_children.extend(ch_toc_nodes)
+                else:
+                    global_toc_tree.extend(build_toc_tree(ch_toc_nodes))
 
             if part_item and effective_part_toc and effective_part_toc.enabled:
                 if effective_part_toc.max_depth is None:
@@ -388,7 +348,6 @@ class MarkdownPipeline:
     def _process_chapter(
         self,
         chapter_cfg: ChapterItem,
-        base_level: int = 1,
         inherited_document_toc: Optional[TocScope] = None,
         inherited_part_toc: Optional[TocScope] = None,
         inherited_chapter_toc: Optional[TocScope] = None,
@@ -488,7 +447,7 @@ class MarkdownPipeline:
         chapter_number: Optional[str] = None
         if not has_file_h1 and chapter_cfg.toc_title:
             chapter_number = self.numbering_ctx.advance_counter(
-                base_level,
+                1,
                 autonum_override,
                 from_level=effective_from_level,
                 prefix=effective_prefix,
@@ -498,14 +457,13 @@ class MarkdownPipeline:
             tree,
             self.numbering_ctx,
             autonum_override=autonum_override,
-            base_level_offset=base_level - 1,
             autonum_from_level=effective_from_level,
             autonum_prefix=effective_prefix,
         )
 
         file_h1 = (
             toc_nodes[0].title
-            if (toc_nodes and toc_nodes[0].level == base_level)
+            if (toc_nodes and toc_nodes[0].level == 1)
             else None
         )
         effective_toc_title = chapter_cfg.toc_title or file_h1
@@ -534,12 +492,12 @@ class MarkdownPipeline:
         display_title = effective_toc_title or effective_divider_title or "Chapter"
         slug = (
             toc_nodes[0].slug
-            if (toc_nodes and toc_nodes[0].level == base_level)
+            if (toc_nodes and toc_nodes[0].level == 1)
             else self.numbering_ctx.unique_slug(display_title)
         )
         number_prefix = (
             toc_nodes[0].number
-            if (toc_nodes and toc_nodes[0].level == base_level)
+            if (toc_nodes and toc_nodes[0].level == 1)
             else chapter_number
         )
 
@@ -549,7 +507,7 @@ class MarkdownPipeline:
             synthetic_node = TOCNode(
                 title=effective_toc_title,
                 slug=slug,
-                level=base_level,
+                level=1,
                 number=chapter_number,
                 summary=summary,
             )
@@ -563,7 +521,7 @@ class MarkdownPipeline:
         # Filter local TOC items if enabled.
         local_toc_items: List[TOCNode] = []
         if chapter_toc:
-            chapter_level = base_level
+            chapter_level = 1
             if chapter_toc.max_depth is None:
                 local_toc_items = [n for n in toc_nodes if n.level > chapter_level]
             else:
@@ -578,7 +536,7 @@ class MarkdownPipeline:
         elif not effective_document_toc.enabled:
             global_toc_nodes = []
         else:
-            max_level = base_level + effective_document_toc.max_depth - 1
+            max_level = effective_document_toc.max_depth
             global_toc_nodes = [n for n in toc_nodes if n.level <= max_level]
 
         # Wenn show_title False ist und die Datei eine H1 besitzt:
@@ -602,7 +560,6 @@ class MarkdownPipeline:
 
         # Convert ElementTree to Typst markup using the clean AST serializer
         serializer = TypstSerializer(
-            base_level_offset=base_level - 1,
             file_base_dir=file_base_dir,
             labels=self.labels,
             allowed_toc_slugs=allowed_toc_slugs,
@@ -632,7 +589,6 @@ class MarkdownPipeline:
             typst_content=typst_content,
             element_tree=tree,
             file_base_dir=file_base_dir,
-            base_level=base_level,
             toc_title=effective_toc_title,
             divider_title=effective_divider_title,
             has_h1=bool(file_h1),

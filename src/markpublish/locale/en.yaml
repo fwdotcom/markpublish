@@ -189,6 +189,15 @@ err.config.chapters_toplevel: |
         chapters:
           - file: "chapters/01.md"
   A part without its own divider page gets break_before: "none".
+err.config.chapters_nested: |
+  chapters does not exist inside a chapter - the structure has exactly two levels:
+    parts:
+      - title: "Main part"
+        chapters:
+          - file: "chapters/01.md"
+          - file: "chapters/02.md"
+  Nested subchapters have been removed without replacement. Deeper structure
+  belongs inside the Markdown file, using '##', '###' and so on.
 
 # --- Kapitelverarbeitung ------------------------------------------------------
 chapter.desc.in_file: "in '{file}'"

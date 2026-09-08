@@ -10,8 +10,10 @@ markpublish organizes documents across three clearly defined levels:
 document
 └── parts (Sections)
     └── chapters (Chapters)
-        └── [Subchapters in chapters]
 ```
+
+The configuration goes no deeper than this. Within a chapter, the Markdown file
+itself carries the structure, using `##`, `###` and so on.
 
 ### Document (Document Level)
 
@@ -94,8 +96,6 @@ The `chapters:` list within a part references the actual Markdown content files:
 * When generating a divider page (`break_before: "divider"`) or listing the chapter in the table of contents, at least one `#` heading or the corresponding title key (`divider_title` / `toc_title`) must exist; otherwise, the build aborts with an informative error message.
 
 * Chapters can control via `break_before` whether a divider page is generated, a simple page break occurs, or content flows seamlessly.
-
-* **Nested Subchapters:** A chapter can contain further subchapters via its own `chapters:` list. These are constructed recursively and validated with the same strict typing against misspelled keys. Subchapters inherit settings (such as numbering prefixes) downwards.
 
 ---
 

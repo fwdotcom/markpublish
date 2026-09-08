@@ -10,8 +10,10 @@ markpublish organisiert Dokumente in drei klar voneinander abgegrenzten Ebenen:
 document
 └── parts (Abschnitte)
     └── chapters (Kapitel)
-        └── [Unterkapitel in chapters]
 ```
+
+Tiefer reicht die Gliederung der Konfiguration nicht. Innerhalb eines Kapitels
+strukturiert die Markdown-Datei selbst weiter, mit `##`, `###` und so fort.
 
 ### Document (Dokumentebene)
 
@@ -94,8 +96,6 @@ Die Liste `chapters:` innerhalb eines Abschnitts verweist auf die eigentlichen M
 * Soll eine Trennseite erzeugt werden (`break_before: "divider"`) oder das Kapitel im Inhaltsverzeichnis gelistet werden, muss mindestens eine `#`-Überschrift oder der entsprechende Titelschlüssel (`divider_title` / `toc_title`) vorhanden sein, andernfalls bricht der Build mit einer klaren Fehlermeldung ab.
 
 * Kapitel können über das Feld `break_before` steuern, ob vor ihnen eine Trennseite erzeugt wird, ein einfacher Seitenwechsel erfolgt oder der Text nahtlos anschließt.
-
-* **Verschachtelte Unterkapitel:** Ein Kapitel kann über das Feld `chapters:` weitere Unterkapitel aufnehmen. Diese werden rekursiv aufgebaut und genauso strikt gegen Schreibfehler geprüft wie die Hauptebene. Unterkapitel erben Einstellungen (wie Nummerierungspräfixe) nach unten.
 
 
 ---

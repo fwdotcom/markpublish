@@ -161,7 +161,6 @@ def process_html_headings_and_toc(
     html_content: str,
     numbering_ctx: NumberingContext,
     autonum_override: Optional[AutonumStyle] = None,
-    base_level_offset: int = 0,
     autonum_from_level: int = 1,
     autonum_prefix: Optional[str] = None,
 ) -> Tuple[str, List[TOCNode]]:
@@ -185,7 +184,6 @@ def process_html_headings_and_toc(
         attrs = match.group(2)
         inner_html = match.group(3)
 
-        effective_level = orig_level + base_level_offset
         plain_text = html.unescape(STRIP_TAGS_REGEX.sub('', inner_html).strip())
 
         # Check existing id in attrs
@@ -208,7 +206,7 @@ def process_html_headings_and_toc(
         node = TOCNode(
             title=plain_text,
             slug=slug,
-            level=effective_level,
+            level=orig_level,
             number=number_str,
         )
         toc_nodes.append(node)

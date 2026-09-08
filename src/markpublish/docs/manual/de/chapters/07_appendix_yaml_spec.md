@@ -76,7 +76,7 @@ Die Liste `parts:` unterteilt das Dokument in übergeordnete Abschnitte. Ein Abs
 
 ## Kapitel-Ebene (chapters)
 
-Die Liste `chapters:` definiert die Inhaltsdateien. Kapitel können unter `parts:` oder verschachtelt innerhalb anderer Kapitel liegen.
+Die Liste `chapters:` definiert die Inhaltsdateien. Kapitel stehen immer unmittelbar unter einem Eintrag aus `parts:`.
 
 Die Überschrift auf der Inhaltsseite wird standardmäßig durch die führende `#`-Überschrift der Markdown-Datei bestimmt (kann über `show_title: false` unterdrückt werden). Für Verzeichnisse und Trennseiten stehen zwei explizite, optionale Schlüssel bereit:
 
@@ -96,7 +96,6 @@ Die Überschrift auf der Inhaltsseite wird standardmäßig durch die führende `
 | `autonum_prefix` | String | `None` | Präfix für Überschriftennummern dieses Kapitels. |
 | `autonum_reset` | Boolean | `None` | Setzt den Nummerierungszähler zu Beginn dieses Kapitels auf 1 zurück. |
 | `pagenum_reset` | Boolean | `None` | Setzt die Seitennummerierung zu Beginn dieses Kapitels auf 1 zurück. |
-| `chapters` | Liste | `[]` | Optionale Liste von weiteren Unterkapiteln (rekursiv gegliedert und validiert). |
 
 > [!IMPORTANT]
 > Auf `parts:` und `chapters:` sind **nur** die hier aufgeführten Schlüssel erlaubt. Ein unbekannter Schlüssel bricht den Build ab und nennt, falls vorhanden, den ähnlich geschriebenen – `break_befor` also, bevor das Kapitel still mit dem falschen Umbruch gesetzt wird. Freie Felder gibt es ausschließlich unter `document:`; dort erreichen sie das Theme, hier blieben sie wirkungslos.
