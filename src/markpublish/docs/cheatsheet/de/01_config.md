@@ -41,8 +41,8 @@ Metadaten und globale Layout-Schalter. Pflichtangabe ist allein `title`.
 | `chapter_toc` | `full` | Vorgabe für Kapitel-Trennseiten: `none`, `full` oder Tiefe |
 | `autonum_pattern` | *s. Nummerierung* | Aufbau der Nummern; Slot 1 ist hier der Part |
 | `autonum_reset` | `false` | Ebenen darunter beim Betreten wieder bei 1 beginnen |
-| `part_label` | aus i18n | Wort vor der Part-Nummer (`Teil`) |
-| `chapter_label` | aus i18n | Wort vor der Kapitelnummer (`Kapitel`) |
+| `part_label` | aus i18n | Wort vor der Part-Nummer (`Teil`); `""` lässt es weg |
+| `chapter_label` | aus i18n | Wort vor der Kapitelnummer (`Kapitel`); `""` lässt es weg |
 | `pagenum_reset` | `false` | Seitennummerierung je Part oder Kapitel neu beginnen |
 
 Eigene Zusatzfelder unter `document:` (`abteilung: "F&E"`) erreichen das Theme über das Wörterbuch `meta` (`meta.at("abteilung").value`). Statische Beschriftungen gehören in die `i18n.yaml`, nicht hierher.

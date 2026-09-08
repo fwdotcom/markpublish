@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.1] - 2026-09-08
+
+### Fixed
+- **A notated empty label switches the word off**: `part_label:`, `chapter_label:` and `label:` written without a value (or as `""`) leave the divider page and the heading without a naming word instead of falling back to the i18n default — a part then carries only its number and its title. A key that is not written still inherits as before; only the notated empty one silences the label. Where a number remains, it moves up into the tag line rather than being set behind a blank word.
+
 ## [2.1.0] - 2026-09-08
 
 ### Added

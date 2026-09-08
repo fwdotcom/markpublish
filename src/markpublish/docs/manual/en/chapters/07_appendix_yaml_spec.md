@@ -27,8 +27,8 @@ The `document:` section defines global metadata, layout switches, table of conte
 | `chapter_toc` | Scope | `"full"` | Default depth for local tables of contents on chapter divider pages. |
 | `autonum_pattern` | String | *see below* | How numbers are built; slot 1 is the part, slot 2 the chapter. `none` switches numbering off. |
 | `autonum_reset` | Boolean | `false` | Makes the levels below start again at one when this block is entered. |
-| `part_label` | String | from i18n | Word naming a part (e.g. `"Part"`). |
-| `chapter_label` | String | from i18n | Word naming a chapter (e.g. `"Chapter"`). |
+| `part_label` | String | from i18n | Word naming a part (e.g. `"Part"`). Notated empty (`""`), it is dropped. |
+| `chapter_label` | String | from i18n | Word naming a chapter (e.g. `"Chapter"`). Notated empty (`""`), it is dropped. |
 | `pagenum_reset` | Boolean | `false` | Restarts page numbering at page 1 for each part or chapter. |
 
 > [!NOTE] Custom Metadata Fields under `document:`
@@ -91,8 +91,8 @@ The `parts:` list subdivides the document into high-level sections. A part group
 | `chapter_toc` | Scope | `None` | Propagates chapter TOC settings down to all chapters in this part. |
 | `autonum_pattern` | String | `None` | Numbers for this part; slot 1 is the chapter here. |
 | `autonum_reset` | Boolean | `None` | Makes the chapters of this part start again at one. |
-| `label` | String | from i18n | Word naming this part. |
-| `chapter_label` | String | inherited | Word for every chapter of this part (e.g. `"Appendix"`). |
+| `label` | String | from i18n | Word naming this part. Notated empty (`""`), it is dropped. |
+| `chapter_label` | String | inherited | Word for every chapter of this part (e.g. `"Appendix"`). Notated empty (`""`), it is dropped. |
 | `pagenum_reset` | Boolean | `None` | Resets page numbering to 1 at the start of this section. |
 | `chapters` | List | *(Required)* | List of content chapters in this part (at least 1 entry). |
 
@@ -117,7 +117,7 @@ The chapter heading on the content page is determined by default by the file's l
 | `chapter_toc` | Scope | `None` | Local table of contents on this chapter's divider page. |
 | `autonum_pattern` | String | `None` | Numbers inside this chapter; slot 1 is the H2 here. The chapter's own number comes from its part. |
 | `autonum_reset` | Boolean | `None` | Makes the headings of this chapter start again at one. |
-| `label` | String | inherited | Word naming this chapter (e.g. `"Excursus"`). |
+| `label` | String | inherited | Word naming this chapter (e.g. `"Excursus"`). Notated empty (`""`), it is dropped. |
 | `pagenum_reset` | Boolean | `None` | Resets page numbering to 1 at the start of this chapter. |
 
 > [!IMPORTANT]

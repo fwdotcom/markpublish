@@ -44,6 +44,22 @@ def keep_explicit_none(data: Any, key: str) -> Any:
     return data
 
 
+def keep_explicit_label_empty(data: Any, *keys: str) -> Any:
+    """
+    Haelt ein notiertes `part_label:`, `chapter_label:` oder `label:` ohne Wert
+    von einem fehlenden Schluessel getrennt.
+
+    YAML liefert fuer beide `None`, gemeint ist aber: der fehlende Schluessel
+    nimmt den Standardwert (bzw. erbt), der leere schaltet den Bezeichner ab.
+    """
+    if isinstance(data, dict):
+        for key in keys:
+            if key in data and data[key] is None:
+                data = dict(data)
+                data[key] = ""
+    return data
+
+
 class ConfigurationError(ValueError):
     """Raised when a configuration or document structure rule is violated."""
     pass
@@ -244,7 +260,8 @@ class DocumentConfig(BaseModel):
     @model_validator(mode="before")
     @classmethod
     def keep_explicit_pattern_none(cls, data: Any) -> Any:
-        return keep_explicit_none(data, "autonum_pattern")
+        data = keep_explicit_none(data, "autonum_pattern")
+        return keep_explicit_label_empty(data, "part_label", "chapter_label")
 
     @model_validator(mode="before")
     @classmethod
@@ -360,6 +377,7 @@ class ChapterItem(BaseModel):
                 if key in data:
                     raise ValueError(t("err.config.label_scope", key=key))
         data = keep_explicit_none(data, "autonum_pattern")
+        data = keep_explicit_label_empty(data, "label")
         return reject_unknown_keys(data, cls, "chapters")
 
     @field_validator("autonum_pattern")
@@ -447,6 +465,7 @@ class PartItem(BaseModel):
         if isinstance(data, dict) and "part_label" in data:
             raise ValueError(t("err.config.label_scope", key="part_label"))
         data = keep_explicit_none(data, "autonum_pattern")
+        data = keep_explicit_label_empty(data, "chapter_label", "label")
         return reject_unknown_keys(data, cls, "parts")
 
     @field_validator("autonum_pattern")

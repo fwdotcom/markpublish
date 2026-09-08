@@ -27,8 +27,8 @@ Die Sektion `document:` legt globale Metadaten, Layoutschalter, Verzeichnisvorga
 | `chapter_toc` | Scope | `"full"` | Standardtiefe für lokale Inhaltsverzeichnisse auf Kapitel-Trennseiten. |
 | `autonum_pattern` | String | *s. unten* | Aufbau der Nummern; Slot 1 ist der Part, Slot 2 das Kapitel. `none` schaltet die Nummerierung ab. |
 | `autonum_reset` | Boolean | `false` | Lässt die Ebenen darunter beim Betreten wieder bei 1 anfangen. |
-| `part_label` | String | aus i18n | Wort, das einen Abschnitt benennt (z. B. `"Teil"`). |
-| `chapter_label` | String | aus i18n | Wort, das ein Kapitel benennt (z. B. `"Kapitel"`). |
+| `part_label` | String | aus i18n | Wort, das einen Abschnitt benennt (z. B. `"Teil"`). Leer notiert (`""`) entfällt es. |
+| `chapter_label` | String | aus i18n | Wort, das ein Kapitel benennt (z. B. `"Kapitel"`). Leer notiert (`""`) entfällt es. |
 | `pagenum_reset` | Boolean | `false` | Startet die Seitennummerierung bei jedem Abschnitt oder Kapitel neu bei Seite 1. |
 
 > [!NOTE] Freie Metadatenfelder unter `document:`
@@ -92,8 +92,8 @@ Die Liste `parts:` unterteilt das Dokument in übergeordnete Abschnitte. Ein Abs
 | `chapter_toc` | Scope | `None` | Vererbt die Vorgabe für Kapitelverzeichnisse an alle Kapitel des Abschnitts. |
 | `autonum_pattern` | String | `None` | Nummern für diesen Abschnitt; Slot 1 ist hier das Kapitel. |
 | `autonum_reset` | Boolean | `None` | Lässt die Kapitel dieses Abschnitts wieder bei 1 anfangen. |
-| `label` | String | aus i18n | Wort, das diesen Abschnitt benennt. |
-| `chapter_label` | String | geerbt | Wort für jedes Kapitel dieses Abschnitts (z. B. `"Anhang"`). |
+| `label` | String | aus i18n | Wort, das diesen Abschnitt benennt. Leer notiert (`""`) entfällt es. |
+| `chapter_label` | String | geerbt | Wort für jedes Kapitel dieses Abschnitts (z. B. `"Anhang"`). Leer notiert (`""`) entfällt es. |
 | `pagenum_reset` | Boolean | `None` | Setzt den Seitenzähler zu Beginn des Abschnitts auf 1 zurück. |
 | `chapters` | Liste | *(Pflichtfeld)* | Liste der Inhaltskapitel innerhalb dieses Abschnitts (mindestens 1 Eintrag). |
 
@@ -118,7 +118,7 @@ Die Überschrift auf der Inhaltsseite wird standardmäßig durch die führende `
 | `chapter_toc` | Scope | `None` | Lokales Verzeichnis auf der Trennseite dieses Kapitels. |
 | `autonum_pattern` | String | `None` | Nummern innerhalb dieses Kapitels; Slot 1 ist hier die H2. Die Kapitelnummer selbst kommt vom Abschnitt. |
 | `autonum_reset` | Boolean | `None` | Lässt die Überschriften dieses Kapitels wieder bei 1 anfangen. |
-| `label` | String | geerbt | Wort, das dieses Kapitel benennt (z. B. `"Exkurs"`). |
+| `label` | String | geerbt | Wort, das dieses Kapitel benennt (z. B. `"Exkurs"`). Leer notiert (`""`) entfällt es. |
 | `pagenum_reset` | Boolean | `None` | Setzt die Seitennummerierung zu Beginn dieses Kapitels auf 1 zurück. |
 
 > [!IMPORTANT]

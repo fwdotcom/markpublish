@@ -316,7 +316,11 @@ class MarkdownPipeline:
                 else None
             )
 
-            part_label = part_cfg.label or self.config.document.part_label
+            part_label = (
+                part_cfg.label
+                if part_cfg.label is not None
+                else self.config.document.part_label
+            )
             part_display_number = _labelled(
                 part_label, part_number, self.labels.get("label_separator", ": ")
             )
@@ -363,7 +367,9 @@ class MarkdownPipeline:
             )
             part_pattern = _compiled(part_cfg.autonum_pattern, "part")
             inherited_chapter_label = (
-                part_cfg.chapter_label or self.config.document.chapter_label
+                part_cfg.chapter_label
+                if part_cfg.chapter_label is not None
+                else self.config.document.chapter_label
             )
             inherited_pagenum_reset = effective_part_pagenum_reset
 
@@ -559,7 +565,11 @@ class MarkdownPipeline:
         # Der Anzeigename tritt vor die Nummer, aber nur in Ueberschrift und
         # Verzeichnis: `number_prefix` bleibt nackt, weil die Trennseite ihr
         # Wort selbst davorsetzt.
-        chapter_label = chapter_cfg.label or inherited_chapter_label
+        chapter_label = (
+            chapter_cfg.label
+            if chapter_cfg.label is not None
+            else inherited_chapter_label
+        )
         display_number = _labelled(
             chapter_label, number_prefix, self.labels.get("label_separator", ": ")
         )

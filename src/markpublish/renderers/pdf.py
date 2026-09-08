@@ -232,8 +232,11 @@ class PDFRenderer(BaseRenderer):
                     summary_typ = typst_string(item.summary or "")
                     part_title_esc = typst_string(getattr(item, "divider_title", None) or getattr(item, "display_title", None) or item.title)
                     part_sub_esc = typst_string(item.subtitle or "")
-                    part_word = getattr(item, "label", None) or labels.get(
-                        "part", "Part" if lang_code == "en" else "Abschnitt"
+                    part_label = getattr(item, "label", None)
+                    part_word = (
+                        part_label
+                        if part_label is not None
+                        else labels.get("part", "Part" if lang_code == "en" else "Abschnitt")
                     )
                     part_tag_esc = typst_string(part_word)
                     part_number_esc = typst_string(getattr(item, "number_prefix", None) or "")
@@ -362,11 +365,22 @@ class PDFRenderer(BaseRenderer):
             if needs_synth and (not has_file_h1 or not show_title):
                 res.append(_synthetic_heading())
                 synth_placed_on_divider = True
-            tag_label = getattr(chapter_item, "label", None) or labels.get(
-                "chapter", "Chapter" if lang_code == "en" else "Kapitel"
+            ch_label = getattr(chapter_item, "label", None)
+            tag_label = (
+                ch_label
+                if ch_label is not None
+                else labels.get("chapter", "Chapter" if lang_code == "en" else "Kapitel")
             )
             num_prefix = getattr(chapter_item, "number_prefix", None)
-            full_tag = typst_string(f"{tag_label} {num_prefix}".strip() if num_prefix else tag_label)
+            if tag_label and num_prefix:
+                full_tag = f"{tag_label} {num_prefix}"
+            elif tag_label:
+                full_tag = tag_label
+            elif num_prefix:
+                full_tag = num_prefix
+            else:
+                full_tag = ""
+            full_tag = typst_string(full_tag)
             summary_esc = typst_string(chapter_item.summary or "")
             ch_title_esc = typst_string(getattr(chapter_item, "divider_title", None) or chapter_item.display_title)
             ch_sub_esc = typst_string(chapter_item.subtitle or "")

@@ -148,6 +148,97 @@ def test_pdf_theme_renders_divider_pages(tmp_path: Path):
     assert "Abschnitt A" in text
 
 
+def test_part_label_empty_suppresses_divider_tag(tmp_path: Path):
+    """Verifies that part_label: '' suppresses the word on part dividers."""
+    pytest.importorskip("pypdfium2")
+    chapters = tmp_path / "chapters"
+    chapters.mkdir(parents=True, exist_ok=True)
+    (chapters / "01.md").write_text("# Kapitel\n\nText.\n", encoding="utf-8")
+    (tmp_path / "markpublish.yaml").write_text(
+        """\
+document:
+  title: "Empty Label Test"
+  date: "auto"
+  language: "de"
+  part_label: ""
+parts:
+  - part: "Anhang"
+    break_before: "divider"
+    chapters:
+      - file: "chapters/01.md"
+""",
+        encoding="utf-8",
+    )
+    config = load_config(tmp_path / "markpublish.yaml")
+    context = DocumentContext(
+        config=config,
+        content_items=[],
+        toc_tree=[],
+        template_path=resolve_template_path("pdf", "default"),
+        base_dir=tmp_path,
+        target="pdf",
+    )
+    context.content_items, context.toc_tree = MarkdownPipeline(
+        config, base_dir=tmp_path, labels=context.labels
+    ).process_document()
+
+    out = tmp_path / "out.pdf"
+    PDFRenderer().render(context, out)
+
+    import pypdfium2 as pdfium
+    doc = pdfium.PdfDocument(str(out))
+    # Page 1 is the divider page (Page 0 is the document TOC)
+    divider_lines = [line.strip() for line in doc[1].get_textpage().get_text_range().splitlines()]
+    assert "ABSCHNITT" not in divider_lines
+    assert "Anhang" in divider_lines
+
+
+def test_part_local_label_empty_overrides_document_label(tmp_path: Path):
+    """Verifies that a local label: '' on a part overrides document: part_label: 'Teil'."""
+    pytest.importorskip("pypdfium2")
+    chapters = tmp_path / "chapters"
+    chapters.mkdir(parents=True, exist_ok=True)
+    (chapters / "01.md").write_text("# Kapitel\n\nText.\n", encoding="utf-8")
+    (tmp_path / "markpublish.yaml").write_text(
+        """\
+document:
+  title: "Override Label Test"
+  date: "auto"
+  language: "de"
+  part_label: "Teil"
+parts:
+  - part: "Anhang"
+    label: ""
+    break_before: "divider"
+    chapters:
+      - file: "chapters/01.md"
+""",
+        encoding="utf-8",
+    )
+    config = load_config(tmp_path / "markpublish.yaml")
+    context = DocumentContext(
+        config=config,
+        content_items=[],
+        toc_tree=[],
+        template_path=resolve_template_path("pdf", "default"),
+        base_dir=tmp_path,
+        target="pdf",
+    )
+    context.content_items, context.toc_tree = MarkdownPipeline(
+        config, base_dir=tmp_path, labels=context.labels
+    ).process_document()
+
+    out = tmp_path / "out.pdf"
+    PDFRenderer().render(context, out)
+
+    import pypdfium2 as pdfium
+    doc = pdfium.PdfDocument(str(out))
+    divider_lines = [line.strip() for line in doc[1].get_textpage().get_text_range().splitlines()]
+    assert "TEIL" not in divider_lines
+    assert "ABSCHNITT" not in divider_lines
+    assert "Anhang" in divider_lines
+
+
 def test_pdf_theme_without_fonts_dir_renders_successfully(tmp_path: Path):
     """Verifies N1: A theme without fonts/ directory does not fail with TypeError."""
     import shutil

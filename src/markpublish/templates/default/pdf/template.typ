@@ -381,9 +381,18 @@
   [#metadata("part-divider") <part-divider>]
   v(3cm)
   let has-number = number != none and number != ""
-  let tag-line = if has-number { upper(tag) + " " + number } else { upper(tag) }
-  text(size: 10pt, weight: "bold", fill: rgb("2563eb"), tracking: 0.1em)[#tag-line]
-  v(0.3em)
+  let tag-word = upper(str(tag)).trim()
+  let tag-line = if has-number and tag-word != "" {
+    tag-word + " " + number
+  } else if has-number {
+    number
+  } else {
+    tag-word
+  }
+  if tag-line != "" [
+    #text(size: 10pt, weight: "bold", fill: rgb("2563eb"), tracking: 0.1em)[#tag-line]
+    #v(0.3em)
+  ]
   // Die Nummer steht fertig aus markpublish hier an; die konstante
   // numbering-Funktion traegt sie ins Inhaltsverzeichnis, ohne dass Typst
   // einen eigenen Zaehler dafuer fuehren muesste.
@@ -488,8 +497,11 @@
 ) = {
   [#heading(level: 1, outlined: false, numbering: none)[#title] <chapter-divider>]
   v(3cm)
-  text(size: 9pt, weight: "bold", fill: rgb("64748b"), tracking: 0.1em)[#upper(tag)]
-  v(0.3em)
+  let tag-line = upper(str(tag)).trim()
+  if tag-line != "" [
+    #text(size: 9pt, weight: "bold", fill: rgb("64748b"), tracking: 0.1em)[#tag-line]
+    #v(0.3em)
+  ]
   text(size: 20pt, weight: "bold", fill: rgb("0f172a"))[#title]
   v(0.5em)
   line(length: 100%, stroke: 1pt + rgb("cbd5e1"))

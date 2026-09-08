@@ -41,8 +41,8 @@ Metadata and global layout toggles. Only `title` is required.
 | `chapter_toc` | `full` | Default for chapter divider pages: `none`, `full` or a depth |
 | `autonum_pattern` | *see Numbering* | How numbers are built; slot 1 is the part here |
 | `autonum_reset` | `false` | Levels below start again at one when entered |
-| `part_label` | from i18n | Word before a part number (`Part`) |
-| `chapter_label` | from i18n | Word before a chapter number (`Chapter`) |
+| `part_label` | from i18n | Word before a part number (`Part`); `""` drops it |
+| `chapter_label` | from i18n | Word before a chapter number (`Chapter`); `""` drops it |
 | `pagenum_reset` | `false` | Restart page numbering per part or chapter |
 
 Custom fields under `document:` (`department: "R&D"`) reach the theme through the `meta` dictionary (`meta.at("department").value`). Static labels belong in `i18n.yaml`, not here.
