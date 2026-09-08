@@ -1,4 +1,4 @@
-# Appendix A: markpublish.yaml Schema Specification
+# markpublish.yaml Schema Specification
 
 This appendix provides the complete specification of all configuration options supported in `markpublish.yaml`.
 
@@ -25,10 +25,10 @@ The `document:` section defines global metadata, layout switches, table of conte
 | `document_toc` | Scope | `"full"` | Depth for the main table of contents (`"none"`, `"full"`, or integer $\ge 1$). |
 | `part_toc` | Scope | `"full"` | Default depth for local tables of contents on part divider pages. |
 | `chapter_toc` | Scope | `"full"` | Default depth for local tables of contents on chapter divider pages. |
-| `autonum_style` | String | `"decimal"` | Numbering style: `"decimal"` (1.2.3), `"legal"`, `"roman"`, or `"none"`. |
-| `autonum_from_level`| Integer | `1` | Heading level where numbering begins (`1` = from H1, `2` = starting at H2). |
-| `autonum_prefix` | String | `None` | Prefix prepended to numbers (e.g., `"A."` for appendices). |
-| `autonum_reset` | Boolean | `false` | Resets the heading counter to 1 at each new chapter. |
+| `autonum_pattern` | String | *see below* | How numbers are built; slot 1 is the part, slot 2 the chapter. `none` switches numbering off. |
+| `autonum_reset` | Boolean | `false` | Makes the levels below start again at one when this block is entered. |
+| `part_label` | String | from i18n | Word naming a part (e.g. `"Part"`). |
+| `chapter_label` | String | from i18n | Word naming a chapter (e.g. `"Chapter"`). |
 | `pagenum_reset` | Boolean | `false` | Restarts page numbering at page 1 for each part or chapter. |
 
 > [!NOTE] Custom Metadata Fields under `document:`
@@ -47,6 +47,31 @@ Directly at the top level of `markpublish.yaml` (alongside `document:` and `part
 | `theme` | String | `"default"` | Name of the active theme. |
 | `templates_dir` | String | `None` | Optional custom directory path containing theme templates. |
 
+### Numbering Patterns
+
+`autonum_pattern` describes how numbers are built, as a chain of slots separated by `|`. Slot 1 belongs to the first level *below* the place the pattern stands: under `document:` that is the part, on a part the chapter, on a chapter the H2. A pattern therefore never describes the level it is written at.
+
+| Symbol | Result |
+| :--- | :--- |
+| `1` | 1, 2, 3 … |
+| `01`, `001` | 01, 02 … or 001, 002 … (fixed width) |
+| `a` / `A` | a, b, c … / A, B, C … |
+| `i` / `I` | i, ii, iii … / I, II, III … |
+| `_` | level stays unnumbered |
+| `+` | repeats the slot before it for every deeper level |
+
+Everything else in a slot is a literal and needs no quoting; only a reserved character meant literally goes into single quotes (`'Article '1`). A malformed pattern aborts the build.
+
+```text
+  "_|1|.1|+"        part unnumbered, chapter 1, section 1.1   (default)
+  "I|1|.1|+"        part I, II … chapters count straight through
+  "'Appendix 'A|.1" Appendix A, Appendix A.1
+```
+
+A notated `label` puts the word in front of the number of the heading and its table-of-contents entry: `A` becomes `Appendix A: `. The subheadings are untouched and keep counting `A.1`, `A.2` — which is why the word belongs in this key and not in the pattern. The separator comes from the i18n cascade (`label_separator`).
+
+The part number does not enter the chapter numbers: it appears on the divider page and in the table of contents, not in front of every chapter. A part with `document_toc: "none"` gets no number and consumes none.
+
 ---
 
 ## Section Level (parts)
@@ -64,10 +89,10 @@ The `parts:` list subdivides the document into high-level sections. A part group
 | `document_toc` | Scope | `None` | Overrides this section's contribution to the main TOC. |
 | `part_toc` | Scope | `None` | Controls the local table of contents on the section divider page. |
 | `chapter_toc` | Scope | `None` | Propagates chapter TOC settings down to all chapters in this part. |
-| `autonum_style` | String | `None` | Overrides the numbering style for all chapters in this part. |
-| `autonum_from_level`| Integer | `None` | Overrides the starting numbering level for this part. |
-| `autonum_prefix` | String | `None` | Prefix for heading numbers within this part (e.g., `"A."`). |
-| `autonum_reset` | Boolean | `None` | Controls whether chapters within this part restart numbering at 1. |
+| `autonum_pattern` | String | `None` | Numbers for this part; slot 1 is the chapter here. |
+| `autonum_reset` | Boolean | `None` | Makes the chapters of this part start again at one. |
+| `label` | String | from i18n | Word naming this part. |
+| `chapter_label` | String | inherited | Word for every chapter of this part (e.g. `"Appendix"`). |
 | `pagenum_reset` | Boolean | `None` | Resets page numbering to 1 at the start of this section. |
 | `chapters` | List | *(Required)* | List of content chapters in this part (at least 1 entry). |
 
@@ -90,10 +115,9 @@ The chapter heading on the content page is determined by default by the file's l
 | `break_before` | String | `"page"` | Page break behavior: `"page"` (new page), `"divider"` (divider page), or `"none"`. |
 | `document_toc` | Scope | `None` | Contribution of this chapter to the main TOC (`"none"`, `"full"`, integer). |
 | `chapter_toc` | Scope | `None` | Local table of contents on this chapter's divider page. |
-| `autonum_style` | String | `None` | Numbering style for headings in this chapter. |
-| `autonum_from_level`| Integer | `None` | Starting heading level for numbering within this chapter. |
-| `autonum_prefix` | String | `None` | Prefix for heading numbers in this chapter. |
-| `autonum_reset` | Boolean | `None` | Resets the heading counter to 1 at the start of this chapter. |
+| `autonum_pattern` | String | `None` | Numbers inside this chapter; slot 1 is the H2 here. The chapter's own number comes from its part. |
+| `autonum_reset` | Boolean | `None` | Makes the headings of this chapter start again at one. |
+| `label` | String | inherited | Word naming this chapter (e.g. `"Excursus"`). |
 | `pagenum_reset` | Boolean | `None` | Resets page numbering to 1 at the start of this chapter. |
 
 > [!IMPORTANT]

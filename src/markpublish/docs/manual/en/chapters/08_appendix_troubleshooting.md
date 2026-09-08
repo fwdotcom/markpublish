@@ -1,4 +1,4 @@
-# Appendix B: Troubleshooting and FAQ
+# Troubleshooting and FAQ
 
 This appendix offers actionable guidance for typical issues during the publishing process along with answers to frequently asked questions.
 

@@ -14,7 +14,7 @@ from html.parser import HTMLParser
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple
 
-from markpublish.config.models import AutonumStyle
+from markpublish.markdown.pattern import PatternChain
 from markpublish.markdown.toc import NumberingContext, TOCNode
 
 
@@ -797,9 +797,7 @@ class TypstSerializer:
 def process_tree_headings_and_toc(
     root: etree.Element,
     numbering_ctx: NumberingContext,
-    autonum_override: Optional[AutonumStyle] = None,
-    autonum_from_level: int = 1,
-    autonum_prefix: Optional[str] = None,
+    patterns: Optional[PatternChain] = None,
 ) -> List[TOCNode]:
     """
     Finds all headings in the ElementTree, computes numbering and slugs,
@@ -831,12 +829,10 @@ def process_tree_headings_and_toc(
             slug = numbering_ctx.unique_slug(plain_text)
             elem.attrib["id"] = slug
 
-        # Numbering
-        number_str = numbering_ctx.advance_counter(
+        # Die Ueberschriftenebene ist zugleich die Nummerierungsebene.
+        number_str = numbering_ctx.advance(
             orig_level,
-            autonum_override,
-            from_level=autonum_from_level,
-            prefix=autonum_prefix,
+            patterns.for_level(orig_level) if patterns else None,
         )
         if number_str:
             elem.attrib["data-number"] = number_str

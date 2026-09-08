@@ -199,6 +199,28 @@ err.config.chapters_nested: |
   Nested subchapters have been removed without replacement. Deeper structure
   belongs inside the Markdown file, using '##', '###' and so on.
 
+err.config.label_scope: |
+  '{key}' supplies the name for a level further down and therefore belongs on
+  the enclosing block: under 'document:' for all parts and chapters, on a part
+  for its chapters. The block itself is named with 'label'.
+
+# --- Nummerierungs-Pattern ----------------------------------------------------
+err.pattern.empty_slot: "Pattern '{pattern}', slot {slot}: empty slot. There must be a slot between two '|'."
+err.pattern.unknown_char: "Pattern '{pattern}', slot {slot}: the character {char} is reserved and appears where it has no meaning. To mean it literally, put it in single quotes."
+err.pattern.unbalanced_quote: "Pattern '{pattern}', slot {slot}: a single quote was opened and never closed. A literal quote is written twice."
+err.pattern.no_symbol: "Pattern '{pattern}', slot {slot}: the slot holds only literals and carries no symbol. Every slot needs exactly one of 1, 01, a, A, i, I."
+err.pattern.two_symbols: "Pattern '{pattern}', slot {slot}: more than one symbol. A slot counts exactly one level."
+err.pattern.bad_decimal: "Pattern '{pattern}', slot {slot}: '{run}' is not a valid decimal symbol. Allowed are 1, 01, 001 and so on - any number of zeros followed by exactly one one."
+err.pattern.cont_first: "Pattern '{pattern}': '+' is the first slot. It repeats the slot before it, and there is none."
+err.pattern.cont_not_last: "Pattern '{pattern}', slot {slot}: '+' must be the last slot."
+err.pattern.cont_after_skip: "Pattern '{pattern}', slot {slot}: '+' follows '_'. Leaving everything below unnumbered is written by writing nothing."
+err.pattern.cont_after_part: "Pattern '{pattern}': '+' follows the part slot. The part counts on its own; repeated, it would give every level a number that contains nothing above it."
+err.pattern.skip_last: "Pattern '{pattern}', slot {slot}: '_' as the last slot is redundant - levels beyond the last slot get no number anyway."
+err.pattern.too_deep: "Pattern '{pattern}': {slots} slots, at most {max} are possible here. The surplus slot would describe a level below h6."
+err.pattern.scope.document: "In a pattern under 'document:', slot 1 is the part, slot 2 the chapter, slot 3 the h2."
+err.pattern.scope.part: "In a pattern on a part, slot 1 is the chapter and slot 2 the h2."
+err.pattern.scope.chapter: "In a pattern on a chapter, slot 1 is the h2 and slot 2 the h3."
+
 # --- Kapitelverarbeitung ------------------------------------------------------
 chapter.desc.in_file: "in '{file}'"
 chapter.desc.no_file: "without a file reference"

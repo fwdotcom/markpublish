@@ -1,6 +1,23 @@
 # markpublish.yaml
 
-Oberste Ebene der Konfigurationsdatei: `document`, `theme`, `parts`, optional `templates_dir`. Sämtliche Pfade gelten relativ zum Verzeichnis dieser Datei. Bauen mit: `markpublish build [CONFIG_FILE] [OPTIONEN]`.
+Oberste Ebene: `document`, `theme`, `parts`, optional `templates_dir`. Alle Pfade gelten relativ zum Verzeichnis dieser Datei. Bauen mit `markpublish build [CONFIG_FILE] [OPTIONEN]`.
+
+## Aufbau
+
+Der Aufbau hat genau zwei Gliederungsstufen. Tiefer strukturiert die Markdown-Datei selbst.
+
+```text
+markpublish.yaml
+├── document:            Metadaten und globale Schalter
+├── theme:               Name des Themes
+└── parts:               Liste der Abschnitte
+     ├── part:           Name des Abschnitts
+     └── chapters:       Liste der Kapitel
+          └── file:      eine Markdown-Datei
+               ├── # H1  Kapitelüberschrift
+               ├── ## H2   Gliederung
+               └── ### H3  innerhalb der Datei
+```
 
 ## document
 
@@ -11,56 +28,105 @@ Metadaten und globale Layout-Schalter. Pflichtangabe ist allein `title`.
 | `title` | *Pflichtangabe* | Titel des Dokuments (Deckblatt, Kopfzeile, Dateiname) |
 | `subtitle` | – | Untertitel auf dem Deckblatt |
 | `summary` | – | Zusammenfassung / Abstract auf dem Deckblatt |
-| `author` | – | Name des Autors (Deckblatt) |
-| `date` | `auto` | Datum auf dem Deckblatt (`auto` oder `today` für das Baudatum) |
-| `version` | – | Versionsnummer auf dem Deckblatt und in der Fußzeile |
-| `status` | – | Dokumentstatus auf dem Deckblatt (z. B. `Entwurf`, `Freigegeben`) |
+| `author` | – | Name des Autors |
+| `date` | `auto` | Datum (`auto` oder `today` für das Baudatum) |
+| `version` | – | Versionsnummer auf Deckblatt und in der Fußzeile |
+| `status` | – | Dokumentstatus (z. B. `Entwurf`, `Freigegeben`) |
 | `copyright` | – | Copyright-Hinweis auf dem Deckblatt |
 | `language` | Systemsprache | ISO-Sprachcode für statische Beschriftungen (`de`, `en`) |
-| `cover` | `false` | Deckblatt erzeugen (`true` oder `false`) |
-| `header` | `true` | Lebende Kopfzeilen aktivieren (`true` oder `false`) |
-| `footer` | `true` | Fußzeilen aktivieren (`true` oder `false`) |
+| `cover` | `false` | Deckblatt erzeugen |
+| `header` / `footer` | `true` | Lebende Kopf- und Fußzeilen |
 | `document_toc` | `full` | Haupt-Inhaltsverzeichnis: `none`, `full` oder Tiefe als Zahl |
 | `part_toc` | `full` | Vorgabe für Part-Trennseiten: `none`, `full` oder Tiefe |
 | `chapter_toc` | `full` | Vorgabe für Kapitel-Trennseiten: `none`, `full` oder Tiefe |
-| `autonum_style` | `decimal` | Zählstil für Überschriften: `decimal`, `roman`, `legal`, `none` |
-| `autonum_from_level` | `1` | Ab welcher Ebene nummeriert wird (1 = H1, 2 = H2, ...) |
-| `autonum_prefix` | – | Präfix vor Überschriftennummern (z. B. `A.` für A.1) |
-| `autonum_reset` | `false` | Zähler für Überschriften bei jedem Kapitel neu beginnen |
-| `pagenum_reset` | `false` | Seitennummerierung für jeden Part oder Kapitel neu beginnen |
+| `autonum_pattern` | *s. Nummerierung* | Aufbau der Nummern; Slot 1 ist hier der Part |
+| `autonum_reset` | `false` | Ebenen darunter beim Betreten wieder bei 1 beginnen |
+| `part_label` | aus i18n | Wort vor der Part-Nummer (`Teil`) |
+| `chapter_label` | aus i18n | Wort vor der Kapitelnummer (`Kapitel`) |
+| `pagenum_reset` | `false` | Seitennummerierung je Part oder Kapitel neu beginnen |
 
-Eigene Zusatzfelder unter `document:` (z. B. `abteilung: "F&E"`, `projekt: "Alpha"`)
-werden über das Wörterbuch `meta` an das Theme weitergereicht (`meta.at("feld").value`)
-und gedruckt, sofern das Theme sie vorsieht. Statische Beschriftungen gehören in die
-`i18n.yaml`, nicht in `document:`.
+Eigene Zusatzfelder unter `document:` (`abteilung: "F&E"`) erreichen das Theme über das Wörterbuch `meta` (`meta.at("abteilung").value`). Statische Beschriftungen gehören in die `i18n.yaml`, nicht hierher.
 
-## parts und chapters
+## parts
 
-Genau zwei Stufen: `parts:` gliedert, `chapters:` trägt den Inhalt. Seitentitel
-stammen aus der H1 der Markdown-Datei; Verzeichnis- und Trennseitentitel lassen sich
-individuell steuern.
+Ein Part klammert Kapitel und gibt Einstellungen an sie weiter. Ohne `break_before` zeigt er sich selbst nicht.
 
-| Schlüssel | Ebene | Standard | Bedeutung |
-| :--- | :--- | :--- | :--- |
-| `part` | Part | *Pflichtangabe* | Name des Abschnitts |
-| `chapters` | Part | *Pflichtangabe* | Liste der Kapitel dieses Abschnitts |
-| `file` | Kapitel | *Pflichtangabe* | Pfad zur Markdown-Datei (relativ zur Konfiguration) |
-| `show_title` | Kapitel | `true` | Datei-H1 auf der Inhaltsseite anzeigen (`false` blendet sie aus) |
-| `toc_title` | Part / Kapitel | Datei-H1 / `part` | Titel für Haupt-Inhaltsverzeichnis und Kopfzeilen |
-| `divider_title` | Part / Kapitel | `part` / Datei-H1 | Titel auf der Trennseite |
-| `subtitle` | Part / Kapitel | – | Untertitel auf der Trennseite |
-| `summary` | Part / Kapitel | – | Kurzbeschreibung auf der Trennseite |
-| `break_before` | Part / Kapitel | `none` / `page` | Seitenumbruch: `divider` (Trennseite), `page` oder `none` |
-| `document_toc` | Part / Kapitel | geerbt | Beitrag zum Haupt-Inhaltsverzeichnis (`none`, `full`, Tiefe) |
-| `part_toc` | Part | geerbt | Lokales Verzeichnis auf der Part-Trennseite |
-| `chapter_toc` | Part / Kapitel | geerbt | Lokales Verzeichnis auf der Kapitel-Trennseite |
-| `autonum_style` | Part / Kapitel | geerbt | Lokaler Zählstil (`decimal`, `roman`, `legal`, `none`) |
-| `autonum_from_level` | Part / Kapitel | geerbt | Ebene, ab der nummeriert wird |
-| `autonum_prefix` | Part / Kapitel | geerbt | Präfix für Nummern in diesem Abschnitt |
-| `autonum_reset` | Part / Kapitel | geerbt | Zähler am Beginn des Abschnitts/Kapitels zurücksetzen |
-| `pagenum_reset` | Part / Kapitel | geerbt | Seitennummerierung am Beginn zurücksetzen |
+| Schlüssel | Standard | Bedeutung |
+| :--- | :--- | :--- |
+| `part` | *Pflichtangabe* | Name des Abschnitts |
+| `chapters` | *Pflichtangabe* | Liste der Kapitel dieses Abschnitts |
+| `toc_title` | `part` | Titel im Haupt-Inhaltsverzeichnis |
+| `divider_title` | `part` | Titel auf der Trennseite |
+| `subtitle` / `summary` | – | Untertitel und Kurzbeschreibung auf der Trennseite |
+| `break_before` | `none` | `divider` (Trennseite), `page` oder `none` |
+| `document_toc` | geerbt | Beitrag zum Haupt-Inhaltsverzeichnis; `none` versteckt den Part |
+| `part_toc` | geerbt | Lokales Verzeichnis auf der eigenen Trennseite |
+| `chapter_toc` | geerbt | Vorgabe für die Trennseiten seiner Kapitel |
+| `autonum_pattern` | geerbt | Nummern seiner Kapitel; Slot 1 ist hier das Kapitel |
+| `autonum_reset` | geerbt | Kapitel dieses Parts wieder bei 1 beginnen |
+| `label` | aus i18n | Wort vor der eigenen Nummer |
+| `chapter_label` | geerbt | Wort vor der Nummer jedes seiner Kapitel (`Anhang`) |
+| `pagenum_reset` | geerbt | Seitennummerierung am Part-Anfang zurücksetzen |
 
-`document_toc: 1` listet ein Kapitel ohne seine Unterüberschriften; am Part
-gesetzt, flacht es alle enthaltenen Kapitel auf einmal ab. Optionen mit dem
-Vermerk *geerbt* übernehmen ihren Standardwert von `document` über den Part
-zum Kapitel – die tiefere Angabe gewinnt.
+## chapters
+
+Ein Kapitel ist eine Markdown-Datei. Sein Name kommt aus deren `#`-Überschrift.
+
+| Schlüssel | Standard | Bedeutung |
+| :--- | :--- | :--- |
+| `file` | *Pflichtangabe* | Pfad zur Markdown-Datei |
+| `show_title` | `true` | Datei-H1 auf der Inhaltsseite anzeigen |
+| `toc_title` | Datei-H1 | Titel im Inhaltsverzeichnis und in der Kopfzeile |
+| `divider_title` | Datei-H1 | Titel auf der Trennseite |
+| `subtitle` / `summary` | – | Untertitel und Kurzbeschreibung auf der Trennseite |
+| `break_before` | `page` | `divider` (Trennseite), `page` oder `none` |
+| `document_toc` | geerbt | Beitrag zum Haupt-Inhaltsverzeichnis (`none`, `full`, Tiefe) |
+| `chapter_toc` | geerbt | Lokales Verzeichnis auf der eigenen Trennseite |
+| `autonum_pattern` | geerbt | Nummern *innerhalb* des Kapitels; Slot 1 ist hier die H2 |
+| `autonum_reset` | geerbt | Überschriften dieses Kapitels wieder bei 1 beginnen |
+| `label` | geerbt | Wort vor der eigenen Nummer (`Anhang A: …`) |
+| `pagenum_reset` | geerbt | Seitennummerierung am Kapitelanfang zurücksetzen |
+
+## Vererbung
+
+Was mit *geerbt* markiert ist, fließt von außen nach innen; die innerste Angabe gewinnt.
+
+```text
+document ─────────────► parts[] ─────────────► chapters[]
+  autonum_pattern         autonum_pattern        autonum_pattern
+  autonum_reset           autonum_reset          autonum_reset
+  document_toc            document_toc           document_toc
+  part_toc                part_toc                    –
+  chapter_toc             chapter_toc            chapter_toc
+  pagenum_reset           pagenum_reset          pagenum_reset
+  part_label              label                       –
+  chapter_label           chapter_label          label
+```
+
+## Nummerierung
+
+Ein Pattern beschreibt die Ebenen *unterhalb* der Stelle, an der es steht — Slot 1 verschiebt sich also mit dem Fundort.
+
+```text
+  Ebene            unter document      an einem Part     an einem Kapitel
+  ─────────────────────────────────────────────────────────────────────────
+  Part               Slot 1                  –                  –
+  Kapitel (H1)       Slot 2               Slot 1                –
+  H2                 Slot 3               Slot 2             Slot 1
+  H3                 Slot 4               Slot 3             Slot 2
+   ⋮                    ⋮                    ⋮                  ⋮
+  H6                 Slot 7               Slot 6             Slot 5
+```
+
+**Symbole:** `1` → 1, 2, 3 · `01` → 01, 02 · `a` / `A` → a, b / A, B · `i` / `I` → i, ii / I, II · `_` Ebene ohne Nummer · `+` wiederholt den Slot davor für alle tieferen Ebenen. Slots trennt `|`; alles andere im Slot ist Literal, Reserviertes in Hochkommas (`'Artikel '1`).
+
+```text
+  an document   "_|1|.1|+"               Part ohne Nummer · Kapitel 1 · 1.1
+  an document   "I|1|.1|+"               Teil I · Kapitel 1, 2, 3 durchlaufend
+  am Part       "A|.1|+"                 Kapitel A · A.1 · A.1.1
+  am Part       "'Artikel '1|' ('1')'"   Artikel 1 · Artikel 1 (2)
+```
+
+Ohne Angabe gilt `"_|1|.1|+"`: Parts ohne Nummer, Kapitel 1, 1.1, 1.1.1.
+
+Die Part-Nummer geht **nicht** in die Kapitelnummern ein; ein Part mit `document_toc: "none"` bekommt keine und verbraucht keine. Ein notiertes `label` tritt vor die Nummer der Überschrift (`Anhang A: Schema`), ohne die Unterüberschriften zu erreichen (`A.1`).

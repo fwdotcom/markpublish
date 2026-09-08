@@ -8,7 +8,7 @@ document:
   status: "Released"
   copyright: "© 2026 Frank Winter"
   date: "auto"
-  version: "2.0.1"
+  version: "2.1.0"
   language: "en"
 
   cover: true
@@ -58,12 +58,12 @@ parts:
   - part: "Appendices"
     summary: "Complete specification tables and troubleshooting guidance."
     break_before: "divider"
-    autonum_from_level: 2
+    autonum_pattern: "A|.1|+"
+    autonum_reset: true
+    chapter_label: "Appendix"
     
     chapters:
       - file: "chapters/07_appendix_yaml_spec.md"
-        autonum_prefix: "A."
 
       - file: "chapters/08_appendix_troubleshooting.md"
-        autonum_prefix: "B."
 

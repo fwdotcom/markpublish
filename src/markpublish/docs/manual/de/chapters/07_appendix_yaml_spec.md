@@ -1,4 +1,4 @@
-# Anhang A: Schema-Referenz markpublish.yaml
+# Schema-Referenz markpublish.yaml
 
 Dieser Anhang enthält die vollständige Spezifikation aller Konfigurationsoptionen der `markpublish.yaml`.
 
@@ -25,10 +25,10 @@ Die Sektion `document:` legt globale Metadaten, Layoutschalter, Verzeichnisvorga
 | `document_toc` | Scope | `"full"` | Tiefe des Haupt-Inhaltsverzeichnisses (`"none"`, `"full"` oder Zahl $\ge 1$). |
 | `part_toc` | Scope | `"full"` | Standardtiefe für lokale Inhaltsverzeichnisse auf Abschnitts-Trennseiten. |
 | `chapter_toc` | Scope | `"full"` | Standardtiefe für lokale Inhaltsverzeichnisse auf Kapitel-Trennseiten. |
-| `autonum_style` | String | `"decimal"` | Nummerierungsstil: `"decimal"` (1.2.3), `"legal"`, `"roman"` oder `"none"`. |
-| `autonum_from_level`| Integer | `1` | Überschriftenebene, ab der nummeriert wird (`1` = ab H1, `2` = erst ab H2). |
-| `autonum_prefix` | String | `None` | Zeichenkette vor den Nummern (z. B. `"A."` für Anhänge). |
-| `autonum_reset` | Boolean | `false` | Setzt den Überschriftenzähler bei jedem neuen Kapitel auf 1 zurück. |
+| `autonum_pattern` | String | *s. unten* | Aufbau der Nummern; Slot 1 ist der Part, Slot 2 das Kapitel. `none` schaltet die Nummerierung ab. |
+| `autonum_reset` | Boolean | `false` | Lässt die Ebenen darunter beim Betreten wieder bei 1 anfangen. |
+| `part_label` | String | aus i18n | Wort, das einen Abschnitt benennt (z. B. `"Teil"`). |
+| `chapter_label` | String | aus i18n | Wort, das ein Kapitel benennt (z. B. `"Kapitel"`). |
 | `pagenum_reset` | Boolean | `false` | Startet die Seitennummerierung bei jedem Abschnitt oder Kapitel neu bei Seite 1. |
 
 > [!NOTE] Freie Metadatenfelder unter `document:`
@@ -48,6 +48,31 @@ Direkt auf oberster Ebene der `markpublish.yaml` (neben `document:` und `parts:`
 | `theme` | String | `"default"` | Name des zu verwendenden Themes. |
 | `templates_dir` | String | `None` | Optionaler benutzerdefinierter Pfad zu einem Verzeichnis mit Themes. |
 
+### Nummerierungs-Pattern
+
+`autonum_pattern` beschreibt den Aufbau der Nummern als Kette von Slots, getrennt durch `|`. Slot 1 gehört zur ersten Ebene *unter* der Stelle, an der das Pattern steht: unter `document:` ist das der Part, an einem Part das Kapitel, an einem Kapitel die H2. Ein Pattern beschreibt also nie die Ebene, an der es notiert ist.
+
+| Symbol | Ergebnis |
+| :--- | :--- |
+| `1` | 1, 2, 3 … |
+| `01`, `001` | 01, 02 … bzw. 001, 002 … (feste Stellenzahl) |
+| `a` / `A` | a, b, c … / A, B, C … |
+| `i` / `I` | i, ii, iii … / I, II, III … |
+| `_` | Ebene bleibt unnummeriert |
+| `+` | wiederholt den Slot davor für alle tieferen Ebenen |
+
+Alles andere im Slot ist Literal und braucht keine Anführungszeichen; nur wer ein reserviertes Zeichen wörtlich meint, setzt es in Hochkommas (`'Artikel '1`). Ein fehlerhaftes Pattern bricht den Build ab.
+
+```text
+  "_|1|.1|+"      Part ohne Nummer, Kapitel 1, Abschnitt 1.1   (Vorgabe)
+  "I|1|.1|+"      Abschnitt I, II … Kapitel zählen durch
+  "'Anhang 'A|.1" Anhang A, Anhang A.1
+```
+
+Notiert man ein `label`, tritt das Wort vor die Nummer der Überschrift und ihres Verzeichniseintrags: aus `A` wird `Anhang A: `. Die Unterüberschriften bleiben davon unberührt und zählen weiter `A.1`, `A.2` — deshalb gehört das Wort in diesen Schlüssel und nicht ins Pattern. Das Trennzeichen kommt aus der i18n-Kaskade (`label_separator`).
+
+Die Part-Nummer geht nicht in die Kapitelnummern ein: sie steht auf der Trennseite und im Inhaltsverzeichnis, nicht vor jedem Kapitel. Ein Abschnitt mit `document_toc: "none"` bekommt keine Nummer und verbraucht auch keine.
+
 ---
 
 ## Abschnitts-Ebene (parts)
@@ -65,10 +90,10 @@ Die Liste `parts:` unterteilt das Dokument in übergeordnete Abschnitte. Ein Abs
 | `document_toc` | Scope | `None` | Überschreibt den Beitrag dieses Abschnitts zum Haupt-Inhaltsverzeichnis. |
 | `part_toc` | Scope | `None` | Steuert das lokale Inhaltsverzeichnis auf der Abschnitts-Trennseite. |
 | `chapter_toc` | Scope | `None` | Vererbt die Vorgabe für Kapitelverzeichnisse an alle Kapitel des Abschnitts. |
-| `autonum_style` | String | `None` | Überschreibt den Nummerierungsstil für alle Kapitel des Abschnitts. |
-| `autonum_from_level`| Integer | `None` | Überschreibt die Startebene der Nummerierung für den Abschnitt. |
-| `autonum_prefix` | String | `None` | Präfix für Nummern innerhalb des Abschnitts (z. B. `"A."`). |
-| `autonum_reset` | Boolean | `None` | Steuert, ob Kapitel im Abschnitt jeweils bei 1 neu nummerieren. |
+| `autonum_pattern` | String | `None` | Nummern für diesen Abschnitt; Slot 1 ist hier das Kapitel. |
+| `autonum_reset` | Boolean | `None` | Lässt die Kapitel dieses Abschnitts wieder bei 1 anfangen. |
+| `label` | String | aus i18n | Wort, das diesen Abschnitt benennt. |
+| `chapter_label` | String | geerbt | Wort für jedes Kapitel dieses Abschnitts (z. B. `"Anhang"`). |
 | `pagenum_reset` | Boolean | `None` | Setzt den Seitenzähler zu Beginn des Abschnitts auf 1 zurück. |
 | `chapters` | Liste | *(Pflichtfeld)* | Liste der Inhaltskapitel innerhalb dieses Abschnitts (mindestens 1 Eintrag). |
 
@@ -91,10 +116,9 @@ Die Überschrift auf der Inhaltsseite wird standardmäßig durch die führende `
 | `break_before` | String | `"page"` | Umbruch vor dem Kapitel: `"page"` (neue Seite), `"divider"` (Trennseite) oder `"none"`. |
 | `document_toc` | Scope | `None` | Beitrag dieses Kapitels zum Hauptverzeichnis (`"none"`, `"full"`, Zahl). |
 | `chapter_toc` | Scope | `None` | Lokales Verzeichnis auf der Trennseite dieses Kapitels. |
-| `autonum_style` | String | `None` | Nummerierungsstil für Überschriften dieses Kapitels. |
-| `autonum_from_level`| Integer | `None` | Startebene der Nummerierung innerhalb des Kapitels. |
-| `autonum_prefix` | String | `None` | Präfix für Überschriftennummern dieses Kapitels. |
-| `autonum_reset` | Boolean | `None` | Setzt den Nummerierungszähler zu Beginn dieses Kapitels auf 1 zurück. |
+| `autonum_pattern` | String | `None` | Nummern innerhalb dieses Kapitels; Slot 1 ist hier die H2. Die Kapitelnummer selbst kommt vom Abschnitt. |
+| `autonum_reset` | Boolean | `None` | Lässt die Überschriften dieses Kapitels wieder bei 1 anfangen. |
+| `label` | String | geerbt | Wort, das dieses Kapitel benennt (z. B. `"Exkurs"`). |
 | `pagenum_reset` | Boolean | `None` | Setzt die Seitennummerierung zu Beginn dieses Kapitels auf 1 zurück. |
 
 > [!IMPORTANT]

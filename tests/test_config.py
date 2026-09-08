@@ -6,7 +6,6 @@ import datetime
 
 from markpublish.config.loader import format_current_date, load_config
 from markpublish.config.models import (
-    AutonumStyle,
     BreakBefore,
     ChapterItem,
     PartItem,
@@ -33,18 +32,18 @@ def test_load_config_from_dict():
             "language": "de",
             "cover": True,
             "document_toc": "full",
-            "autonum_style": "decimal",
+            "autonum_pattern": "_|1|.1|+",
         },
         "theme": "default",
         "parts": [
             {
-                "title": "Main",
+                "part": "Main",
                 "break_before": "none",
                 "document_toc": "none",
                 "chapters": [
                     {
                         "file": "chapters/01.md",
-                        "title": "Chapter 1",
+                        "toc_title": "Chapter 1",
                         "break_before": "divider",
                         "chapter_toc": 2,
                     },
@@ -54,11 +53,12 @@ def test_load_config_from_dict():
                 "part": "Appendices",
                 "summary": "Appendix section",
                 "break_before": "divider",
-                "autonum_style": "none",
+                "autonum_pattern": "none",
                 "chapters": [
                     {
                         "file": "chapters/app_a.md",
-                        "title": "App A",
+                        "toc_title": "App A",
+                        "label": "Appendix",
                     }
                 ],
             },
@@ -71,7 +71,7 @@ def test_load_config_from_dict():
     assert config.document.status == "Freigegeben"
     assert config.document.copyright == "© 2026 Frank Winter"
     assert config.document.date == datetime.date.today().strftime("%d.%m.%Y")
-    assert config.document.autonum_style == AutonumStyle.DECIMAL
+    assert config.document.autonum_pattern == "_|1|.1|+"
     assert len(config.parts) == 2
     assert len(config.chapters) == 2
 
@@ -79,7 +79,7 @@ def test_load_config_from_dict():
     main_part = config.parts[0]
     assert len(main_part.chapters) == 1
     c1 = main_part.chapters[0]
-    assert c1.title == "Chapter 1"
+    assert c1.toc_title == "Chapter 1"
     assert c1.break_before is BreakBefore.DIVIDER
     assert isinstance(c1.chapter_toc, TocScope)
     assert c1.chapter_toc.enabled is True
@@ -89,9 +89,10 @@ def test_load_config_from_dict():
     p = config.parts[1]
     assert p.is_part is True
     assert p.part == "Appendices"
-    assert p.autonum_style == AutonumStyle.NONE
+    assert p.autonum_pattern == "none"
     assert len(p.chapters) == 1
-    assert p.chapters[0].title == "App A"
+    assert p.chapters[0].toc_title == "App A"
+    assert p.chapters[0].label == "Appendix"
 
 
 def test_load_config_from_yaml_string():
@@ -103,7 +104,7 @@ document:
   cover: false
 theme: "custom"
 parts:
-  - title: "Hauptteil"
+  - part: "Hauptteil"
     break_before: "none"
     document_toc: "none"
     chapters:
@@ -136,14 +137,14 @@ def test_parts_must_have_name():
         "document": {"title": "Test"},
         "parts": [
             {
-                "title": "Hauptteil",
+                "part": "Hauptteil",
                 "chapters": [{"file": "01.md"}]
             }
         ]
     }
     config = load_config(raw_valid)
     assert len(config.parts) == 1
-    assert config.parts[0].title == "Hauptteil"
+    assert config.parts[0].part == "Hauptteil"
 
 
 def test_nested_chapters_are_rejected():
@@ -161,7 +162,7 @@ def test_nested_chapters_are_rejected():
         "document": {"title": "Test"},
         "parts": [
             {
-                "title": "Hauptteil",
+                "part": "Hauptteil",
                 "chapters": [
                     {
                         "file": "01.md",
@@ -181,11 +182,11 @@ def test_pagenum_reset_configuration():
         "document": {"title": "Test"},
         "parts": [
             {
-                "title": "Hauptteil",
+                "part": "Hauptteil",
                 "chapters": [{"file": "01.md"}]
             },
             {
-                "title": "Anhänge",
+                "part": "Anhänge",
                 "pagenum_reset": True,
                 "chapters": [
                     {"file": "app.md", "pagenum_reset": False}
@@ -199,44 +200,70 @@ def test_pagenum_reset_configuration():
     assert config.parts[1].chapters[0].pagenum_reset is False
 
 
-def test_part_and_chapter_naming_and_title_tolerance():
+def test_a_block_is_named_by_exactly_one_key():
     """
-    Prueft die Vereinheitlichung auf 'part' und 'chapter':
-    - 'part' ist der primaere Schluessel fuer Abschnitte.
-    - 'chapter' ist der Bezeichner fuer Kapitel.
-    - 'title' auf Part oder Chapter wird wie ein Custom-Feld toleriert (kein Fehler).
+    Der Part heisst 'part', das Kapitel nimmt seinen Namen aus der
+    '#'-Ueberschrift. 'title' war an beiden Stellen ein Relikt - am Kapitel
+    wirkungslos, am Part ein zweiter Weg zu demselben Wert. Zwei Schreibweisen
+    fuer dieselbe Angabe laufen frueher oder spaeter auseinander.
     """
-    raw = {
-        "document": {"title": "Testdoc"},
-        "parts": [
-            {
-                "part": "Erster Abschnitt",
-                "title": "Ignorierter Part-Titel",
-                "chapters": [
-                    {
-                        "file": "01.md",
-                        "chapter": "Einstieg",
-                        "title": "Ignorierter Kapitel-Titel",
-                    }
-                ],
-            },
-            {
-                # Legacy: nur title auf Part ohne part-Schluessel
-                "title": "Zweiter Abschnitt",
-                "chapters": [{"file": "02.md"}],
-            },
-        ],
-    }
-    config = load_config(raw)
-    p0 = config.parts[0]
-    assert p0.part == "Erster Abschnitt"
-    assert p0.display_title == "Erster Abschnitt"
-    assert p0.chapters[0].chapter == "Einstieg"
+    import pytest
+    from pydantic import ValidationError
 
-    p1 = config.parts[1]
-    assert p1.part == "Zweiter Abschnitt"
-    assert p1.display_title == "Zweiter Abschnitt"
-    assert p1.chapters[0].chapter is None
+    config = load_config({
+        "document": {"title": "Testdoc"},
+        "parts": [{"part": "Erster Abschnitt", "chapters": [{"file": "01.md"}]}],
+    })
+    assert config.parts[0].display_title == "Erster Abschnitt"
+
+    with pytest.raises(ValidationError, match="must carry a name"):
+        load_config({
+            "document": {"title": "T"},
+            "parts": [{"title": "Zweiter Abschnitt", "chapters": [{"file": "02.md"}]}],
+        })
+
+    for key in ("title", "chapter"):
+        with pytest.raises(ValidationError, match="does not know this key"):
+            load_config({
+                "document": {"title": "T"},
+                "parts": [{"part": "P", "chapters": [{"file": "01.md", key: "X"}]}],
+            })
+
+
+def test_a_label_key_names_the_level_below_and_belongs_further_out():
+    """
+    'part_label' und 'chapter_label' geben die Ebene darunter vor. An dem
+    Block, den sie selbst benennen sollen, heisst der Schluessel 'label' --
+    und die Meldung sagt das, statt auf ein aehnlich geschriebenes Feld zu
+    raten.
+    """
+    import pytest
+    from pydantic import ValidationError
+
+    cases = [
+        {"part": "P", "part_label": "Teil", "chapters": [{"file": "01.md"}]},
+        {"part": "P", "chapters": [{"file": "01.md", "chapter_label": "Anhang"}]},
+        {"part": "P", "chapters": [{"file": "01.md", "part_label": "Teil"}]},
+    ]
+    for part in cases:
+        with pytest.raises(ValidationError, match="belongs on"):
+            load_config({"document": {"title": "T"}, "parts": [part]})
+
+    # An der richtigen Stelle gehen beide durch.
+    config = load_config({
+        "document": {"title": "T", "part_label": "Teil", "chapter_label": "Kapitel"},
+        "parts": [{
+            "part": "P",
+            "label": "Teil",
+            "chapter_label": "Anhang",
+            "chapters": [{"file": "01.md", "label": "Exkurs"}],
+        }],
+    })
+    assert config.document.part_label == "Teil"
+    assert config.parts[0].chapter_label == "Anhang"
+    assert config.parts[0].chapters[0].label == "Exkurs"
+
+
 def test_break_before_defaults_are_quiet():
     """
     Ohne Angabe zeigt sich ein Part gar nicht, ein Kapitel beginnt auf neuer Seite.

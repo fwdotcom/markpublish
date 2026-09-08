@@ -5,13 +5,17 @@ Tests for TOC extraction and autonumbering.
 from pathlib import Path
 
 from markpublish.config.loader import load_config
-from markpublish.config.models import AutonumStyle
 from markpublish.markdown.engine import MarkdownPipeline
+from markpublish.markdown.pattern import PatternChain, compile_pattern
 from markpublish.markdown.toc import (
     NumberingContext,
     int_to_roman,
     process_html_headings_and_toc,
 )
+
+
+def _chain(source, scope="document"):
+    return PatternChain(document=compile_pattern(source, scope))
 
 
 def test_roman_numerals():
@@ -22,7 +26,7 @@ def test_roman_numerals():
 
 
 def test_autonumbering_decimal():
-    ctx = NumberingContext(default_autonum_style=AutonumStyle.DECIMAL)
+    ctx = NumberingContext()
 
     html = """
 <h1>First Chapter</h1>
@@ -31,7 +35,7 @@ def test_autonumbering_decimal():
 <h2>Second Section</h2>
 <h1>Second Chapter</h1>
 """
-    processed, nodes = process_html_headings_and_toc(html, ctx)
+    processed, nodes = process_html_headings_and_toc(html, ctx, _chain("_|1|.1|+"))
 
     assert '<span class="heading-number">1</span>' in processed
     assert '<span class="heading-number">1.1</span>' in processed
@@ -48,9 +52,9 @@ def test_autonumbering_decimal():
 
 
 def test_autonumbering_none():
-    ctx = NumberingContext(default_autonum_style=AutonumStyle.NONE)
+    ctx = NumberingContext()
     html = "<h1>Unnumbered Chapter</h1>"
-    processed, nodes = process_html_headings_and_toc(html, ctx)
+    processed, nodes = process_html_headings_and_toc(html, ctx, _chain("none"))
     assert '<span class="heading-number">' not in processed
     assert nodes[0].number is None
 
@@ -86,14 +90,12 @@ def test_document_toc_limits_what_a_chapter_adds_to_the_global_toc(tmp_path: Pat
 document:
   title: "T"
 parts:
-  - title: "Hauptteil"
+  - part: "Hauptteil"
     break_before: "none"
     document_toc: "none"
     chapters:
       - file: "deep.md"
-        title: "Voll"
       - file: "deep.md"
-        title: "Gekuerzt"
         document_toc: 2
 """,
     )
@@ -126,9 +128,7 @@ parts:
     document_toc: 1
     chapters:
       - file: "deep.md"
-        title: "Anhang A"
       - file: "deep.md"
-        title: "Anhang B"
 """,
     )
 
@@ -155,12 +155,11 @@ def test_document_toc_one_includes_only_chapter_title(tmp_path: Path):
 document:
   title: "T"
 parts:
-  - title: "Hauptteil"
+  - part: "Hauptteil"
     break_before: "none"
     document_toc: "none"
     chapters:
       - file: "deep.md"
-        title: "Oben"
         document_toc: 1
 """,
     )
@@ -182,12 +181,11 @@ def test_document_toc_defaults_to_the_full_depth(tmp_path: Path):
 document:
   title: "T"
 parts:
-  - title: "Hauptteil"
+  - part: "Hauptteil"
     break_before: "none"
     document_toc: "none"
     chapters:
       - file: "deep.md"
-        title: "Voll"
 """,
     )
 
@@ -211,14 +209,12 @@ def test_document_toc_none_keeps_a_chapter_out_of_the_document_toc(tmp_path: Pat
 document:
   title: "T"
 parts:
-  - title: "Hauptteil"
+  - part: "Hauptteil"
     break_before: "none"
     document_toc: "none"
     chapters:
       - file: "deep.md"
-        title: "Sichtbar"
       - file: "deep.md"
-        title: "Versteckt"
         document_toc: "none"
 """,
     )
@@ -250,9 +246,7 @@ parts:
     document_toc: 1
     chapters:
       - file: "deep.md"
-        title: "Flach"
       - file: "deep.md"
-        title: "Vollstaendig"
         document_toc: "full"
 """,
     )
@@ -280,15 +274,13 @@ def test_chapter_toc_full_lists_every_level_below_the_chapter(tmp_path: Path):
 document:
   title: "T"
 parts:
-  - title: "Hauptteil"
+  - part: "Hauptteil"
     break_before: "none"
     document_toc: "none"
     chapters:
       - file: "deep.md"
-        title: "Voll"
         chapter_toc: "full"
       - file: "deep.md"
-        title: "Flach"
         chapter_toc: 2
 """,
     )
@@ -302,8 +294,8 @@ parts:
 
 def test_document_chapter_toc_is_the_root_for_chapters(tmp_path: Path):
     """
-    `document.chapter_toc` steht zu `chapters.chapter_toc` wie `autonum_style` zu
-    `autonum`: die Vorgabe oben, der Einzelfall unten. Ohne sie wiederholt ein
+    `document.chapter_toc` steht zu `chapters.chapter_toc` wie `document.autonum_pattern` zu
+    `parts.autonum_pattern`: die Vorgabe oben, der Einzelfall unten. Ohne sie wiederholt ein
     Dokument mit zehn Kapiteln zehnmal dieselbe Zeile.
     """
     _write(tmp_path, "deep.md", DEEP_MD)
@@ -315,17 +307,14 @@ document:
   title: "T"
   chapter_toc: 2
 parts:
-  - title: "Hauptteil"
+  - part: "Hauptteil"
     break_before: "none"
     document_toc: "none"
     chapters:
       - file: "deep.md"
-        title: "Erbt"
       - file: "deep.md"
-        title: "Voll"
         chapter_toc: "full"
       - file: "deep.md"
-        title: "Keins"
         chapter_toc: "none"
 """,
     )
@@ -348,12 +337,11 @@ def test_document_chapter_toc_defaults_to_full(tmp_path: Path):
 document:
   title: "T"
 parts:
-  - title: "Hauptteil"
+  - part: "Hauptteil"
     break_before: "none"
     document_toc: "none"
     chapters:
       - file: "deep.md"
-        title: "K"
 """,
     )
 
@@ -374,12 +362,11 @@ document:
   title: "T"
   chapter_toc: "none"
 parts:
-  - title: "Hauptteil"
+  - part: "Hauptteil"
     break_before: "none"
     document_toc: "none"
     chapters:
       - file: "deep.md"
-        title: "K"
 """,
     )
 
@@ -401,7 +388,7 @@ def _tree_numbers(nodes, out=None):
 def test_autonum_none_on_a_part_reaches_every_chapter_below_it(tmp_path: Path):
     """
     Die Angabe steht am Part, die Ueberschriften stehen in den Kapiteldateien -
-    ohne Vererbung waere `autonum_style: "none"` am Anhang-Part wirkungslos und die
+    ohne Vererbung waere `autonum_pattern: none` am Anhang-Part wirkungslos und die
     Anhaenge zaehlten den Kapitelzaehler weiter.
     """
     _write(tmp_path, "deep.md", DEEP_MD)
@@ -412,25 +399,21 @@ def test_autonum_none_on_a_part_reaches_every_chapter_below_it(tmp_path: Path):
 document:
   title: "T"
 parts:
-  - title: "Hauptteil"
+  - part: "Hauptteil"
     break_before: "none"
     document_toc: "none"
     chapters:
       - file: "deep.md"
-        title: "Eins"
   - part: "Anhaenge"
-    autonum_style: "none"
+    autonum_pattern: none
     chapters:
       - file: "deep.md"
-        title: "Anhang A"
       - file: "deep.md"
-        title: "Anhang B"
-  - title: "Hauptteil"
+  - part: "Hauptteil"
     break_before: "none"
     document_toc: "none"
     chapters:
       - file: "deep.md"
-        title: "Danach"
 """,
     )
 
@@ -451,10 +434,12 @@ parts:
     assert numbers[part_at + 7] == ("Kapitel", "2")
 
 
-def test_autonum_none_leaves_the_counter_untouched(tmp_path: Path):
+def test_autonum_none_on_a_chapter_leaves_its_own_number_alone(tmp_path: Path):
     """
-    Kein Neustart bei 1 und kein Sprung: eine unnummerierte Strecke verbraucht
-    keine Nummer, das naechste nummerierte Kapitel zaehlt einfach weiter.
+    Ein Kapitel-Pattern beschreibt, was *in* dem Kapitel steht, nicht das
+    Kapitel selbst -- Slot 1 ist dort die h2. `none` schaltet deshalb nur die
+    Ueberschriften darin ab; die Kapitelnummer kommt weiter von oben und die
+    Zaehlung laeuft ohne Luecke durch.
     """
     _write(tmp_path, "deep.md", DEEP_MD)
     _write(
@@ -464,24 +449,24 @@ def test_autonum_none_leaves_the_counter_untouched(tmp_path: Path):
 document:
   title: "T"
 parts:
-  - title: "Hauptteil"
+  - part: "Hauptteil"
     break_before: "none"
     document_toc: "none"
     chapters:
       - file: "deep.md"
-        title: "Eins"
       - file: "deep.md"
-        title: "Ohne"
-        autonum_style: "none"
+        autonum_pattern: none
       - file: "deep.md"
-        title: "Zwei"
 """,
     )
 
     config = load_config(tmp_path / "markpublish.yaml")
     _, tree = MarkdownPipeline(config, base_dir=tmp_path, labels={}).process_document()
 
-    assert [n.number for n in tree] == ["1", None, "2"]
+    assert [n.number for n in tree] == ["1", "2", "3"]
+    assert [c.number for c in tree[1].children] == [None]
+    assert tree[1].children[0].children[0].number is None
+    assert tree[0].children[0].number == "1.1"
 
 
 def test_chapters_under_a_part_nest_by_level_in_the_toc(tmp_path: Path):
@@ -503,9 +488,7 @@ parts:
   - part: "Anhaenge"
     chapters:
       - file: "deep.md"
-        title: "Anhang A"
       - file: "deep.md"
-        title: "Anhang B"
 """,
     )
 
@@ -540,14 +523,12 @@ document:
   title: "T"
   document_toc: 2
 parts:
-  - title: "Hauptteil"
+  - part: "Hauptteil"
     break_before: "none"
     document_toc: "none"
     chapters:
       - file: "deep.md"
-        title: "Erbt"
       - file: "deep.md"
-        title: "Voll"
         document_toc: "full"
 """,
     )
@@ -576,12 +557,11 @@ document:
   title: "T"
   document_toc: "none"
 parts:
-  - title: "Hauptteil"
+  - part: "Hauptteil"
     break_before: "none"
     document_toc: "none"
     chapters:
       - file: "deep.md"
-        title: "K"
 """,
     )
 
@@ -602,12 +582,11 @@ def test_document_toc_defaults_to_full(tmp_path: Path):
 document:
   title: "T"
 parts:
-  - title: "Hauptteil"
+  - part: "Hauptteil"
     break_before: "none"
     document_toc: "none"
     chapters:
       - file: "deep.md"
-        title: "K"
 """,
     )
 
@@ -617,10 +596,10 @@ parts:
     assert [lvl for lvl, _ in _tree_titles(tree)] == [1, 2, 3]
 
 
-def test_autonum_from_level_skips_h1_and_numbers_h2_from_one(tmp_path: Path):
+def test_a_skipped_chapter_slot_numbers_h2_from_one(tmp_path: Path):
     """
-    autonum_from_level: 2 laesst die h1 unnummeriert und startet bei h2 mit 1, 2, ...
-    Ebene 3 (h3) wird relativ als 1.1 nummeriert.
+    `"_|1|.1|+"` am Part laesst die Kapitelueberschrift unnummeriert und faengt
+    bei der h2 mit 1 an; die h3 wird relativ dazu 1.1.
     """
     _write(tmp_path, "appendix.md", DEEP_MD)
     _write(
@@ -630,14 +609,12 @@ def test_autonum_from_level_skips_h1_and_numbers_h2_from_one(tmp_path: Path):
 document:
   title: "T"
 parts:
-  - title: "Hauptteil"
+  - part: "Hauptteil"
     break_before: "none"
     document_toc: "none"
+    autonum_pattern: "_|1|.1|+"
     chapters:
       - file: "appendix.md"
-        title: "Anhang A"
-        autonum_style: "decimal"
-        autonum_from_level: 2
 """,
     )
 
@@ -656,9 +633,10 @@ parts:
     assert tree[0].children[0].children[0].number == "1.1"
 
 
-def test_autonum_prefix_prepends_string_to_numbers(tmp_path: Path):
+def test_a_leading_literal_prefixes_every_number(tmp_path: Path):
     """
-    autonum_prefix: "A." fuegt das Praefix vor die generierte Nummer ein (z. B. A.1, A.1.1).
+    Ein fuehrendes Literal in Slot 1 steht vor jeder Nummer, die der Slot traegt
+    -- und vor allem, was sich daraus zusammensetzt: A.1, A.1.1.
     """
     _write(tmp_path, "appendix.md", DEEP_MD)
     _write(
@@ -668,15 +646,13 @@ def test_autonum_prefix_prepends_string_to_numbers(tmp_path: Path):
 document:
   title: "T"
 parts:
-  - title: "Hauptteil"
+  - part: "Hauptteil"
     break_before: "none"
     document_toc: "none"
+    autonum_pattern: "_|1|.1|+"
     chapters:
       - file: "appendix.md"
-        title: "Anhang A"
-        autonum_style: "decimal"
-        autonum_from_level: 2
-        autonum_prefix: "A."
+        autonum_pattern: "'A.'1|.1|+"
 """,
     )
 
@@ -689,9 +665,11 @@ parts:
     assert tree[0].children[0].children[0].number == "A.1.1"
 
 
-def test_autonum_resets_counter_per_chapter_when_from_level_greater_than_one(tmp_path: Path):
+def test_autonum_reset_restarts_each_chapter_under_a_skipped_level(tmp_path: Path):
     """
-    Mehrere Anhaenge mit from_level: 2 starten jeweils isoliert wieder bei 1 (bzw. A.1, B.1).
+    Ist die Kapitelebene uebersprungen, rueckt beim Kapitelwechsel kein Zaehler
+    vor -- die h2 des zweiten Anhangs waere sonst B.2. `autonum_reset` ist genau
+    fuer diesen Fall da und laesst jedes Kapitel wieder bei eins anfangen.
     """
     _write(tmp_path, "app_a.md", DEEP_MD)
     _write(tmp_path, "app_b.md", DEEP_MD)
@@ -704,15 +682,13 @@ document:
 parts:
   - part: "Anhaenge"
     break_before: "divider"
-    autonum_style: "decimal"
-    autonum_from_level: 2
+    autonum_pattern: "_|1|.1|+"
+    autonum_reset: true
     chapters:
       - file: "app_a.md"
-        title: "Anhang A"
-        autonum_prefix: "A."
+        autonum_pattern: "'A.'1|.1|+"
       - file: "app_b.md"
-        title: "Anhang B"
-        autonum_prefix: "B."
+        autonum_pattern: "'B.'1|.1|+"
 """,
     )
 
@@ -735,7 +711,7 @@ def test_chapter_document_toc_none_and_depth_limits(tmp_path: Path):
 document:
   title: "T"
 parts:
-  - title: "P"
+  - part: "P"
     break_before: "none"
     chapters:
       - file: "c1.md"
@@ -1015,3 +991,157 @@ parts:
     assert "#heading(level: 1" not in ch.typst_content
     assert "Dies ist der Inhalt." in ch.html_content
     assert "Dies ist der Inhalt." in ch.typst_content
+
+
+def test_a_numbered_part_keeps_its_number_out_of_the_chapter_numbers(tmp_path: Path):
+    """
+    Slot 1 des document-Patterns nummeriert den Part und sonst nichts: die
+    Kapitel zaehlen ueber die Partgrenze hinweg durch.
+
+    Traege die Part-Nummer nach unten, haette dieselbe Konfiguration je nach
+    Sichtbarkeit des Parts andere Kapitelnummern -- eine entfernte Trennseite
+    verschoebe stillschweigend jeden Querverweis.
+    """
+    _write(tmp_path, "deep.md", DEEP_MD)
+    _write(
+        tmp_path,
+        "markpublish.yaml",
+        """\
+document:
+  title: "T"
+  autonum_pattern: "I|1|.1|+"
+parts:
+  - part: "Grundlagen"
+    break_before: "divider"
+    chapters:
+      - file: "deep.md"
+      - file: "deep.md"
+  - part: "Praxis"
+    break_before: "divider"
+    chapters:
+      - file: "deep.md"
+""",
+    )
+
+    config = load_config(tmp_path / "markpublish.yaml")
+    items, tree = MarkdownPipeline(config, base_dir=tmp_path, labels={}).process_document()
+
+    parts = [i for i in items if i.is_part]
+    assert [p.number_prefix for p in parts] == ["I", "II"]
+
+    chapters = [i for i in items if not i.is_part]
+    assert [c.number_prefix for c in chapters] == ["1", "2", "3"]
+
+    # Und dasselbe im Verzeichnis, damit Baum und Satz nicht auseinanderlaufen.
+    assert [n.number for n in tree] == ["I", "II"]
+    assert [c.number for c in tree[0].children] == ["1", "2"]
+    assert tree[0].children[0].children[0].number == "1.1"
+
+
+def test_a_hidden_part_gets_no_number_and_consumes_none(tmp_path: Path):
+    """
+    `document_toc: "none"` ist die Klammer, die der Aufbau verlangt und die
+    niemand sehen soll. Zaehlte sie mit, hiesse der erste sichtbare Abschnitt
+    "II" und "I" kaeme im ganzen Dokument nicht vor.
+    """
+    _write(tmp_path, "deep.md", DEEP_MD)
+    _write(
+        tmp_path,
+        "markpublish.yaml",
+        """\
+document:
+  title: "T"
+  autonum_pattern: "I|1|.1|+"
+parts:
+  - part: "Klammer"
+    break_before: "none"
+    document_toc: "none"
+    chapters:
+      - file: "deep.md"
+  - part: "Anhaenge"
+    break_before: "divider"
+    chapters:
+      - file: "deep.md"
+""",
+    )
+
+    config = load_config(tmp_path / "markpublish.yaml")
+    items, _ = MarkdownPipeline(config, base_dir=tmp_path, labels={}).process_document()
+
+    visible = [i for i in items if i.is_part]
+    assert [p.display_title for p in visible] == ["Anhaenge"]
+    assert visible[0].number_prefix == "I"
+
+
+LABEL_YAML = """\
+document:
+  title: "T"
+  autonum_pattern: "_|1|.1|+"
+  chapter_label: "Kapitel"
+parts:
+  - part: "Hauptteil"
+    break_before: "none"
+    document_toc: "none"
+    chapters:
+      - file: "deep.md"
+  - part: "Anhaenge"
+    break_before: "divider"
+    autonum_pattern: "A|.1|+"
+    autonum_reset: true
+    chapter_label: "Anhang"
+    chapters:
+      - file: "deep.md"
+      - file: "deep.md"
+        label: "Exkurs"
+"""
+
+
+def test_a_label_stands_before_the_number_but_not_in_the_ones_below(tmp_path: Path):
+    """
+    Der Anzeigename gehoert zur Ueberschrift, nicht zur Nummer. Stuende er im
+    Pattern, truege ihn jede Unterueberschrift mit -- 'Anhang A.1'.
+    """
+    _write(tmp_path, "deep.md", DEEP_MD)
+    _write(tmp_path, "markpublish.yaml", LABEL_YAML)
+
+    config = load_config(tmp_path / "markpublish.yaml")
+    items, tree = MarkdownPipeline(
+        config, base_dir=tmp_path, labels={"label_separator": ": "}
+    ).process_document()
+
+    appendix = [n for n in tree if n.title == "Anhaenge"][0]
+    assert [c.number for c in appendix.children] == ["Anhang A: ", "Exkurs B: "]
+    assert appendix.children[0].children[0].number == "A.1"
+
+
+def test_the_bare_number_stays_on_the_item_for_the_divider_page(tmp_path: Path):
+    """
+    Die Trennseite setzt ihr Wort selbst vor die Nummer ("KAPITEL 5"). Bekaeme
+    sie die schon beschriftete Nummer, stuende dort "ANHANG Anhang A:".
+    """
+    _write(tmp_path, "deep.md", DEEP_MD)
+    _write(tmp_path, "markpublish.yaml", LABEL_YAML)
+
+    config = load_config(tmp_path / "markpublish.yaml")
+    items, _ = MarkdownPipeline(
+        config, base_dir=tmp_path, labels={"label_separator": ": "}
+    ).process_document()
+
+    chapters = [i for i in items if not i.is_part]
+    assert [c.number_prefix for c in chapters] == ["1", "A", "B"]
+    assert [c.display_number for c in chapters] == ["Kapitel 1: ", "Anhang A: ", "Exkurs B: "]
+    assert [c.label for c in chapters] == ["Kapitel", "Anhang", "Exkurs"]
+
+
+def test_the_innermost_label_wins(tmp_path: Path):
+    """document.chapter_label -> parts[].chapter_label -> chapters[].label."""
+    _write(tmp_path, "deep.md", DEEP_MD)
+    _write(tmp_path, "markpublish.yaml", LABEL_YAML)
+
+    config = load_config(tmp_path / "markpublish.yaml")
+    items, _ = MarkdownPipeline(
+        config, base_dir=tmp_path, labels={"label_separator": ": "}
+    ).process_document()
+
+    labels = [i.label for i in items if not i.is_part]
+    assert labels == ["Kapitel", "Anhang", "Exkurs"]

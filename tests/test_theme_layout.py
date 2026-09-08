@@ -48,18 +48,15 @@ document:
 theme: "default"
 
 parts:
-  - title: "Hauptteil"
+  - part: "Hauptteil"
     break_before: "none"
     document_toc: "none"
     chapters:
       - file: "chapters/01.md"
-        title: "Erstes Kapitel"
       - file: "chapters/02.md"
-        title: "Zweites Kapitel"
   - part: "Anhaenge"
     chapters:
       - file: "chapters/03.md"
-        title: "Anhang A"
 """
 
 CHAPTER_MD = """# {title}
@@ -347,7 +344,7 @@ document:
   cover: false
   document_toc: "none"
 parts:
-  - title: "Hauptteil"
+  - part: "Hauptteil"
     break_before: "none"
     document_toc: "none"
     chapters:
@@ -376,7 +373,7 @@ document:
   cover: false
   document_toc: "none"
 parts:
-  - title: "Hauptteil"
+  - part: "Hauptteil"
     break_before: "none"
     document_toc: "none"
     chapters:
@@ -407,12 +404,11 @@ document:
   cover: false
   document_toc: "none"
 parts:
-  - title: "Hauptteil"
+  - part: "Hauptteil"
     break_before: "none"
     document_toc: "none"
     chapters:
       - file: "a.md"
-        title: "A"
         break_before: "divider"
 """,
     )
@@ -437,11 +433,10 @@ document:
   cover: true
   document_toc: "full"
 parts:
-  - title: "Hauptteil"
+  - part: "Hauptteil"
     break_before: "none"
     chapters:
       - file: "a.md"
-        title: "Kapitel A"
         break_before: "divider"
 """,
     )

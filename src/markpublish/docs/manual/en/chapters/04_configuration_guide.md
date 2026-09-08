@@ -32,7 +32,7 @@ Global Table of Contents Settings
 > The switches `document_toc`, `part_toc`, and `chapter_toc` do **not** accept Booleans (`true` or `false`). Use `"full"` (full depth), `"none"` (no TOC), or a positive integer starting at `1` for the maximum heading depth (e.g., `2`). Writing `document_toc: false` aborts validation with a clear error message.
 
 Numbering Rules
-: Settings for automatic heading numbering (`autonum_style`, `autonum_from_level`, `autonum_prefix`).
+: Settings for automatic numbering (`autonum_pattern`, `autonum_reset`).
 
 #### Custom Metadata Fields
 
@@ -79,7 +79,7 @@ A document is organized into high-level sections via `parts:` (e.g., "Main Part"
 
 * By default, a part produces no separate page (`break_before: "none"`): it groups its chapters and passes down its settings, but occupies no page and does not appear in the table of contents. With `break_before: "divider"`, it receives a styled divider page; with `break_before: "page"`, it receives a heading on a fresh page.
 
-* Settings defined at the part level (such as TOC depth or numbering prefixes like `autonum_prefix: "A."`) are automatically inherited by all chapters contained within.
+* Settings defined at the part level (such as TOC depth or an `autonum_pattern`) are automatically inherited by all chapters contained within.
 
 * Under `parts:`, only declared configuration keys are allowed. Unknown keys (such as `break_befor`) are rejected with fuzzy suggestions to prevent unnoticed misconfigurations.
 
@@ -126,9 +126,8 @@ document:
   part_toc: 2
   chapter_toc: "none"
 
-  # Numbering
-  autonum_style: "decimal"
-  autonum_from_level: 1
+  # Numbering: slot 1 is the part, slot 2 the chapter, slot 3 the H2
+  autonum_pattern: "_|1|.1|+"
 
 theme: "default"
 
@@ -149,8 +148,10 @@ parts:
 
   - part: "Appendices"
     break_before: "divider"
-    autonum_from_level: 2
-    autonum_prefix: "A."
+    # On a part, slot 1 is the chapter: '_' leaves it unnumbered and the
+    # H2 below start at 1 - afresh in every chapter.
+    autonum_pattern: "_|1|.1|+"
+    autonum_reset: true
     chapters:
       - file: "chapters/appendix_tables.md"
 

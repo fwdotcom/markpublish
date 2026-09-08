@@ -196,6 +196,28 @@ err.config.chapters_nested: |
   Verschachtelte Unterkapitel sind ersatzlos entfallen. Tiefer gliedert man
   innerhalb der Markdown-Datei mit '##', '###' und so fort.
 
+err.config.label_scope: |
+  '{key}' gibt den Namen für eine Ebene weiter unten vor und gehört deshalb an
+  den umgebenden Block: unter 'document:' für alle Parts und Kapitel, an einem
+  Part für dessen Kapitel. Der Block selbst benennt sich mit 'label'.
+
+# --- Nummerierungs-Pattern ----------------------------------------------------
+err.pattern.empty_slot: "Pattern '{pattern}', Slot {slot}: leerer Slot. Zwischen zwei '|' muss ein Slot stehen."
+err.pattern.unknown_char: "Pattern '{pattern}', Slot {slot}: das Zeichen {char} ist reserviert und steht hier an einer Stelle, an der es nichts bedeutet. Wörtlich gemeint gehört es in Hochkommas."
+err.pattern.unbalanced_quote: "Pattern '{pattern}', Slot {slot}: ein Hochkomma wurde geöffnet und nicht geschlossen. Ein wörtliches Hochkomma schreibt man doppelt."
+err.pattern.no_symbol: "Pattern '{pattern}', Slot {slot}: der Slot besteht nur aus Literalen und trägt kein Symbol. Jeder Slot braucht genau eines von 1, 01, a, A, i, I."
+err.pattern.two_symbols: "Pattern '{pattern}', Slot {slot}: mehr als ein Symbol. Ein Slot zählt genau eine Ebene."
+err.pattern.bad_decimal: "Pattern '{pattern}', Slot {slot}: '{run}' ist kein gültiges Dezimalsymbol. Erlaubt sind 1, 01, 001 und so fort - beliebig viele Nullen und genau eine Eins."
+err.pattern.cont_first: "Pattern '{pattern}': '+' steht als erster Slot. Es wiederholt den Slot davor, und davor steht keiner."
+err.pattern.cont_not_last: "Pattern '{pattern}', Slot {slot}: '+' muss der letzte Slot sein."
+err.pattern.cont_after_skip: "Pattern '{pattern}', Slot {slot}: '+' folgt auf '_'. Ab hier alles unnummeriert lassen schreibt man, indem man nichts schreibt."
+err.pattern.cont_after_part: "Pattern '{pattern}': '+' folgt auf den Part-Slot. Der Part zählt für sich, wiederholt ergäbe er auf jeder Ebene eine Nummer, die nichts über ihr enthält."
+err.pattern.skip_last: "Pattern '{pattern}', Slot {slot}: '_' als letzter Slot ist überflüssig - Ebenen jenseits des letzten Slots bekommen ohnehin keine Nummer."
+err.pattern.too_deep: "Pattern '{pattern}': {slots} Slots, hier sind höchstens {max} möglich. Der überzählige Slot beschriebe eine Ebene unterhalb von h6."
+err.pattern.scope.document: "In einem Pattern unter 'document:' ist Slot 1 der Part, Slot 2 das Kapitel, Slot 3 die h2."
+err.pattern.scope.part: "In einem Pattern an einem Part ist Slot 1 das Kapitel, Slot 2 die h2."
+err.pattern.scope.chapter: "In einem Pattern an einem Kapitel ist Slot 1 die h2, Slot 2 die h3."
+
 # --- Kapitelverarbeitung ------------------------------------------------------
 chapter.desc.in_file: "in '{file}'"
 chapter.desc.no_file: "ohne Dateiangabe"

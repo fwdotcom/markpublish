@@ -106,11 +106,10 @@ document:
 theme: "default"
 
 parts:
-  - title: "Part"
+  - part: "Part"
     break_before: "none"
     chapters:
       - file: "chapters/01.md"
-        title: "Chapter"
 """
 
 

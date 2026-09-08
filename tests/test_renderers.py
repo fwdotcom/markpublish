@@ -38,16 +38,14 @@ document:
 theme: "default"
 
 parts:
-  - title: "Hauptteil"
+  - part: "Hauptteil"
     break_before: "none"
     document_toc: "none"
     chapters:
       - file: "chapters/01.md"
-        title: "Einleitung"
         break_before: "divider"
         chapter_toc: "none"
       - file: "chapters/02.md"
-        title: "Hauptteil"
         break_before: "divider"
         chapter_toc: 2
 """
@@ -91,12 +89,11 @@ document:
 theme: "default"
 
 parts:
-  - title: "Hauptteil"
+  - part: "Hauptteil"
     break_before: "none"
     document_toc: "none"
     chapters:
       - file: "chapters/01.md"
-        title: "Erstes Kapitel"
         summary: "Zusammenfassung des Kapitels."
         break_before: "divider"
         chapter_toc: 2
@@ -105,7 +102,6 @@ parts:
     break_before: "divider"
     chapters:
       - file: "chapters/02.md"
-        title: "Anhang A"
 """
 
 

@@ -257,8 +257,11 @@
   show outline.entry: it => {
     let elem = it.element
     if elem.has("label") and str(elem.label) == "part-entry" {
+      let num = if elem.numbering != none {
+        numbering(elem.numbering, ..counter(heading).at(elem.location()))
+      } else { none }
       v(1.4em)
-      text(weight: "bold", size: 11pt, fill: rgb("#0f172a"))[#link(elem.location())[#elem.body]]
+      text(weight: "bold", size: 11pt, fill: rgb("#0f172a"))[#link(elem.location())[#if num != none [#num #h(0.35em)]#elem.body]]
       v(0.4em)
     } else if it.level == 1 {
       let all-h1 = query(selector(heading.where(level: 1)))
@@ -370,16 +373,23 @@
   subtitle: none,
   summary: none,
   tag: "ABSCHNITT",
+  number: none,
   in-toc: true,
   toc-title: "Inhalt dieses Abschnitts",
   toc-items: (),
 ) = {
   [#metadata("part-divider") <part-divider>]
   v(3cm)
-  text(size: 10pt, weight: "bold", fill: rgb("2563eb"), tracking: 0.1em)[#upper(tag)]
+  let has-number = number != none and number != ""
+  let tag-line = if has-number { upper(tag) + " " + number } else { upper(tag) }
+  text(size: 10pt, weight: "bold", fill: rgb("2563eb"), tracking: 0.1em)[#tag-line]
   v(0.3em)
+  // Die Nummer steht fertig aus markpublish hier an; die konstante
+  // numbering-Funktion traegt sie ins Inhaltsverzeichnis, ohne dass Typst
+  // einen eigenen Zaehler dafuer fuehren muesste.
+  let num-fn = if has-number { (..nums) => number } else { none }
   if in-toc [
-    #heading(level: 1, outlined: true, numbering: none)[#title] <part-entry>
+    #heading(level: 1, outlined: true, numbering: num-fn)[#title] <part-entry>
   ] else [
     #text(size: 22pt, weight: "bold", fill: rgb("0f172a"))[#title]
   ]

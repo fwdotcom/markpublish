@@ -32,7 +32,7 @@ Globale Verzeichnisvorgaben
 > Die Schalter `document_toc`, `part_toc` und `chapter_toc` akzeptieren **keine** Booleans (`true` oder `false`). Verwenden Sie `"full"` (volle Tiefe), `"none"` (kein Verzeichnis) oder eine positive Zahl ab `1` für die maximale Gliederungstiefe (z. B. `2`). Ein notiertes `document_toc: false` bricht die Validierung mit einer deutlichen Meldung ab.
 
 Nummerierungsregeln
-: Vorgaben zur automatischen Nummerierung von Überschriften (`autonum_style`, `autonum_from_level`, `autonum_prefix`).
+: Vorgaben zur automatischen Nummerierung (`autonum_pattern`, `autonum_reset`).
 
 #### Eigene Metadatenfelder
 
@@ -79,7 +79,7 @@ Ein Dokument wird durch `parts:` in übergeordnete Abschnitte gegliedert (z. B. 
 
 * Ohne Angabe tritt ein Abschnitt selbst nicht in Erscheinung (`break_before: "none"`): er klammert seine Kapitel und vererbt seine Einstellungen, belegt aber keine Seite und erscheint nicht im Inhaltsverzeichnis. Mit `break_before: "divider"` erhält er eine gestaltete Trennseite, mit `break_before: "page"` eine Überschrift auf einer neuen Seite.
 
-* Auf Abschnittsebene gesetzte Einstellungen (z. B. Verzeichnistiefe oder Nummerierungspräfixe wie `autonum_prefix: "A."`) vererben sich automatisch auf alle darin enthaltenen Kapitel.
+* Auf Abschnittsebene gesetzte Einstellungen (z. B. Verzeichnistiefe oder ein `autonum_pattern`) vererben sich automatisch auf alle darin enthaltenen Kapitel.
 
 * Auf `parts:` sind ausschließlich die deklarierten Konfigurationsschlüssel erlaubt. Unbekannte Schlüssel (wie `break_befor`) werden mit Ähnlichkeitsvorschlägen abgelehnt, um unbemerkte Fehlkonfigurationen auszuschließen.
 
@@ -127,9 +127,8 @@ document:
   part_toc: 2
   chapter_toc: "none"
 
-  # Nummerierung
-  autonum_style: "decimal"
-  autonum_from_level: 1
+  # Nummerierung: Slot 1 ist der Part, Slot 2 das Kapitel, Slot 3 die H2
+  autonum_pattern: "_|1|.1|+"
 
 theme: "default"
 
@@ -150,8 +149,10 @@ parts:
 
   - part: "Anhänge"
     break_before: "divider"
-    autonum_from_level: 2
-    autonum_prefix: "A."
+    # Am Part beginnt Slot 1 beim Kapitel: '_' lässt es unnummeriert,
+    # die H2 darunter zählen ab 1 - je Kapitel neu.
+    autonum_pattern: "_|1|.1|+"
+    autonum_reset: true
     chapters:
       - file: "chapters/anhang_tabellen.md"
 

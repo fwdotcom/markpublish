@@ -232,7 +232,11 @@ class PDFRenderer(BaseRenderer):
                     summary_typ = typst_string(item.summary or "")
                     part_title_esc = typst_string(getattr(item, "divider_title", None) or getattr(item, "display_title", None) or item.title)
                     part_sub_esc = typst_string(item.subtitle or "")
-                    part_tag_esc = typst_string(labels.get("part", "Part" if lang_code == "en" else "Abschnitt"))
+                    part_word = getattr(item, "label", None) or labels.get(
+                        "part", "Part" if lang_code == "en" else "Abschnitt"
+                    )
+                    part_tag_esc = typst_string(part_word)
+                    part_number_esc = typst_string(getattr(item, "number_prefix", None) or "")
                     part_toc_title_esc = typst_string(labels.get("part_toc_title", "Table of Contents" if lang_code == "en" else "Inhalt dieses Abschnitts"))
 
                     toc_items_typ: List[str] = []
@@ -251,7 +255,8 @@ class PDFRenderer(BaseRenderer):
                     toc_items_str = f"({toc_items_typ[0]},)" if len(toc_items_typ) == 1 else (f"({', '.join(toc_items_typ)})" if toc_items_typ else "()")
                     parts.append(
                         f'#render-part-divider(title: "{part_title_esc}", subtitle: "{part_sub_esc}", '
-                        f'summary: "{summary_typ}", tag: "{part_tag_esc}", in-toc: {str(part_in_toc).lower()}, '
+                        f'summary: "{summary_typ}", tag: "{part_tag_esc}", number: "{part_number_esc}", '
+                        f'in-toc: {str(part_in_toc).lower()}, '
                         f'toc-title: "{part_toc_title_esc}", toc-items: {toc_items_str})\n'
                     )
                     has_content = False  # Divider ends on a fresh page
@@ -261,7 +266,14 @@ class PDFRenderer(BaseRenderer):
                         has_content = False
                     if part_in_toc:
                         part_heading_title = typst_string(getattr(item, "toc_title", None) or getattr(item, "display_title", None) or item.title)
-                        parts.append(f'#heading(level: 1, outlined: true, numbering: none)[{part_heading_title}] <part-entry>\n')
+                        part_number = getattr(item, "display_number", None)
+                        part_numbering = (
+                            f'(..nums) => "{typst_string(part_number)}"' if part_number else "none"
+                        )
+                        parts.append(
+                            f'#heading(level: 1, outlined: true, numbering: {part_numbering})'
+                            f'[{part_heading_title}] <part-entry>\n'
+                        )
 
                 if getattr(item, "pagenum_reset", False):
                     parts.append("#counter(page).update(1)\n")
@@ -334,7 +346,7 @@ class PDFRenderer(BaseRenderer):
 
         def _synthetic_heading() -> str:
             t_esc = typst_string(getattr(chapter_item, "toc_title", None) or chapter_item.display_title)
-            num_prefix = getattr(chapter_item, "number_prefix", None)
+            num_prefix = getattr(chapter_item, "display_number", None)
             ch_slug = getattr(chapter_item, "slug", "")
             lbl_str = f" <{ch_slug}>" if (ch_slug and (not has_file_h1 or not show_title)) else ""
             if num_prefix:
@@ -350,7 +362,9 @@ class PDFRenderer(BaseRenderer):
             if needs_synth and (not has_file_h1 or not show_title):
                 res.append(_synthetic_heading())
                 synth_placed_on_divider = True
-            tag_label = labels.get("chapter", "Chapter" if lang_code == "en" else "Kapitel")
+            tag_label = getattr(chapter_item, "label", None) or labels.get(
+                "chapter", "Chapter" if lang_code == "en" else "Kapitel"
+            )
             num_prefix = getattr(chapter_item, "number_prefix", None)
             full_tag = typst_string(f"{tag_label} {num_prefix}".strip() if num_prefix else tag_label)
             summary_esc = typst_string(chapter_item.summary or "")

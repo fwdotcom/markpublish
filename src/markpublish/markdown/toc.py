@@ -9,7 +9,23 @@ import re
 import unicodedata
 from typing import Any, Dict, List, Optional, Tuple
 
-from markpublish.config.models import AutonumStyle
+from markpublish.markdown.pattern import (
+    LEVEL_PART,
+    NumSlot,
+    Pattern,
+    PatternChain,
+    int_to_roman,
+)
+
+__all__ = [
+    "HEADING_REGEX",
+    "NumberingContext",
+    "PatternChain",
+    "TOCNode",
+    "int_to_roman",
+    "process_html_headings_and_toc",
+    "slugify",
+]
 
 #: Der Attributteil erlaubt '>' innerhalb von Anfuehrungszeichen -- ein
 #: <h2 title="a > b"> wuerde ein simples [^>]* sonst mitten im Attribut kappen.
@@ -38,38 +54,6 @@ def slugify(text: str, separator: str = "-") -> str:
     text = re.sub(r'[^\w\s-]', '', text).strip().lower()
     text = re.sub(r'[-\s_]+', separator, text)
     return text.strip(separator) or "section"
-
-
-def int_to_roman(num: int) -> str:
-    """Converts positive integer to Roman numeral."""
-    val = [1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1]
-    syb = ["M", "CM", "D", "CD", "C", "XC", "L", "XL", "X", "IX", "V", "IV", "I"]
-    roman_num = ""
-    i = 0
-    while num > 0:
-        for _ in range(num // val[i]):
-            roman_num += syb[i]
-            num -= val[i]
-        i += 1
-    return roman_num or "I"
-
-
-def format_number(counters: List[int], autonum_style: AutonumStyle) -> Optional[str]:
-    """Formats list of counter levels according to autonum_style."""
-    if autonum_style == AutonumStyle.NONE or not counters:
-        return None
-
-    if autonum_style == AutonumStyle.ROMAN:
-        first = int_to_roman(counters[0])
-        if len(counters) == 1:
-            return first
-        return f"{first}." + ".".join(str(c) for c in counters[1:])
-
-    if autonum_style == AutonumStyle.LEGAL:
-        return ".".join(str(c) for c in counters) + "."
-
-    # Default DECIMAL (1, 1.1, 1.1.1)
-    return ".".join(str(c) for c in counters)
 
 
 class TOCNode:
@@ -105,16 +89,28 @@ class TOCNode:
 
 
 class NumberingContext:
-    """Maintains state for hierarchical heading numbering across documents."""
+    """
+    Fuehrt die Zaehler aller Ebenen durch das Dokument.
 
-    def __init__(self, default_autonum_style: AutonumStyle = AutonumStyle.DECIMAL):
-        self.default_autonum_style = default_autonum_style
-        self.counters: List[int] = []
+    Ein Zaehler je Ebene, nicht je Slot einer Liste: die Ebene ist das, was ein
+    Pattern adressiert, und sie ueberlebt den Wechsel des Patterns zwischen
+    Dokument, Part und Kapitel.
+    """
+
+    def __init__(self) -> None:
+        self.counters: Dict[int, int] = {}
         self.used_slugs: set = set()
 
-    def reset_counters(self) -> None:
-        """Resets the numbering counters back to 0."""
-        self.counters = []
+    def reset_below(self, level: int) -> None:
+        """
+        Laesst die Ebenen unter *level* wieder bei eins anfangen.
+
+        Das ist `autonum_reset`. Noetig nur dort, wo kein Vorruecken einer
+        nummerierten Ebene den Neustart ohnehin besorgt -- unter einer
+        uebersprungenen Ebene und unter dem Part, der fuer sich zaehlt.
+        """
+        for deeper in [lvl for lvl in self.counters if lvl > level]:
+            del self.counters[deeper]
 
     def unique_slug(self, text: str) -> str:
         base_slug = slugify(text)
@@ -126,43 +122,32 @@ class NumberingContext:
         self.used_slugs.add(slug)
         return slug
 
-    def advance_counter(
-        self,
-        level: int,
-        autonum_style: Optional[AutonumStyle] = None,
-        from_level: int = 1,
-        prefix: Optional[str] = None,
-    ) -> Optional[str]:
-        type_to_use = autonum_style or self.default_autonum_style
-        if type_to_use == AutonumStyle.NONE:
+    def advance(self, level: int, pattern: Optional[Pattern]) -> Optional[str]:
+        """
+        Betritt *level* und gibt die fertige Nummer zurueck.
+
+        Eine Ebene ohne Slot -- uebersprungen oder jenseits des letzten Slots --
+        erhoeht nichts und verwirft nichts: fuer die Nummerierung existiert sie
+        nicht, und die Zaehler darunter laufen ueber sie hinweg durch.
+        """
+        if pattern is None or not isinstance(pattern.slot_for(level), NumSlot):
             return None
 
-        # Levels below start level receive no number
-        if level < from_level:
-            return None
+        self.counters[level] = self.counters.get(level, 0) + 1
 
-        # Level relative to from_level (1-indexed)
-        rel_level = level - from_level + 1
+        # Der Part verwirft nichts: seine Nummer geht in keine Nummer darunter
+        # ein, also darf sein Vorruecken die Kapitel auch nicht neu anfangen
+        # lassen. Wer das will, notiert autonum_reset.
+        if level != LEVEL_PART:
+            self.reset_below(level)
 
-        # Adjust counter list length to match heading level (1-indexed)
-        while len(self.counters) < rel_level:
-            self.counters.append(0)
-        while len(self.counters) > rel_level:
-            self.counters.pop()
-
-        self.counters[rel_level - 1] += 1
-        num_str = format_number(self.counters, type_to_use)
-        if num_str and prefix:
-            num_str = f"{prefix}{num_str}"
-        return num_str
+        return pattern.render(level, self.counters)
 
 
 def process_html_headings_and_toc(
     html_content: str,
     numbering_ctx: NumberingContext,
-    autonum_override: Optional[AutonumStyle] = None,
-    autonum_from_level: int = 1,
-    autonum_prefix: Optional[str] = None,
+    patterns: Optional[PatternChain] = None,
 ) -> Tuple[str, List[TOCNode]]:
     """
     Parses HTML content, injects unique IDs/slugs and numbering into headings,
@@ -195,12 +180,11 @@ def process_html_headings_and_toc(
             slug = numbering_ctx.unique_slug(plain_text)
             attrs = f'{attrs} id="{slug}"'.strip()
 
-        # Tiefe wird innerhalb des Kapitels gezaehlt: orig_level 1 = #, 2 = ## usw.
-        number_str = numbering_ctx.advance_counter(
+        # Die Ueberschriftenebene ist zugleich die Nummerierungsebene:
+        # orig_level 1 = Kapitel, 2 = h2 und so fort.
+        number_str = numbering_ctx.advance(
             orig_level,
-            autonum_override,
-            from_level=autonum_from_level,
-            prefix=autonum_prefix,
+            patterns.for_level(orig_level) if patterns else None,
         )
 
         node = TOCNode(

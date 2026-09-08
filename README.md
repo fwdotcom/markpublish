@@ -13,6 +13,11 @@ everything else is your text.
   tables of contents, headers and footers, order of chapters.
 - **Parts and chapters with divider pages**: with subtitle, summary and a
   local table of contents of their own — configurable per level.
+- **Flexible pattern-based autonumbering**: a single pattern (`"1|.1|+"`,
+  `"A|.1|+"`, or `"I|1|.1|+"`) defines how parts, chapters, and subheadings
+  count. Freely mix numbering styles, skip levels (`_`), prefix labels
+  ("Chapter", "Appendix"), and keep headings fully synchronized with all
+  tables of contents.
 - **Themes in Typst**: `markpublish export-template default ./templates` puts
   the default theme into your project and the next build picks up your
   version. The font ships with the theme, so output does not depend on the

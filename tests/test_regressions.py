@@ -40,16 +40,13 @@ document:
 theme: "default"
 
 parts:
-  - title: "Main"
+  - part: "Main"
     break_before: "none"
     chapters:
       - file: "chapters/01_first.md"
-        title: "First"
         chapter_toc: 2
       - file: "chapters/02_second.md"
-        title: "Second"
       - file: "chapters/03_third.md"
-        title: "Third"
 """
 
 MARKERS = {

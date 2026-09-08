@@ -9,6 +9,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-09-08
+
+### Added
+- **`autonum_pattern`**: One key describes how numbers are built. `"1|.1|+"` gives 1, 1.1, 1.1.1; slots are separated by `|`, literals sit in the slot (`"'Artikel '1"`), `_` leaves a level unnumbered and `+` repeats the slot before it. Each slot belongs to the level *below* the place the pattern stands, so the same pattern starts at the chapter on a part and at the H2 on a chapter.
+- **`label`, `part_label`, `chapter_label`**: The word naming an element — "Kapitel", "Anhang" — comes from the configuration instead of the heading text, and falls back to the i18n cascade. Notated, it steps in front of the number in the heading and its table-of-contents entry (`Anhang A: Schema-Referenz`) without reaching the subheadings, which keep counting `A.1`. The separator between the two is theme business and sits in the cascade as `label_separator`.
+- **Parts can be numbered**: `autonum_pattern: "I|1|.1|+"` under `document:` numbers them. The number appears on the divider page and in the table of contents but not inside the chapter numbers, and a part hidden with `document_toc: "none"` gets none — otherwise removing a divider page would silently renumber every chapter below it.
+
+### Changed
+- **`autonum_reset`** now means that the levels below start again at one when the block is entered. Entering a numbered level already discards the counters beneath it, so the switch is needed only where no numbered level supplies that: under a skipped level (`_`) and under a part.
+- **Theme contract**: `render-part-divider` takes a `number:` argument. A theme that does not declare it aborts the build.
+- **A label key written at the wrong level aborts with a pointer**: `part_label` on a part and `chapter_label` on a chapter name the level below and belong on the enclosing block; the block itself uses `label`. The generic hint would have suggested `chapter` — a field that was accepted and did nothing.
+- **Pattern errors name the base level**: every rejection ends with what slot 1 means where the pattern stands, because that is the open question when a slot shifts with its place.
+
+### Removed
+- **`autonum_style`, `autonum_from_level` and `autonum_prefix`**: replaced by `autonum_pattern`, without aliases or a migration path.
+- **`title` and `chapter` on a chapter**: both were accepted and did nothing. A chapter takes its name from its `#` heading, and `toc_title` / `divider_title` override it where they should differ; either key now aborts as the unknown key it is.
+- **`title` as a spelling of `part`**: a part is named by `part:` alone. The alias was a second way to the same value, and two spellings for one thing drift apart sooner or later.
+
 ## [2.0.1] - 2026-09-08
 
 ### Removed

@@ -56,14 +56,12 @@ document:
 theme: "default"
 
 parts:
-  - title: "Hauptteil"
+  - part: "Hauptteil"
     break_before: "none"
     document_toc: "none"
     chapters:
       - file: "chapters/01.md"
-        title: "Erstes Kapitel"
       - file: "chapters/02.md"
-        title: "Zweites Kapitel"
 """
 
 

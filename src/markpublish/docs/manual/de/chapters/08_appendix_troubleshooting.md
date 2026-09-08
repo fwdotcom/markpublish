@@ -1,4 +1,4 @@
-# Anhang B: Fehlerbehebung und FAQ
+# Fehlerbehebung und FAQ
 
 Dieser Anhang bietet konkrete Hilfestellungen bei typischen Problemen während des Veröffentlichungsprozesses sowie Antworten auf häufige Fragen.
 

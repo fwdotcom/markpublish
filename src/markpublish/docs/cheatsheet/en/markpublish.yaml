@@ -14,7 +14,7 @@ document:
 
   cover: false
   document_toc: "none"
-  autonum_style: "none"
+  autonum_pattern: none
   header: true
   footer: true
 

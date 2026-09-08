@@ -220,12 +220,11 @@ theme: "{theme}"
 templates_dir: "./templates"
 
 parts:
-  - title: "Hauptteil"
+  - part: "Hauptteil"
     break_before: "none"
     document_toc: "none"
     chapters:
       - file: "chapters/01.md"
-        title: "First"
         break_before: "divider"
         chapter_toc: 2
 """
@@ -443,7 +442,7 @@ def test_mapping_methods_are_not_mistaken_for_labels(tmp_path: Path):
 #: den Test.
 EXPECTED_KEYS = {
     "toc_title", "chapter_toc_title", "part_toc_title",
-    "chapter", "part",
+    "chapter", "part", "label_separator",
     "author", "status", "version", "date", "copyright",
     "bool_true", "bool_false",
     "page", "page_of",

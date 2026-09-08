@@ -8,6 +8,7 @@ from pathlib import Path
 
 import markdown
 
+from markpublish.markdown.pattern import PatternChain, compile_pattern
 from markpublish.markdown.toc import NumberingContext
 from markpublish.markdown.typst_serializer import (
     TypstSerializer,
@@ -16,6 +17,11 @@ from markpublish.markdown.typst_serializer import (
     process_tree_headings_and_toc,
     typst_string,
 )
+
+
+def _chain(source="_|1|.1|+"):
+    """Das Standard-Pattern: Part ohne Nummer, Kapitel 1, 1.1, 1.1.1."""
+    return PatternChain(document=compile_pattern(source, "document"))
 
 
 def test_escape_typst_text_unit():
@@ -38,7 +44,7 @@ def test_serializer_inline_and_headings():
     raw_html = markdown.markdown(md, extensions=["tables", "admonition", "def_list"])
     tree = html_to_tree(raw_html)
     ctx = NumberingContext()
-    process_tree_headings_and_toc(tree, ctx)
+    process_tree_headings_and_toc(tree, ctx, patterns=_chain())
 
     serializer = TypstSerializer()
     typ = serializer.serialize(tree)
@@ -158,7 +164,7 @@ def test_serializer_heading_outlined_filtering():
     html = engine.convert(md)
     tree = html_to_tree(html)
     ctx = NumberingContext()
-    process_tree_headings_and_toc(tree, ctx)
+    process_tree_headings_and_toc(tree, ctx, patterns=_chain())
 
     # Allow only Kap 1 and Unter 1.1 in TOC
     serializer = TypstSerializer(allowed_toc_slugs={"kap-1", "unter-11"})

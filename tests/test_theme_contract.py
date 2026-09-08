@@ -206,11 +206,10 @@ document:
   document_toc: "none"
 theme: "eigen"
 parts:
-  - title: "P"
+  - part: "P"
     break_before: "none"
     chapters:
       - file: "a.md"
-        title: "A"
 """
 
 MINIMAL_THEME = """
@@ -909,11 +908,10 @@ document:
   department: "F&E"
 theme: "default"
 parts:
-  - title: "P"
+  - part: "P"
     break_before: "none"
     chapters:
       - file: "a.md"
-        title: "A"
 """,
         encoding="utf-8",
     )

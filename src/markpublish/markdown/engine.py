@@ -10,7 +10,7 @@ from typing import Any, Dict, List, Mapping, Optional, Tuple
 import markdown
 
 from markpublish.config.models import (
-    AutonumStyle,
+    DEFAULT_AUTONUM_PATTERN,
     BreakBefore,
     ChapterItem,
     ConfigurationError,
@@ -18,6 +18,13 @@ from markpublish.config.models import (
     TocScope,
 )
 from markpublish.markdown.alerts import GitHubAlertsExtension
+from markpublish.markdown.pattern import (
+    LEVEL_CHAPTER,
+    LEVEL_PART,
+    UNSET,
+    PatternChain,
+    compile_pattern,
+)
 from markpublish.markdown.toc import (
     NumberingContext,
     TOCNode,
@@ -135,6 +142,8 @@ class ContentItem:
         typst_content: str = "",
         element_tree: Any = None,
         file_base_dir: Optional[Path] = None,
+        label: Optional[str] = None,
+        display_number: Optional[str] = None,
         toc_title: Optional[str] = None,
         divider_title: Optional[str] = None,
         has_h1: bool = False,
@@ -162,6 +171,10 @@ class ContentItem:
         self.divider_title = divider_title
         self.has_h1 = has_h1
         self.show_title = show_title
+        # `number_prefix` ist die nackte Nummer -- die Trennseite setzt ihr Wort
+        # selbst davor. `display_number` ist, was vor der Ueberschrift steht.
+        self.label = label
+        self.display_number = display_number if display_number is not None else number_prefix
         self.children: List[ContentItem] = []
 
     @property
@@ -175,20 +188,44 @@ class ContentItem:
         return self.break_before != BreakBefore.NONE
 
 
-def _resolve_autonum_style(value: Any) -> Optional[AutonumStyle]:
-    """Bringt eine autonum_style-Angabe auf den Enum-Wert; None heisst 'nicht gesetzt'."""
+def _compiled(value: Optional[str], scope: str) -> Any:
+    """
+    Kompiliert ein notiertes Pattern; ein nicht notiertes bleibt UNSET.
+
+    Der Unterschied traegt die Kaskade: UNSET erbt weiter nach aussen, None
+    schaltet die Ebenen ab, die diese Stelle beschreibt.
+    """
     if value is None:
-        return None
-    if isinstance(value, AutonumStyle):
-        return value
-    val_str = str(value).lower().strip()
-    for item in AutonumStyle:
-        if item.value == val_str:
-            return item
-    return None
+        return UNSET
+    return compile_pattern(value, scope)
 
 
-_resolve_autonum = _resolve_autonum_style
+def _labelled(label: Optional[str], number: Optional[str], separator: str) -> Optional[str]:
+    """
+    Setzt den Anzeigenamen der Ebene vor die Nummer: "Anhang A: ".
+
+    Ohne notierten Namen bleibt die Nummer, wie sie war. Das Trennzeichen kommt
+    aus der i18n-Kaskade und gehoert damit dem Theme -- ein Doppelpunkt ist
+    Typografie, keine Angabe des Dokuments.
+    """
+    if not label or not number:
+        return number
+    return f"{label} {number}{separator}"
+
+
+def _relabel_first_heading(tree: Any, number: str) -> None:
+    """Schreibt die Nummer der ersten h1 im Baum um, Attribut und sichtbarer Span."""
+    for elem in tree.iter():
+        if elem.tag.lower() != "h1":
+            continue
+        if not elem.attrib.get("data-number"):
+            return
+        elem.attrib["data-number"] = number
+        for child in elem:
+            if child.attrib.get("class") == "heading-number":
+                child.text = number
+                break
+        return
 
 
 def _document_toc_enabled(scope: Optional[TocScope]) -> bool:
@@ -227,10 +264,15 @@ class MarkdownPipeline:
         self.config = config
         self.base_dir = base_dir
         self.labels = labels or {}
-        lang = config.document.language if (config and getattr(config, "document", None)) else "de"
-        autonum_style = config.document.autonum_style if (config and getattr(config, "document", None)) else None
+        doc_cfg = config.document if (config and getattr(config, "document", None)) else None
+        lang = doc_cfg.language if doc_cfg else "de"
         self.engine = MarkdownEngine(language=lang, labels=labels)
-        self.numbering_ctx = NumberingContext(default_autonum_style=autonum_style)
+        self.numbering_ctx = NumberingContext()
+        # Das Dokument-Pattern gilt immer -- notfalls als Vorgabe aus dem
+        # Modell. Nur so hat die Part-Ebene ueberhaupt eine Beschreibung.
+        self.doc_pattern = compile_pattern(
+            doc_cfg.autonum_pattern if doc_cfg else DEFAULT_AUTONUM_PATTERN, "document"
+        )
 
     def _build_local_toc(self, chapter_cfg: ChapterItem) -> List[TOCNode]:
         item, _ = self._process_chapter(chapter_cfg)
@@ -246,7 +288,6 @@ class MarkdownPipeline:
         document_toc_root = self.config.document.document_toc
         part_toc_root = self.config.document.part_toc
         chapter_toc_root = self.config.document.chapter_toc
-        autonum_style_root = self.config.document.autonum_style
 
         for part_cfg in self.config.parts:
             part_toc_children: List[TOCNode] = []
@@ -263,6 +304,31 @@ class MarkdownPipeline:
                 if part_cfg.pagenum_reset is not None
                 else self.config.document.pagenum_reset
             )
+            # Erst die Sichtbarkeit, dann die Nummer: ein Part, der nicht im
+            # Verzeichnis steht, bekommt keine und rueckt den Zaehler nicht vor.
+            part_in_document_toc = True
+            if part_cfg.document_toc is not None and not part_cfg.document_toc.enabled:
+                part_in_document_toc = False
+
+            part_number = (
+                self.numbering_ctx.advance(LEVEL_PART, self.doc_pattern)
+                if part_in_document_toc
+                else None
+            )
+
+            part_label = part_cfg.label or self.config.document.part_label
+            part_display_number = _labelled(
+                part_label, part_number, self.labels.get("label_separator", ": ")
+            )
+
+            part_reset = (
+                part_cfg.autonum_reset
+                if part_cfg.autonum_reset is not None
+                else self.config.document.autonum_reset
+            )
+            if part_reset:
+                self.numbering_ctx.reset_below(LEVEL_PART)
+
             part_item: Optional[ContentItem] = None
             if part_cfg.effective_break_before != BreakBefore.NONE:
                 part_item = ContentItem(
@@ -273,7 +339,9 @@ class MarkdownPipeline:
                     subtitle=part_cfg.subtitle,
                     summary=part_cfg.summary,
                     break_before=part_cfg.effective_break_before,
-                    number_prefix=None,
+                    number_prefix=part_number,
+                    label=part_label,
+                    display_number=part_display_number,
                     html_content="",
                     part_toc=effective_part_toc if (effective_part_toc and effective_part_toc.enabled) else None,
                     pagenum_reset=effective_part_pagenum_reset,
@@ -283,13 +351,8 @@ class MarkdownPipeline:
                 )
                 content_items.append(part_item)
 
-            part_in_document_toc = True
-            if part_cfg.document_toc is not None:
-                if not part_cfg.document_toc.enabled:
-                    part_in_document_toc = False
-                    inherited_document_toc = document_toc_root
-                else:
-                    inherited_document_toc = part_cfg.document_toc
+            if part_cfg.document_toc is not None and part_in_document_toc:
+                inherited_document_toc = part_cfg.document_toc
             else:
                 inherited_document_toc = document_toc_root
 
@@ -298,10 +361,10 @@ class MarkdownPipeline:
                 if part_cfg.chapter_toc is not None
                 else chapter_toc_root
             )
-            inherited_autonum = _resolve_autonum_style(part_cfg.autonum_style) or autonum_style_root
-            inherited_autonum_from_level = part_cfg.autonum_from_level
-            inherited_autonum_prefix = part_cfg.autonum_prefix
-            inherited_autonum_reset = part_cfg.autonum_reset
+            part_pattern = _compiled(part_cfg.autonum_pattern, "part")
+            inherited_chapter_label = (
+                part_cfg.chapter_label or self.config.document.chapter_label
+            )
             inherited_pagenum_reset = effective_part_pagenum_reset
 
             for ch_cfg in part_cfg.chapters:
@@ -310,10 +373,9 @@ class MarkdownPipeline:
                     inherited_document_toc=inherited_document_toc,
                     inherited_part_toc=effective_part_toc,
                     inherited_chapter_toc=inherited_chapter_toc,
-                    inherited_autonum=inherited_autonum,
-                    inherited_autonum_from_level=inherited_autonum_from_level,
-                    inherited_autonum_prefix=inherited_autonum_prefix,
-                    inherited_autonum_reset=inherited_autonum_reset,
+                    part_pattern=part_pattern,
+                    inherited_chapter_label=inherited_chapter_label,
+                    inherited_autonum_reset=part_reset,
                     inherited_pagenum_reset=inherited_pagenum_reset,
                 )
                 content_items.append(ch_item)
@@ -336,7 +398,7 @@ class MarkdownPipeline:
                     title=part_title,
                     slug=part_slug,
                     level=1,
-                    number=None,
+                    number=part_display_number,
                     is_part=True,
                     summary=part_cfg.summary,
                 )
@@ -351,9 +413,8 @@ class MarkdownPipeline:
         inherited_document_toc: Optional[TocScope] = None,
         inherited_part_toc: Optional[TocScope] = None,
         inherited_chapter_toc: Optional[TocScope] = None,
-        inherited_autonum: Optional[AutonumStyle] = None,
-        inherited_autonum_from_level: Optional[int] = None,
-        inherited_autonum_prefix: Optional[str] = None,
+        part_pattern: Any = UNSET,
+        inherited_chapter_label: Optional[str] = None,
         inherited_autonum_reset: Optional[bool] = None,
         inherited_pagenum_reset: bool = False,
     ) -> Tuple[ContentItem, List[TOCNode]]:
@@ -392,41 +453,25 @@ class MarkdownPipeline:
                 file_base_dir = file_path.parent
                 raw_md = file_path.read_text(encoding="utf-8")
 
-        autonum_override = _resolve_autonum_style(chapter_cfg.autonum_style) or inherited_autonum
         doc_cfg = self.config.document if (self.config and getattr(self.config, "document", None)) else None
 
-        effective_from_level = (
-            chapter_cfg.autonum_from_level
-            if chapter_cfg.autonum_from_level is not None
-            else (
-                inherited_autonum_from_level
-                if inherited_autonum_from_level is not None
-                else (doc_cfg.autonum_from_level if doc_cfg else 1)
-            )
+        patterns = PatternChain(
+            document=self.doc_pattern,
+            part=part_pattern,
+            chapter=_compiled(chapter_cfg.autonum_pattern, "chapter"),
         )
-        effective_prefix = (
-            chapter_cfg.autonum_prefix
-            if chapter_cfg.autonum_prefix is not None
-            else (
-                inherited_autonum_prefix
-                if inherited_autonum_prefix is not None
-                else (doc_cfg.autonum_prefix if doc_cfg else None)
-            )
-        )
+
         effective_reset = (
             chapter_cfg.autonum_reset
             if chapter_cfg.autonum_reset is not None
             else (
                 inherited_autonum_reset
                 if inherited_autonum_reset is not None
-                else (True if effective_from_level > 1 else (doc_cfg.autonum_reset if doc_cfg else False))
+                else (doc_cfg.autonum_reset if doc_cfg else False)
             )
         )
-
-        # Wenn Reset gewuenscht (oder from_level > 1, z. B. bei Anhaengen):
-        # Der Zaehler startet fuer dieses Kapitel isoliert wieder bei 0.
         if effective_reset:
-            self.numbering_ctx.reset_counters()
+            self.numbering_ctx.reset_below(LEVEL_CHAPTER)
 
         # Convert markdown to HTML via python-markdown (all extensions active)
         raw_html = self.engine.convert(raw_md) if raw_md else ""
@@ -446,19 +491,12 @@ class MarkdownPipeline:
 
         chapter_number: Optional[str] = None
         if not has_file_h1 and chapter_cfg.toc_title:
-            chapter_number = self.numbering_ctx.advance_counter(
-                1,
-                autonum_override,
-                from_level=effective_from_level,
-                prefix=effective_prefix,
+            chapter_number = self.numbering_ctx.advance(
+                LEVEL_CHAPTER, patterns.for_level(LEVEL_CHAPTER)
             )
 
         toc_nodes = process_tree_headings_and_toc(
-            tree,
-            self.numbering_ctx,
-            autonum_override=autonum_override,
-            autonum_from_level=effective_from_level,
-            autonum_prefix=effective_prefix,
+            tree, self.numbering_ctx, patterns=patterns
         )
 
         file_h1 = (
@@ -517,6 +555,18 @@ class MarkdownPipeline:
             # Datei-H1 existiert, aber toc_title weicht ab:
             # Im TOCNode steht der toc_title!
             toc_nodes[0].title = chapter_cfg.toc_title
+
+        # Der Anzeigename tritt vor die Nummer, aber nur in Ueberschrift und
+        # Verzeichnis: `number_prefix` bleibt nackt, weil die Trennseite ihr
+        # Wort selbst davorsetzt.
+        chapter_label = chapter_cfg.label or inherited_chapter_label
+        display_number = _labelled(
+            chapter_label, number_prefix, self.labels.get("label_separator", ": ")
+        )
+        if chapter_label and toc_nodes and toc_nodes[0].number:
+            toc_nodes[0].number = display_number
+            if file_h1:
+                _relabel_first_heading(tree, display_number)
 
         # Filter local TOC items if enabled.
         local_toc_items: List[TOCNode] = []
@@ -589,6 +639,8 @@ class MarkdownPipeline:
             typst_content=typst_content,
             element_tree=tree,
             file_base_dir=file_base_dir,
+            label=chapter_label,
+            display_number=display_number,
             toc_title=effective_toc_title,
             divider_title=effective_divider_title,
             has_h1=bool(file_h1),

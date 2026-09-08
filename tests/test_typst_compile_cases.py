@@ -79,11 +79,10 @@ document:
   document_toc:
     enabled: false
 parts:
-  - title: "Main Part"
+  - part: "Main Part"
     break_before: "none"
     chapters:
       - file: "chapter.md"
-        title: "Chapter with $99 and C#"
 """
     chapter_md = """\
 # Heading with $5 and C# <label-test>
@@ -127,11 +126,10 @@ document:
   document_toc:
     enabled: false
 parts:
-  - title: "Part"
+  - part: "Part"
     break_before: "none"
     chapters:
       - file: "ch/chapter.md"
-        title: "Chapter"
 """
     chapter_md = """\
 # Image Chapter
@@ -167,17 +165,15 @@ document:
   document_toc:
     enabled: false
 parts:
-  - title: "First Part"
+  - part: "First Part"
     break_before: "none"
     chapters:
       - file: "ch1.md"
-        title: "Chapter 1"
-  - title: "Second Part"
+  - part: "Second Part"
     break_before: "page"
     pagenum_reset: true
     chapters:
       - file: "ch2.md"
-        title: "Chapter 2"
 """
     ch1_md = "# Chapter 1\n\nPage one content.\n"
     ch2_md = "# Chapter 2\n\nPage two content.\n"
@@ -209,11 +205,10 @@ document:
   document_toc:
     enabled: false
 parts:
-  - title: "Part"
+  - part: "Part"
     break_before: "none"
     chapters:
       - file: "ch.md"
-        title: "Chapter"
 """
     ch_md = "# Title\n\nContent paragraph.\n"
     out_pdf = _compile_pdf(tmp_path, yaml_text, {"ch.md": ch_md})
@@ -235,11 +230,10 @@ document:
   document_toc:
     enabled: false
 parts:
-  - title: "Part"
+  - part: "Part"
     break_before: "none"
     chapters:
       - file: "ext.md"
-        title: "Extensions"
 """
     ext_md = """\
 # Extensions
@@ -307,11 +301,10 @@ document:
   status: 'Freigegeben "mit" $Zeichen$'
   'quo"te': 'value with "quotes" and $math$ and #tags'
 parts:
-  - title: "Part"
+  - part: "Part"
     break_before: "none"
     chapters:
       - file: "a.md"
-        title: "A"
 """
     a_md = "# Title\n\nContent.\n"
     out_pdf = _compile_pdf(tmp_path, yaml_text, {"a.md": a_md})
@@ -351,11 +344,10 @@ document:
 theme: "mit-abteilung"
 
 parts:
-  - title: "Hauptteil"
+  - part: "Hauptteil"
     break_before: "none"
     chapters:
       - file: "a.md"
-        title: "A"
 """
     # Project-level i18n.yaml
     project_i18n = """\
@@ -398,11 +390,10 @@ document:
   status: "STATUSWERT"
   eigenes_feld: "FREIERWERT"
 parts:
-  - title: "P"
+  - part: "P"
     break_before: "none"
     chapters:
       - file: "a.md"
-        title: "A"
 """
     out_pdf = _compile_pdf(tmp_path, yaml_text, {"a.md": "# A\n\nText.\n"})
     cover = pdfium.PdfDocument(out_pdf)[0].get_textpage().get_text_range()

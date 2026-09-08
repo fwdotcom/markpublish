@@ -6,25 +6,47 @@ from __future__ import annotations
 
 import difflib
 from enum import Enum
-from typing import Any, List, Optional, Union
+from typing import Any, List, Optional
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from markpublish.i18n import default_document_language
+from markpublish.markdown.pattern import compile_pattern
 from markpublish.ui import t, tn
+
+#: Vorgabe fuer das ganze Dokument: Parts ohne Nummer, Kapitel 1, 1.1, 1.1.1.
+DEFAULT_AUTONUM_PATTERN = "_|1|.1|+"
+
+
+def check_pattern(value: Any, scope: str) -> Any:
+    """
+    Uebersetzt das Pattern einmal probeweise, damit ein Fehler beim Laden faellt.
+
+    Erst beim Setzen der ersten Ueberschrift abzubrechen hiesse: das halbe
+    Dokument ist schon gebaut, und die Meldung steht zwischen Fortschritts-
+    zeilen statt neben der Zeile, die sie verursacht hat.
+    """
+    compile_pattern(value, scope)
+    return value
+
+
+def keep_explicit_none(data: Any, key: str) -> Any:
+    """
+    Haelt `autonum_pattern:` ohne Wert von einem fehlenden Schluessel getrennt.
+
+    YAML liefert fuer beide `None`, gemeint ist aber das Gegenteil: der
+    fehlende Schluessel erbt, der leere schaltet ab. Der notierte Fall wird
+    deshalb auf die Zeichenkette gebracht, die er meint.
+    """
+    if isinstance(data, dict) and key in data and data[key] is None:
+        data = dict(data)
+        data[key] = "none"
+    return data
 
 
 class ConfigurationError(ValueError):
     """Raised when a configuration or document structure rule is violated."""
     pass
-
-
-class AutonumStyle(str, Enum):
-    DECIMAL = "decimal"    # 1, 1.1, 1.1.1
-    ROMAN = "roman"        # I, I.1, I.1.1
-    LEGAL = "legal"        # 1., 1.1., 1.1.1.
-    NONE = "none"          # No automatic numbering
-
 
 
 class BreakBefore(str, Enum):
@@ -168,22 +190,23 @@ class DocumentConfig(BaseModel):
         default_factory=lambda: TocScope(enabled=True, max_depth=None),
         description="Default local TOC on chapter divider pages: 'none', 'full' or a depth",
     )
-    autonum_style: AutonumStyle = Field(
-        default=AutonumStyle.DECIMAL,
-        description="Global heading numbering style: decimal, roman, legal, or none",
-    )
-    autonum_from_level: int = Field(
-        default=1,
-        ge=1,
-        description="Heading level from which numbering starts (1 = h1, 2 = h2, ...)",
-    )
-    autonum_prefix: Optional[str] = Field(
-        default=None,
-        description="Optional prefix prepended to numbers (e.g. 'A.' -> A.1, A.2)",
+    # Slot 1 ist hier der Part, Slot 2 das Kapitel, Slot 3 die h2. Die Vorgabe
+    # ueberspringt den Part: die wenigsten Dokumente nummerieren ihn.
+    autonum_pattern: Optional[str] = Field(
+        default=DEFAULT_AUTONUM_PATTERN,
+        description="Numbering pattern; slot 1 is the part, slot 2 the chapter",
     )
     autonum_reset: bool = Field(
         default=False,
-        description="Whether each chapter starts numbering fresh",
+        description="Whether the levels below start again at one",
+    )
+    # Wie die Ebenen darunter heissen. Ohne Angabe die Woerter aus der
+    # i18n-Kaskade; notiert erscheinen sie zusaetzlich vor der Ueberschrift.
+    part_label: Optional[str] = Field(
+        default=None, description="Word naming a part, e.g. 'Teil'; default from the i18n cascade"
+    )
+    chapter_label: Optional[str] = Field(
+        default=None, description="Word naming a chapter, e.g. 'Kapitel'; default from the i18n cascade"
     )
     pagenum_reset: bool = Field(
         default=False,
@@ -192,17 +215,10 @@ class DocumentConfig(BaseModel):
     header: bool = Field(default=True, description="Enable running header")
     footer: bool = Field(default=True, description="Enable running footer")
 
-    @field_validator("autonum_style", mode="before")
+    @field_validator("autonum_pattern")
     @classmethod
-    def parse_autonum_style(cls, v: Any) -> AutonumStyle:
-        if isinstance(v, AutonumStyle):
-            return v
-        if isinstance(v, str):
-            candidate = str(v).lower().strip()
-            for item in AutonumStyle:
-                if item.value == candidate:
-                    return item
-        return AutonumStyle.DECIMAL
+    def validate_autonum_pattern(cls, v: Any) -> Any:
+        return check_pattern(v, "document")
 
     @field_validator("document_toc", mode="before")
     @classmethod
@@ -224,6 +240,11 @@ class DocumentConfig(BaseModel):
         if v is None:
             return TocScope(enabled=True, max_depth=None)
         return parse_toc_scope(v, "document.chapter_toc")
+
+    @model_validator(mode="before")
+    @classmethod
+    def keep_explicit_pattern_none(cls, data: Any) -> Any:
+        return keep_explicit_none(data, "autonum_pattern")
 
     @model_validator(mode="before")
     @classmethod
@@ -298,8 +319,6 @@ class ChapterItem(BaseModel):
     toc_title: Optional[str] = Field(default=None, description="Title for document TOC, part TOC and running headers")
     divider_title: Optional[str] = Field(default=None, description="Title on chapter divider page")
     show_title: bool = Field(default=True, description="Whether to render the markdown H1 heading on the content page")
-    chapter: Optional[Any] = Field(default=None, description="Legacy/custom field, ignored")
-    title: Optional[Any] = Field(default=None, description="Legacy/custom field, ignored")
     subtitle: Optional[str] = Field(default=None, description="Chapter subtitle")
     summary: Optional[str] = Field(default=None, description="Chapter summary")
     break_before: BreakBefore = Field(
@@ -314,10 +333,11 @@ class ChapterItem(BaseModel):
         default=None,
         description="Local TOC on the chapter divider page: 'none', 'full' or a depth",
     )
-    autonum_style: Optional[Union[AutonumStyle, str]] = Field(default=None, description="Override numbering style for this chapter")
-    autonum_from_level: Optional[int] = Field(default=None, ge=1, description="Start heading level for autonumbering; inherited downwards")
-    autonum_prefix: Optional[str] = Field(default=None, description="Optional prefix for generated numbers; inherited downwards")
-    autonum_reset: Optional[bool] = Field(default=None, description="Whether to reset counter at chapter start; inherited downwards")
+    # Slot 1 ist hier die h2: ein Kapitel beschreibt, was in ihm steht, nicht
+    # seine eigene Nummer -- die gehoert seinem Part.
+    autonum_pattern: Optional[str] = Field(default=None, description="Numbering pattern for this chapter; slot 1 is h2")
+    autonum_reset: Optional[bool] = Field(default=None, description="Whether the levels below start again at one")
+    label: Optional[str] = Field(default=None, description="Word naming this chapter, e.g. 'Anhang'")
     pagenum_reset: Optional[bool] = Field(default=None, description="Reset page numbers at chapter start")
     model_config = ConfigDict(extra="forbid")
 
@@ -333,9 +353,19 @@ class ChapterItem(BaseModel):
         falsche Richtung. Verschachtelte Kapitel gab es frueher; sie sind
         ersatzlos entfallen, und das gehoert in die Meldung.
         """
-        if isinstance(data, dict) and "chapters" in data:
-            raise ValueError(t("err.config.chapters_nested"))
+        if isinstance(data, dict):
+            if "chapters" in data:
+                raise ValueError(t("err.config.chapters_nested"))
+            for key in ("chapter_label", "part_label"):
+                if key in data:
+                    raise ValueError(t("err.config.label_scope", key=key))
+        data = keep_explicit_none(data, "autonum_pattern")
         return reject_unknown_keys(data, cls, "chapters")
+
+    @field_validator("autonum_pattern")
+    @classmethod
+    def validate_autonum_pattern(cls, v: Any) -> Any:
+        return check_pattern(v, "chapter")
 
     @field_validator("chapter_toc", mode="before")
     @classmethod
@@ -382,7 +412,6 @@ class PartItem(BaseModel):
     part: Optional[str] = Field(default=None, description="Part name")
     toc_title: Optional[str] = Field(default=None, description="Title for document TOC and running headers")
     divider_title: Optional[str] = Field(default=None, description="Title on part divider page")
-    title: Optional[Any] = Field(default=None, description="Legacy/custom field, fallback for part name")
     subtitle: Optional[str] = Field(default=None, description="Part subtitle")
     summary: Optional[str] = Field(default=None, description="Part summary for divider page")
     break_before: Optional[BreakBefore] = Field(
@@ -401,10 +430,12 @@ class PartItem(BaseModel):
         default=None,
         description="Default chapter TOC for chapters in this part; inherited downwards",
     )
-    autonum_style: Optional[Union[AutonumStyle, str]] = Field(default=None, description="Numbering style for this part; inherited downwards")
-    autonum_from_level: Optional[int] = Field(default=None, ge=1, description="Start heading level for autonumbering; inherited downwards")
-    autonum_prefix: Optional[str] = Field(default=None, description="Optional prefix for generated numbers; inherited downwards")
-    autonum_reset: Optional[bool] = Field(default=None, description="Whether to reset counter; inherited downwards")
+    # Slot 1 ist hier das Kapitel: ein Part beschreibt seine Kapitel, nicht
+    # seine eigene Nummer -- die kommt aus dem document-Pattern.
+    autonum_pattern: Optional[str] = Field(default=None, description="Numbering pattern for this part; slot 1 is the chapter")
+    autonum_reset: Optional[bool] = Field(default=None, description="Whether the levels below start again at one")
+    label: Optional[str] = Field(default=None, description="Word naming this part, e.g. 'Teil'")
+    chapter_label: Optional[str] = Field(default=None, description="Word naming each chapter of this part, e.g. 'Anhang'")
     pagenum_reset: Optional[bool] = Field(default=None, description="Reset page numbers at the start of this part; inherited downwards")
     chapters: List[ChapterItem] = Field(default_factory=list, description="List of chapters in this part")
 
@@ -413,18 +444,24 @@ class PartItem(BaseModel):
     @model_validator(mode="before")
     @classmethod
     def reject_unknown_part_keys(cls, data: Any) -> Any:
+        if isinstance(data, dict) and "part_label" in data:
+            raise ValueError(t("err.config.label_scope", key="part_label"))
+        data = keep_explicit_none(data, "autonum_pattern")
         return reject_unknown_keys(data, cls, "parts")
+
+    @field_validator("autonum_pattern")
+    @classmethod
+    def validate_autonum_pattern(cls, v: Any) -> Any:
+        return check_pattern(v, "part")
 
     @model_validator(mode="before")
     @classmethod
     def validate_part_structure(cls, data: Any) -> Any:
         if isinstance(data, dict):
-            if not data.get("part") and not data.get("title"):
+            if not data.get("part"):
                 raise ValueError(
                     t("err.config.part_needs_name")
                 )
-            if not data.get("part") and data.get("title"):
-                data["part"] = data.get("title")
             if "chapters" not in data or not data["chapters"]:
                 raise ValueError(
                     t("err.config.part_needs_chapters", part=data.get("part"))
@@ -489,7 +526,7 @@ class PartItem(BaseModel):
 
     @property
     def display_title(self) -> str:
-        return self.toc_title or self.part or (str(self.title) if self.title else "")
+        return self.toc_title or self.part or ""
 
 
 class MarkpublishConfig(BaseModel):
