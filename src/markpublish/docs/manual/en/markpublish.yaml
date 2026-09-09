@@ -5,10 +5,9 @@ document:
   subtitle: "Modern PDF Document Publishing from Markdown"
   summary: "Practical guide and reference for configuration, CLI usage, theme design, and document publishing with markpublish."
   author: "Frank Winter"
-  status: "Released"
   copyright: "© 2026 Frank Winter"
-  date: "auto"
   version: "2.1.2"
+  date: "auto"
   language: "en"
 
   cover: true

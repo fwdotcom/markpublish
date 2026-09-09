@@ -1,6 +1,7 @@
 """
-Baut das offizielle markpublish Benutzerhandbuch in Deutsch und Englisch
-als PDF und legt die fertigen Dokumente im Verzeichnis 'manual/' ab.
+Baut die mitgelieferten markpublish-Dokumente - Benutzerhandbuch und
+Kurzreferenz - in allen Sprachen, die im Paket liegen, als PDF und legt die
+fertigen Dokumente im Verzeichnis 'manual/' ab.
 """
 
 from __future__ import annotations
@@ -27,8 +28,9 @@ app = typer.Typer(
 )
 console = Console()
 
-#: Sprachen, die ohne --lang gebaut werden.
-DEFAULT_LANGUAGES = ("de", "en")
+#: Die mitgelieferten Dokumente. Die Namen sind zugleich die Unterbefehle
+#: von markpublish und die Ordner unter docs/.
+DOCUMENTS = ("manual", "cheatsheet")
 
 
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -59,13 +61,15 @@ def main(
             "-l",
             help=t("manuals.opt.lang"),
         ),
-    ] = ",".join(DEFAULT_LANGUAGES),
+    ] = "all",
 ):
     """
-    Rendert das Benutzerhandbuch in das angegebene Zielverzeichnis.
+    Rendert die mitgelieferten Dokumente in das angegebene Zielverzeichnis.
 
-    Ohne --lang nur Deutsch. Eine Fassung, die gerade nicht gepflegt wird,
-    baut sonst bei jedem Lauf mit und sieht danach aktueller aus, als sie ist.
+    Ohne --lang jede Sprache, die im Paket liegt. Die fertigen PDFs stehen im
+    Repository und tragen die Versionsnummer aus ihrer YAML - eine Fassung,
+    die beim Versionssprung nicht mitgebaut wird, behauptet danach eine
+    Version, die es nicht mehr gibt.
     """
     out_dir = (output_dir if output_dir.is_absolute() else (SCRIPT_DIR / output_dir)).resolve()
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -74,6 +78,7 @@ def main(
     # ein Tippfehler im Zielformat soll keine halbe Ausgabe hinterlassen.
     targets = _parse_targets(target)
     languages = _parse_languages(lang)
+    jobs = _plan(languages, targets)
 
     console.print(
         "[bold blue]"
@@ -88,26 +93,37 @@ def main(
 
     started_at = time.time()
 
-    for code in languages:
-        for tgt in targets:
-            console.print(
-                "[bold green]▶[/bold green] "
-                + t(
-                    "manuals.rendering",
-                    language=f"[cyan]{code.upper()}[/cyan]",
-                    target=f"[yellow]{tgt.upper()}[/yellow]",
-                )
+    for name, code, tgt in jobs:
+        console.print(
+            "[bold green]▶[/bold green] "
+            + t(
+                "manuals.rendering",
+                document=f"[cyan]{name}[/cyan]",
+                language=f"[cyan]{code.upper()}[/cyan]",
+                target=f"[yellow]{tgt.upper()}[/yellow]",
             )
-            _render_bundled_doc(
-                name="manual",
-                lang=code,
-                target=tgt,
-                output=out_dir,
-                theme=None,
-                templates_dir=None,
-            )
+        )
+        _render_bundled_doc(
+            name=name,
+            lang=code,
+            target=tgt,
+            output=out_dir,
+            theme=None,
+            templates_dir=None,
+        )
 
-    _print_summary(out_dir, targets, languages, started_at)
+    _print_summary(out_dir, targets, len(jobs), started_at)
+
+
+def _available_languages() -> list[str]:
+    """
+    Sprachen, in denen mindestens eines der Dokumente im Paket liegt.
+
+    Die Vereinigung, nicht der Schnitt: eine Sprache, die vorerst nur das
+    Handbuch kennt, soll gebaut werden koennen, statt still aus der Liste zu
+    fallen. Was ihr fehlt, benennt _plan.
+    """
+    return sorted({code for name in DOCUMENTS for code in _available_doc_languages(name)})
 
 
 def _parse_languages(value: str) -> list[str]:
@@ -115,9 +131,9 @@ def _parse_languages(value: str) -> list[str]:
     Bringt --lang auf die Liste der zu bauenden Sprachen.
 
     Geprueft wird gegen die Sprachordner im Paket, nicht gegen eine Liste im
-    Code: was mitgeliefert wird, entscheidet der Inhalt von docs/manual/.
+    Code: was mitgeliefert wird, entscheidet der Inhalt von docs/.
     """
-    available = _available_doc_languages("manual")
+    available = _available_languages()
     if not available:
         console.print(
             f"[bold red]{t('label.error')}[/bold red] " + t("manuals.err.no_source")
@@ -148,10 +164,32 @@ def _parse_languages(value: str) -> list[str]:
     return wanted
 
 
+def _plan(languages: list[str], targets: list[str]) -> list[tuple[str, str, str]]:
+    """
+    Stellt zusammen, was dieser Lauf baut.
+
+    Nicht jedes Dokument liegt in jeder Sprache. Was fehlt, wird hier benannt
+    und uebersprungen: daran soll der Lauf nicht scheitern, aber er soll auch
+    nicht so aussehen, als haette er die Sprache gebaut.
+    """
+    jobs: list[tuple[str, str, str]] = []
+    for name in DOCUMENTS:
+        available = _available_doc_languages(name)
+        for code in languages:
+            if code not in available:
+                console.print(
+                    f"[yellow]{t('label.note')}[/yellow] "
+                    + t("manuals.skip", document=name, language=code.upper())
+                )
+                continue
+            jobs.extend((name, code, tgt) for tgt in targets)
+    return jobs
+
+
 def _print_summary(
     out_dir: Path,
     targets: list[str],
-    languages: list[str],
+    expected: int,
     started_at: float,
 ) -> None:
     """
@@ -162,9 +200,12 @@ def _print_summary(
     unterzugehen.
 
     Die Spalte "Stand" trennt dabei die Dokumente dieses Laufs von denen, die
-    schon dalagen -- seit nicht mehr jede Sprache bei jedem Lauf mitgebaut
-    wird, liegt beides nebeneinander, und eine alte Datei soll nicht wie ein
-    frisches Ergebnis aussehen.
+    schon dalagen: eine eingeschraenkte Auswahl laesst beides nebeneinander
+    liegen, und eine alte Datei soll nicht wie ein frisches Ergebnis aussehen.
+
+    Wieviele es haetten werden sollen, weiss der Aufrufer -- gezaehlt wird die
+    Auftragsliste, nicht Sprachen mal Formate: ein uebersprungenes Dokument
+    machte die Rechnung sonst zur Warnung.
     """
     table = Table(show_header=True, header_style="bold blue")
     table.add_column(t("manuals.table.file"), style="cyan")
@@ -191,7 +232,6 @@ def _print_summary(
     console.print()
     console.print(table)
 
-    expected = len(languages) * len(targets)
     if fresh == expected:
         console.print(
             f"\n[bold green][{t('manuals.label.success')}][/bold green] "

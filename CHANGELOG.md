@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Version on the quick reference**: `markpublish cheatsheet` now prints the version it belongs to in the footer, the same way the manual does.
+
 ## [2.1.2] - 2026-09-09
 
 ### Fixed

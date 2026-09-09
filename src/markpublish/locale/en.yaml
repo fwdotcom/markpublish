@@ -259,18 +259,20 @@ err.meta.known: "Known are: {keys}"
 err.meta.remedy: "Remedy: add '{key}' under 'document:' in the markpublish.yaml (free fields are allowed); or note a fallback in the theme, e.g. meta.at(\"{key}\", default: (value: \"\"))."
 
 # --- build_manuals.py ---------------------------------------------------------
-manuals.app.help: "Builds the official markpublish manual in German and English."
+manuals.app.help: "Builds the documents shipped with markpublish - manual and quick reference."
 manuals.opt.target: "Output format: 'pdf', 'html' or 'all'."
-manuals.opt.output_dir: "Destination directory for the manuals."
+manuals.opt.output_dir: "Destination directory for the finished documents."
 manuals.opt.lang: "Languages to build, comma-separated ('de', 'en', or 'all')."
 manuals.cmd.help: |
-  Builds the manual and reports what this run actually wrote.
+  Builds the manual and the quick reference and reports what this run
+  actually wrote.
 
   The "State" column separates the documents of this run from those that were
   already lying there.
-manuals.building: "Building manual ({language}) as {target} into {path}..."
-manuals.rendering: "Rendering manual: language {language} | format {target}"
-manuals.err.no_source: "No manual in the package (docs/manual/<language>/markpublish.yaml is missing)."
+manuals.building: "Building the bundled documents ({language}) as {target} into {path}..."
+manuals.rendering: "Rendering {document}: language {language} | format {target}"
+manuals.skip: "{document} does not ship in {language} - skipped."
+manuals.err.no_source: "The package holds none of the documents (docs/<document>/<language>/markpublish.yaml is missing)."
 manuals.err.lang_empty: "--lang is empty."
 manuals.err.unknown_lang: "Unknown language '{language}'. Available: {available}."
 manuals.table.file: "File"

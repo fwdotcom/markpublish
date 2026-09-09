@@ -14,6 +14,10 @@ import re
 from pathlib import Path
 
 import markdown
+import pytest
+import yaml
+
+import markpublish
 
 # tomllib gibt es erst ab 3.11, markpublish unterstuetzt ab 3.10. tomli ist
 # dieselbe Bibliothek unter altem Namen und steht als dev-Abhaengigkeit bereit.
@@ -23,6 +27,12 @@ except ModuleNotFoundError:  # Python 3.10
     import tomli as tomllib
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
+DOCS_DIR = REPO_ROOT / "src" / "markpublish" / "docs"
+MANUAL_DIR = REPO_ROOT / "manual"
+
+#: Mitgelieferte Dokumente, die die Version der Software tragen. Die Ordner
+#: unter docs/ heissen wie die Unterbefehle, die sie rendern.
+VERSIONED_DOCS = ("manual", "cheatsheet")
 
 #: Praefixe, die einen Link ohne Bezugspunkt aufloesen.
 ABSOLUTE_PREFIXES = ("http://", "https://", "mailto:", "#")
@@ -129,3 +139,92 @@ def test_console_scripts_point_at_the_entry_wrapper():
     pyproject = tomllib.loads((REPO_ROOT / "pyproject.toml").read_text(encoding="utf-8"))
     for name, target in pyproject["project"]["scripts"].items():
         assert target == "markpublish.entry:main", f"{name} zeigt auf {target}"
+
+
+# --------------------------------------------------------------------------
+# Die Versionsnummer, an jeder Stelle, an der sie steht
+# --------------------------------------------------------------------------
+
+
+def _declared_version() -> str:
+    """Die Version aus pyproject.toml - die eine, gegen die alle anderen zaehlen."""
+    return tomllib.loads(
+        (REPO_ROOT / "pyproject.toml").read_text(encoding="utf-8")
+    )["project"]["version"]
+
+
+def test_package_version_matches_pyproject():
+    """
+    __version__ ist, was `markpublish --version` meldet und was im Wheel steht.
+
+    Laufen die beiden auseinander, meldet ein installiertes Paket eine andere
+    Zahl, als PyPI dafuer fuehrt - und der Release-Workflow prueft nur den Tag
+    gegen pyproject.toml, nicht gegen diese Stelle.
+    """
+    assert markpublish.__version__ == _declared_version(), (
+        f"__init__.py: {markpublish.__version__}, "
+        f"pyproject.toml: {_declared_version()}"
+    )
+
+
+def test_bundled_documents_declare_the_project_version():
+    """
+    Handbuch und Kurzreferenz nennen ihre Version in der eigenen YAML.
+
+    Das ist derselbe Weg, den jedes andere Dokument geht - dafuer muss die
+    Zahl beim Versionssprung von Hand mitwandern, und zwar in jeder Sprache.
+    Uebersehen wuerde man sie ausgerechnet in der, die man selbst nicht liest.
+    """
+    expected = _declared_version()
+    manifests = sorted(
+        path
+        for name in VERSIONED_DOCS
+        for path in (DOCS_DIR / name).glob("*/markpublish.yaml")
+    )
+    assert manifests, f"Unter {DOCS_DIR} liegt kein mitgeliefertes Dokument"
+
+    wrong = {
+        path.relative_to(REPO_ROOT): yaml.safe_load(
+            path.read_text(encoding="utf-8")
+        )["document"].get("version")
+        for path in manifests
+    }
+    wrong = {path: found for path, found in wrong.items() if found != expected}
+
+    assert not wrong, (
+        f"pyproject.toml steht auf {expected}, diese Dokumente nicht:\n  "
+        + "\n  ".join(f"{path}: version: {found!r}" for path, found in wrong.items())
+    )
+
+
+def test_the_built_documents_carry_the_current_version():
+    """
+    Die PDFs unter manual/ haengen am Release und liegen im Repository.
+
+    Sie entstehen nur, wenn jemand build_manuals.py aufruft; die Zahl in der
+    YAML anzuheben genuegt nicht. Bleibt der Lauf aus, zeigt das
+    veroeffentlichte Handbuch die Version davor - und auffallen kann es
+    keinem Werkzeug, weil Paket, Tag und Changelog ja stimmen.
+    """
+    pdfium = pytest.importorskip("pypdfium2")
+    expected = _declared_version()
+
+    built = sorted(MANUAL_DIR.glob("*.pdf"))
+    assert built, f"Unter {MANUAL_DIR} liegt kein gebautes Dokument"
+
+    stale = []
+    for path in built:
+        document = pdfium.PdfDocument(str(path))
+        try:
+            # Deckblatt oder Fusszeile - die Version steht auf der ersten
+            # Seite, gleich ob das Dokument mit einem Deckblatt beginnt.
+            first_page = document[0].get_textpage().get_text_range()
+        finally:
+            document.close()
+        if expected not in first_page:
+            stale.append(path.name)
+
+    assert not stale, (
+        f"Diese Dokumente nennen nicht {expected}: {', '.join(stale)}\n"
+        "Nach einem Versionssprung gehoert ein 'python build_manuals.py' dazu."
+    )

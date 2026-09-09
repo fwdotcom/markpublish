@@ -49,10 +49,13 @@ Thank you for your interest in improving **markpublish**!
 
 ## Building Documentation
 
-To compile the German and English user guides into `manual/`:
+To compile the user guides and quick references into `manual/`, in every language the
+package ships:
 ```bash
 python build_manuals.py
 ```
+These PDFs are committed and carry the version from their `markpublish.yaml`, so a version
+bump is only finished once they are rebuilt. `pytest` fails until then.
 
 To render the quick reference sheet locally:
 ```bash

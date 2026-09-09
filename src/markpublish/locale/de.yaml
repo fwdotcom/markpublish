@@ -256,18 +256,20 @@ err.meta.known: "Bekannt sind: {keys}"
 err.meta.remedy: "Abhilfe: '{key}' unter 'document:' in der markpublish.yaml ergänzen (freie Felder sind erlaubt); oder im Theme einen Fallback notieren, z. B. meta.at(\"{key}\", default: (value: \"\"))."
 
 # --- build_manuals.py ---------------------------------------------------------
-manuals.app.help: "Baut das offizielle markpublish Handbuch in Deutsch und Englisch."
+manuals.app.help: "Baut die mitgelieferten markpublish-Dokumente - Handbuch und Kurzreferenz."
 manuals.opt.target: "Ausgabeformat: 'pdf', 'html' oder 'all'."
-manuals.opt.output_dir: "Zielverzeichnis für die Handbücher."
+manuals.opt.output_dir: "Zielverzeichnis für die fertigen Dokumente."
 manuals.opt.lang: "Sprachen, die gebaut werden, kommagetrennt ('de', 'en' oder 'all')."
 manuals.cmd.help: |
-  Baut das Handbuch und meldet, was dieser Lauf tatsächlich geschrieben hat.
+  Baut Handbuch und Kurzreferenz und meldet, was dieser Lauf tatsächlich
+  geschrieben hat.
 
   Die Spalte "Stand" trennt dabei die Dokumente dieses Laufs von denen, die
   schon dalagen.
-manuals.building: "Baue Handbuch ({language}) als {target} nach {path}..."
-manuals.rendering: "Rendere Handbuch: Sprache {language} | Format {target}"
-manuals.err.no_source: "Im Paket liegt kein Handbuch (docs/manual/<sprache>/markpublish.yaml fehlt)."
+manuals.building: "Baue die mitgelieferten Dokumente ({language}) als {target} nach {path}..."
+manuals.rendering: "Rendere {document}: Sprache {language} | Format {target}"
+manuals.skip: "{document} liegt nicht auf {language} im Paket - übersprungen."
+manuals.err.no_source: "Im Paket liegt keines der Dokumente (docs/<dokument>/<sprache>/markpublish.yaml fehlt)."
 manuals.err.lang_empty: "--lang ist leer."
 manuals.err.unknown_lang: "Unbekannte Sprache '{language}'. Verfügbar: {available}."
 manuals.table.file: "Datei"
