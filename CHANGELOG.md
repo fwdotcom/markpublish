@@ -9,8 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.3] - 2026-09-09
+
 ### Added
-- **Version on the quick reference**: `markpublish cheatsheet` now prints the version it belongs to in the footer, the same way the manual does.
+- **Bundled Monospace Font (`Noto Sans Mono`)**: Bundled `NotoSansMono-VariableFont_wdth,wght.ttf` (SIL Open Font License 1.1) in the default template under `templates/default/pdf/fonts/`. Monospace elements (code blocks and inline code) now render identically across all operating systems (Windows, macOS, Linux, and CI/Docker containers) without relying on local system fonts.
+- **Version on the quick reference**: `markpublish cheatsheet` now prints the version it belongs to in the footer, matching the behavior of the manual.
+
+### Changed
+- **Inline code & code block typography**: Replaced hardcoded font sizes in the default template with centralized design tokens (`size-code-block = 8.5pt`, `size-code-inline = 1.0em`, `weight-code-inline = "medium"`). Using the variable font's `medium` (500) weight balances the stroke thickness with *Open Sans Regular*, ensuring inline code matches the optical gray value of the surrounding body text without appearing shrunken or frail.
+- **Design tokens consolidation in default template**: Refactored `template.typ` to declare centralized tokens at the top of the file for colors, strokes, corner radii, body metrics, heading scales, and code typography.
+- **Running header column ratio & hyphenation**: Changed the running header columns from `(2fr, 3fr)` to `(1fr, 1fr)` and disabled hyphenation on header cells. Subtitles now stay on a single line, keeping the running header strictly two lines high and vertically anchored to the chapter title.
+- **Unified list and definition list spacing**: Set `list-spacing = 1.2em` and configured `set terms(spacing: list-spacing, tight: false)` in `setup-document`. Bullet lists, numbered lists, task lists, and definition lists now share an identical vertical rhythm, cleanly separating multi-line items without creating excessive paragraph voids.
+- **Document TOC vertical rhythm**: Added balanced spacing (`v(0.85em)`) between part divider titles and subsequent chapter lists in the table of contents, while suppressing leading vertical space when the outline starts with a part divider.
+- **Cover, divider, and heading typography**: Explicitly disabled text justification (`justify: false`) and hyphenation (`hyphenate: false`) on headings, cover page titles, and part/chapter dividers, preventing stretched word spacing and awkward hyphen breaks on large titles.
+- **Booktabs table formatting**: Cleaned up default table styling with dedicated top/mid/bottom rules (`stroke-table-top`, `stroke-table-mid`, `stroke-table-divider`) and tabular figures (`number-width: "tabular"`).
 
 ## [2.1.2] - 2026-09-09
 
