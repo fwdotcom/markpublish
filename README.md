@@ -32,10 +32,10 @@ everything else is your text.
 
 ## Manual
 
-| | Deutsch | English |
-| :--- | :--- | :--- |
-| Handbuch · Manual | [Benutzerhandbuch (PDF)](https://github.com/fwdotcom/markpublish/blob/main/manual/markpublish_benutzerhandbuch.pdf) | [User Manual (PDF)](https://github.com/fwdotcom/markpublish/blob/main/manual/markpublish_user_manual.pdf) |
-| Kurzreferenz · Quick reference | [Kurzreferenz (PDF)](https://github.com/fwdotcom/markpublish/blob/main/manual/markpublish_kurzreferenz.pdf) | [Quick Reference (PDF)](https://github.com/fwdotcom/markpublish/blob/main/manual/markpublish_quick_reference.pdf) |
+| Deutsch | English |
+| :--- | :--- |
+| [Benutzerhandbuch (PDF)](https://github.com/fwdotcom/markpublish/blob/main/manual/markpublish_benutzerhandbuch.pdf) | [User Manual (PDF)](https://github.com/fwdotcom/markpublish/blob/main/manual/markpublish_user_manual.pdf) |
+| [Kurzreferenz (PDF)](https://github.com/fwdotcom/markpublish/blob/main/manual/markpublish_kurzreferenz.pdf) | [Quick Reference (PDF)](https://github.com/fwdotcom/markpublish/blob/main/manual/markpublish_quick_reference.pdf) |
 
 All four are typeset with markpublish itself.
 
