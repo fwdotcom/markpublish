@@ -92,7 +92,7 @@ If a compilation run aborts due to an error from the Typst engine, markpublish a
 
 **Solution:**
 
-* At section (`parts:`) and chapter (`chapters:`) levels, markpublish strictly rejects unknown keys to catch typos early. Check the reported key; custom metadata fields are exclusively permitted under `document:`.
+* At the root level (`markpublish.yaml`) as well as section (`parts:`) and chapter (`chapters:`) levels, markpublish strictly rejects unknown keys to catch typos early. Check the reported key; custom metadata fields are exclusively permitted under `document:`.
 
 ### Target Directory on init is Not Empty
 

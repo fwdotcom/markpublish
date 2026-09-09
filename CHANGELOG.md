@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.2] - 2026-09-09
+
+### Fixed
+- **Strict root-level configuration validation**: `MarkpublishConfig` now forbids unknown top-level keys (`extra = "forbid"`). Typos such as `theam:` or `templtes_dir:` are rejected immediately with `did_you_mean` suggestions rather than being silently ignored.
+- **Config loader error handling**: `load_config` clearly distinguishes between missing files (`FileNotFoundError`) and invalid YAML content (`ValueError`), rejecting scalars, lists, and empty files with precise error messages instead of misleading fallbacks.
+- **CLI `--target html` exit behavior**: Requesting `--target html` directly now exits with code 1 and a clear error message instead of exiting with 0 without generating output, preventing CI false positives.
+- **Heading anchor collision handling**: Verified AST slug generation in `TypstSerializer` against duplicate heading titles and explicit anchor collisions.
+
+### Removed
+- **v1.x legacy modules**: Removed dormant `assets.py` (legacy HTML data-URI inliner) and `typst_converter.py` (legacy regex-based Typst converter) along with deprecated tests, unifying all rendering onto `TypstSerializer`.
+
 ## [2.1.1] - 2026-09-08
 
 ### Fixed

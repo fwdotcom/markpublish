@@ -556,28 +556,27 @@ class MarkpublishConfig(BaseModel):
     parts: List[PartItem] = Field(default_factory=list, description="List of document parts")
 
     model_config = {
-        "extra": "allow"
+        "extra": "forbid"
     }
 
     @model_validator(mode="before")
     @classmethod
-    def reject_chapters_at_root(cls, data: Any) -> Any:
+    def validate_root_structure(cls, data: Any) -> Any:
         """
         Der Aufbau hat zwei Stufen: 'parts', darunter 'chapters'.
 
         Ein 'chapters' auf oberster Ebene ist die naheliegende Vermutung, wenn
-        ein Dokument nur aus Kapiteln besteht - und ohne diesen Riegel die
-        teuerste: 'extra: allow' schluckt den Schluessel wortlos, 'parts'
-        bliebe leer, und heraus kaeme ein Dokument aus Deckblatt und sonst
-        nichts. Ein Abbruch mit dem richtigen Aufbau daneben kostet eine
-        Minute, ein leeres PDF findet man erst im Druck.
+        ein Dokument nur aus Kapiteln besteht. Dieser Riegel faengt es mit einer
+        ausfuehrlichen Erklaerung ab. Alle anderen unbekannten Schluessel
+        (z. B. Tippfehler wie 'theam') werden mit Namensvorschlag abgewiesen.
         """
-        if not isinstance(data, dict) or "chapters" not in data:
+        if not isinstance(data, dict):
             return data
-
-        raise ValueError(
-            t("err.config.chapters_toplevel")
-        )
+        if "chapters" in data:
+            raise ValueError(
+                t("err.config.chapters_toplevel")
+            )
+        return reject_unknown_keys(data, cls, "markpublish.yaml")
 
     @property
     def chapters(self) -> List[ChapterItem]:

@@ -34,6 +34,7 @@ app.help: "Modern, modular Markdown to PDF publishing tool powered by Typst."
 app.version_word: "version"
 opt.version.help: "Show the application's version and exit."
 opt.ui_lang.help: "Language of the command-line interface ('en', 'de'); defaults to your system language."
+opt.debug.help: "Enable debug mode and print full stack traces on errors."
 
 # --- Gemeinsame Optionen ------------------------------------------------------
 opt.config_file.help: "Path to markpublish.yaml configuration file."
@@ -164,6 +165,7 @@ labels.cascade.absent: "not present"
 
 # --- Konfiguration ------------------------------------------------------------
 err.config.not_found_file: "Configuration file not found: {path}"
+err.config.expected_mapping: "Configuration must be a mapping/dictionary (was: {type})."
 err.config.toc_bool: "{key_path} takes no boolean. Write 'none', 'full' or a depth (e.g. 2)."
 err.config.toc_value: "{key_path} takes {allowed} or a depth as a number (was: {value})."
 err.config.toc_depth: "{key_path} needs a depth of at least 1 (was: {value}). For 'does not appear' write 'none'."

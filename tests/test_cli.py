@@ -29,10 +29,10 @@ def test_cli_init_and_build(tmp_path: Path):
     assert (project_dir / "markpublish.yaml").is_file()
     assert (project_dir / "welcome.md").is_file()
 
-    # 2. Test build HTML shows notice
+    # 2. Test build HTML fails with code 1 and error notice
     build_html_res = runner.invoke(app, ["build", str(project_dir / "markpublish.yaml"), "--target", "html"])
-    assert build_html_res.exit_code == 0
-    assert "HTML output is currently not implemented" in build_html_res.stdout
+    assert build_html_res.exit_code == 1
+    assert "HTML" in build_html_res.stdout
 
     # 3. Test build PDF
     build_pdf_res = runner.invoke(app, ["build", str(project_dir / "markpublish.yaml"), "--target", "pdf"])
@@ -379,12 +379,12 @@ def test_cli_manual_says_so_when_a_language_is_missing(tmp_path: Path, monkeypat
 
 def test_cli_target_html_shows_notice(tmp_path: Path, monkeypatch):
     """
-    --target html stuerzt nicht ab, sondern gibt einen freundlichen Hinweis aus.
+    --target html bricht mit Fehlercode 1 und klarer Meldung ab.
     """
     monkeypatch.chdir(tmp_path)
     res = runner.invoke(app, ["manual", "--target", "html"])
-    assert res.exit_code == 0, res.stdout
-    assert "HTML output is currently not implemented" in res.stdout
+    assert res.exit_code == 1, res.stdout
+    assert "HTML" in res.stdout
     assert len(list(tmp_path.glob("*.html"))) == 0
 
 

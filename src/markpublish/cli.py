@@ -65,6 +65,7 @@ app = typer.Typer(
     help=t("app.help"),
 )
 console = Console()
+_DEBUG: bool = False
 
 
 def version_callback(value: bool):
@@ -91,6 +92,11 @@ def main(
         "--ui-lang",
         help=t("opt.ui_lang.help"),
     ),
+    debug: bool = typer.Option(
+        False,
+        "--debug",
+        hidden=True,
+    ),
 ):
     """
     markpublish CLI.
@@ -103,6 +109,9 @@ def main(
     jemand die App unter Umgehung des Einsprungs aufruft; dann stimmen
     wenigstens die Meldungen zur Laufzeit.
     """
+    global _DEBUG
+    if debug:
+        _DEBUG = True
     if ui_lang:
         set_ui_language(ui_lang)
 
@@ -288,11 +297,18 @@ def _render_document(
 
     for tgt in targets_to_build:
         if tgt == "html":
-            console.print(
-                f"[yellow]{t('label.notice')}[/yellow] "
-                + t("notice.html.unimplemented")
-            )
-            continue
+            if len(targets_to_build) == 1:
+                console.print(
+                    f"[bold red]{t('label.error')}[/bold red] "
+                    + t("notice.html.unimplemented")
+                )
+                raise typer.Exit(code=1)
+            else:
+                console.print(
+                    f"[yellow]{t('label.notice')}[/yellow] "
+                    + t("notice.html.unimplemented")
+                )
+                continue
 
         status_text = t("status.rendering", target=tgt.upper())
         with console.status(f"[bold green]{status_text}[/bold green]"):
@@ -305,6 +321,9 @@ def _render_document(
                     package_only=package_templates_only,
                 )
             except Exception as e:
+                if _DEBUG:
+                    import traceback
+                    traceback.print_exc()
                 console.print(f"[bold red]{t('label.template_error', target=tgt)}[/bold red] {e}")
                 raise typer.Exit(code=1) from e
 
@@ -324,6 +343,9 @@ def _render_document(
             try:
                 labels = context.labels
             except LabelFileError as e:
+                if _DEBUG:
+                    import traceback
+                    traceback.print_exc()
                 console.print(
                     f"[bold red]{t('label.label_file_error_target', target=tgt)}[/bold red] {e}"
                 )
@@ -333,6 +355,9 @@ def _render_document(
                 pipeline = MarkdownPipeline(config, base_dir=base_dir, labels=labels)
                 context.content_items, context.toc_tree = pipeline.process_document()
             except ConfigurationError as e:
+                if _DEBUG:
+                    import traceback
+                    traceback.print_exc()
                 console.print(f"[bold red]Configuration error:[/bold red] {e}")
                 raise typer.Exit(code=1) from e
 
@@ -374,14 +399,23 @@ def _render_document(
                 # Eigener Zweig, weil die Meldung mehrzeilig ist und Fundstelle
                 # samt durchsuchten Dateien nennt - die gehoert nicht hinter ein
                 # "Rendering error:" auf dieselbe Zeile gequetscht.
+                if _DEBUG:
+                    import traceback
+                    traceback.print_exc()
                 console.print(f"[bold red]{t('label.undefined_label', target=tgt)}[/bold red]")
                 console.print(str(e))
                 raise typer.Exit(code=1) from e
             except UndefinedMetadataError as e:
+                if _DEBUG:
+                    import traceback
+                    traceback.print_exc()
                 console.print(f"[bold red]{t('label.undefined_metadata', target=tgt)}[/bold red]")
                 console.print(str(e))
                 raise typer.Exit(code=1) from e
             except Exception as e:
+                if _DEBUG:
+                    import traceback
+                    traceback.print_exc()
                 console.print(f"[bold red]{t('label.rendering_error', target=tgt)}[/bold red] {e}")
                 raise typer.Exit(code=1) from e
 
@@ -415,10 +449,19 @@ def build_cmd(
         "--templates-dir",
         help=t("opt.templates_dir.help"),
     ),
+    debug: bool = typer.Option(
+        False,
+        "--debug",
+        hidden=True,
+    ),
 ):
     """
     Builds document to PDF and/or HTML based on markpublish.yaml.
     """
+    global _DEBUG
+    if debug:
+        _DEBUG = True
+
     if not config_file.exists():
         console.print(
             f"[bold red]{t('label.error')}[/bold red] "
@@ -432,6 +475,9 @@ def build_cmd(
         try:
             config = load_config(config_file)
         except Exception as e:
+            if _DEBUG:
+                import traceback
+                traceback.print_exc()
             console.print(f"[bold red]Configuration error:[/bold red] {e}")
             raise typer.Exit(code=1) from e
 

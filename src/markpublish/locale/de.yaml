@@ -30,6 +30,7 @@ app.help: "Modernes, modulares Publizieren von Markdown nach PDF auf Basis von T
 app.version_word: "Version"
 opt.version.help: "Zeigt die Version des Programms und beendet sich."
 opt.ui_lang.help: "Sprache der Kommandozeile ('en', 'de'); ohne Angabe die Systemsprache."
+opt.debug.help: "Aktiviert den Debug-Modus und gibt vollständige Fehlerspuren (Tracebacks) aus."
 
 # --- Gemeinsame Optionen ------------------------------------------------------
 opt.config_file.help: "Pfad zur Konfigurationsdatei markpublish.yaml."
@@ -161,6 +162,7 @@ labels.cascade.absent: "nicht vorhanden"
 
 # --- Konfiguration ------------------------------------------------------------
 err.config.not_found_file: "Konfigurationsdatei nicht gefunden: {path}"
+err.config.expected_mapping: "Konfiguration muss ein Mapping/Dictionary sein (war: {type})."
 err.config.toc_bool: "{key_path} nimmt keine Wahrheitswerte. Schreiben Sie 'none', 'full' oder eine Tiefe (z. B. 2)."
 err.config.toc_value: "{key_path} kennt {allowed} oder eine Tiefe als Zahl (war: {value})."
 err.config.toc_depth: "{key_path} braucht eine Tiefe ab 1 (war: {value}). Für 'kommt nicht vor' schreiben Sie 'none'."

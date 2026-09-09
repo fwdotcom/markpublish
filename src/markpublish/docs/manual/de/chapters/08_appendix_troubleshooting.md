@@ -96,7 +96,7 @@ Sollte ein Kompiliervorgang mit einer Fehlermeldung der Typst-Engine abbrechen, 
 
 **Lösung:**
 
-* Auf Abschnitts- (`parts:`) und Kapitel-Ebene (`chapters:`) weist markpublish unbekannte Schlüssel strikt zurück, um Tippfehler frühzeitig abzufangen. Prüfen Sie den genannten Schlüssel; eigene freie Datenfelder sind ausschließlich unter `document:` zulässig.
+* Sowohl auf oberster Ebene (`markpublish.yaml`) als auch auf Abschnitts- (`parts:`) und Kapitel-Ebene (`chapters:`) weist markpublish unbekannte Schlüssel strikt zurück, um Tippfehler frühzeitig abzufangen. Prüfen Sie den genannten Schlüssel; eigene freie Datenfelder sind ausschließlich unter `document:` zulässig.
 
 ### Zielordner bei init ist nicht leer
 

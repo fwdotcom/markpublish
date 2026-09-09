@@ -374,5 +374,9 @@ def test_n2_no_stray_space_in_heading_tag():
 
 def test_n3_explicit_id_does_not_collide_with_generated_slug():
     html = '<h2>Einleitung</h2><h2 id="einleitung">Andere</h2>'
-    out, _ = process_html_headings_and_toc(html, NumberingContext())
+    out, nodes = process_html_headings_and_toc(html, NumberingContext())
+    assert len(nodes) == 2
+    assert nodes[0].slug == "einleitung-1"
+    assert nodes[1].slug == "einleitung"
+    assert nodes[0].slug != nodes[1].slug
 

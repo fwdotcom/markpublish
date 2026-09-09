@@ -47,6 +47,9 @@ Directly at the top level of `markpublish.yaml` (alongside `document:` and `part
 | `theme` | String | `"default"` | Name of the active theme. |
 | `templates_dir` | String | `None` | Optional custom directory path containing theme templates. |
 
+> [!NOTE] Strict Top-Level Key Validation
+> At the top level of `markpublish.yaml`, only declared configuration keys (`document`, `theme`, `templates_dir`, `parts`) are permitted. Unknown keys (such as typos like `theam:`) are strictly rejected with close-match suggestions.
+
 ### Numbering Patterns
 
 `autonum_pattern` describes how numbers are built, as a chain of slots separated by `|`. Slot 1 belongs to the first level *below* the place the pattern stands: under `document:` that is the part, on a part the chapter, on a chapter the H2. A pattern therefore never describes the level it is written at.

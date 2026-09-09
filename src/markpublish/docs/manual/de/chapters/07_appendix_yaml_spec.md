@@ -48,6 +48,9 @@ Direkt auf oberster Ebene der `markpublish.yaml` (neben `document:` und `parts:`
 | `theme` | String | `"default"` | Name des zu verwendenden Themes. |
 | `templates_dir` | String | `None` | Optionaler benutzerdefinierter Pfad zu einem Verzeichnis mit Themes. |
 
+> [!NOTE] Strikte Schlüsselprüfung auf oberster Ebene
+> Auf oberster Ebene der `markpublish.yaml` sind ausschließlich die deklarierten Schlüssel (`document`, `theme`, `templates_dir`, `parts`) zulässig. Unbekannte Schlüssel (wie Tippfehler bei `theam:`) werden mit einem Namensvorschlag strikt abgewiesen.
+
 ### Nummerierungs-Pattern
 
 `autonum_pattern` beschreibt den Aufbau der Nummern als Kette von Slots, getrennt durch `|`. Slot 1 gehört zur ersten Ebene *unter* der Stelle, an der das Pattern steht: unter `document:` ist das der Part, an einem Part das Kapitel, an einem Kapitel die H2. Ein Pattern beschreibt also nie die Ebene, an der es notiert ist.
