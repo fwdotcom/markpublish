@@ -201,11 +201,11 @@
         columns: (auto, 1fr),
         gutter: 8pt,
         align: (center + horizon, left + horizon),
-        image(icon-file, width: 14pt, height: 14pt),
+        image(icon-file, width: 11pt, height: 11pt),
         text(weight: "bold", fill: c.text, size: 10pt)[#title]
       )
     ]
-    #block(above: if title != none { 4pt } else { 0pt })[
+    #block(above: if title != none { 7pt } else { 0pt })[
       #text(size: 9.5pt, fill: c-text-body)[#body]
     ]
   ]
