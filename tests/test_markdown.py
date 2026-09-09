@@ -2,7 +2,6 @@
 Tests for Markdown parsing, extensions, and asset resolution.
 """
 
-from pathlib import Path
 
 from markpublish.markdown.engine import MarkdownEngine
 

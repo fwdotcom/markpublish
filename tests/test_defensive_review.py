@@ -2,8 +2,9 @@
 Defensive regression tests addressing findings from the architecture and security review.
 """
 
-from pathlib import Path
 import xml.etree.ElementTree as etree
+from pathlib import Path
+
 import pytest
 from pydantic import ValidationError
 from typer.testing import CliRunner
