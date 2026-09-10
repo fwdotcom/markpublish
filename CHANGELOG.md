@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.4] - 2026-09-10
+
+### Fixed
+- **Table text justification in PDF template**: Tables now explicitly disable justified text alignment (`show table: set par(justify: false)`). Cells in narrower columns are set ragged-right, avoiding overstretched word spacing and awkward gaps inside table content.
+- **Callout icon size & content spacing**: Adjusted callout icon dimensions from 14 pt to 11 pt and increased the margin between callout title and content body from 4 pt to 7 pt, providing a more balanced optical proportion and breathing room inside admonition boxes.
+
 ## [2.1.3] - 2026-09-09
 
 ### Added
