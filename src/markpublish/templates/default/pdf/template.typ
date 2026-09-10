@@ -507,6 +507,7 @@
       (top: 7pt, bottom: 7pt, left: 10pt, right: 10pt)
     },
   )
+  show table: set par(justify: false)
   show table: set text(number-width: "tabular")
   show table: it => block(stroke: (bottom: stroke-table-top + c-text-dark))[#it]
 
