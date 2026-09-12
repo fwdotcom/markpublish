@@ -274,3 +274,29 @@ jobs:
 
       - name: Publish
         uses: pypa/gh-action-pypi-publish@release/v1
+
+  # --------------------------------------------------------------------------
+  # Das gebaute Wheel (.whl) an das veroeffentlichte GitHub-Release anhaengen,
+  # damit das Paket auch direkt ueber GitHub heruntergeladen und offline
+  # installiert werden kann.
+  # --------------------------------------------------------------------------
+  attach-release-assets:
+    name: Attach Wheel to GitHub Release
+    if: github.event_name == 'release'
+    needs: [build, publish-pypi]
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download distributions
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Upload wheel to release
+        run: gh release upload "${{ github.event.release.tag_name }}" dist/*.whl --clobber
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
