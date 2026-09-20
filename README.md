@@ -53,7 +53,7 @@ markpublish build my-project/markpublish.yaml
 
 (requires Python 3.10 or newer)
 
-## Lizenz · License
+## License
 
-MIT © 2026 Frank Winter —
-[LICENSE](https://github.com/fwdotcom/markpublish/blob/main/LICENSE)
+© 2026 Frank Winter  
+Licensed under the [MIT License](https://github.com/fwdotcom/markpublish/blob/main/LICENSE).
