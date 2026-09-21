@@ -238,7 +238,7 @@
   footer: true
 
 theme: "default"`,
-        clip: { x: 0.115, y: 0.1336, w: 0.77, h: 0.2761 },
+        clip: { x: 0.115, y: 0.1413, w: 0.77, h: 0.257 },
         svg: "assets/showcase/de_page_1.svg",
         png: "assets/showcase/de_page_1.png"
       },
@@ -269,7 +269,7 @@ theme: "default"`,
   footer: true
 
 theme: "default"`,
-        clip: { x: 0.115, y: 0.1336, w: 0.77, h: 0.2761 },
+        clip: { x: 0.115, y: 0.1413, w: 0.77, h: 0.257 },
         svg: "assets/showcase/en_page_1.svg",
         png: "assets/showcase/en_page_1.png"
       }
@@ -282,12 +282,12 @@ theme: "default"`,
         tabLabel: "Struktur & Kopfzeilen",
         filename: "01_architektur.md",
         rawPath: "sample/de/01_architektur.md",
-        title: "Modulare Gliederung & Lebende Kopfzeilen",
+        title: "Dynamische Kopfzeilen und flexible Gliederung",
         pill: "01_architektur.md",
-        desc: "Reine Markdown-Dateien ohne manuelle Ziffern — markpublish nummeriert vollautomatisch.",
+        desc: "Keine manuellen Ziffern — markpublish nummeriert vollautomatisch über alle Dateien hinweg",
         bullets: [
-          "Automatische Zählung (`1`, `1.1`) ohne hartcodierte Ziffern im Markdown-Text",
-          "Zweispaltige lebende Kopfzeilen: Dokumenttitel links, aktuelles Kapitel rechts",
+          "Automatische Zählung (`1`, `1.1`)",
+          "Dynamische Kopfzeilen: Dokumenttitel links, aktuelles Kapitel rechts (templateabhängig)",
           "Nativer Typst-Buchdrucksatz mit akkurater Paginierung („Seite X von Y“)"
         ],
         snippet: `# Einführung & Systemarchitektur
@@ -300,7 +300,7 @@ publikationsreife Dokumente.
 
 ## Modulare Gliederung
 Dokumente können in Hauptteile (*Parts*), Kapitel und Trennseiten gegliedert werden...`,
-        clip: { x: 0.115, y: 0, w: 0.77, h: 0.2553, pageTop: true },
+        clip: { x: 0.115, y: 0.0, w: 0.77, h: 0.257, pageTop: true },
         svg: "assets/showcase/de_page_2.svg",
         png: "assets/showcase/de_page_2.png"
       },
@@ -310,13 +310,13 @@ Dokumente können in Hauptteile (*Parts*), Kapitel und Trennseiten gegliedert we
         tabLabel: "Structure & Headers",
         filename: "01_architecture.md",
         rawPath: "sample/en/01_architecture.md",
-        title: "Modular Structure & Running Headers",
+        title: "Dynamic Headers and Flexible Structure",
         pill: "01_architecture.md",
-        desc: "Pure Markdown files without manual digits — markpublish numbers everything automatically.",
+        desc: "No manual digits — markpublish numbers everything automatically across all files",
         bullets: [
-          "Automatic outline numbering (`1`, `1.1`) without hardcoded digits in Markdown",
-          "Two-column running headers: Document title left, active chapter title right",
-          "Native Typst book typesetting with precise pagination ('Page X of Y')"
+          "Automatic numbering (`1`, `1.1`)",
+          "Dynamic headers: document title left, active chapter right (template-dependent)",
+          "Native Typst book typesetting with accurate pagination (“Page X of Y”)"
         ],
         snippet: `# Introduction & System Architecture
 
@@ -327,7 +327,7 @@ markpublish transforms structured Markdown files into publication-grade document
 
 ## Modular Structure
 Documents can be organized into parts, chapters, and divider pages...`,
-        clip: { x: 0.115, y: 0, w: 0.77, h: 0.2553, pageTop: true },
+        clip: { x: 0.115, y: 0.0, w: 0.77, h: 0.257, pageTop: true },
         svg: "assets/showcase/en_page_2.svg",
         png: "assets/showcase/en_page_2.png"
       }
@@ -340,13 +340,12 @@ Documents can be organized into parts, chapters, and divider pages...`,
         tabLabel: "Formeln & Code",
         filename: "02_algorithmen.md",
         rawPath: "sample/de/02_algorithmen.md",
-        title: "Wissenschaftlicher Satz & Formeln",
+        title: "Wissenschaftlicher Satz und Syntax Highlighting",
         pill: "02_algorithmen.md",
-        desc: "Komplexe mathematische Formeln und Quellcode nativ im Dokument verankert.",
+        desc: "Komplexe mathematische Formeln und Quellcode nativ im Dokument verankert",
         bullets: [
-          "Native Typst Math Engine: Vektorsatz ohne MathJax-Verzögerungen oder Pixelgrafiken",
-          "Syntax-Highlighting für über 100 Sprachen mit integriertem Noto Sans Mono",
-          "Typografisch perfekte Ausrichtung an der mathematischen Grundlinie"
+          "Native Typst Math Engine: Vektorsatz ohne Umwege",
+          "Syntax-Highlighting für über 100 Sprachen"
         ],
         snippet: `# Wissenschaftliche Berechnungen
 
@@ -360,7 +359,7 @@ def render_pdf(manifest_file: Path) -> bytes:
     doc = load_manifest(manifest_file)
     return typst.compile(doc.to_typst())
 \`\`\``,
-        clip: { x: 0.115, y: 0.1532, w: 0.77, h: 0.2494 },
+        clip: { x: 0.115, y: 0.0998, w: 0.77, h: 0.257 },
         svg: "assets/showcase/de_page_3.svg",
         png: "assets/showcase/de_page_3.png"
       },
@@ -370,13 +369,12 @@ def render_pdf(manifest_file: Path) -> bytes:
         tabLabel: "Formulas & Code",
         filename: "02_algorithms.md",
         rawPath: "sample/en/02_algorithms.md",
-        title: "Scientific Typesetting & Formulas",
+        title: "Scientific Typesetting and Syntax Highlighting",
         pill: "02_algorithms.md",
-        desc: "Complex mathematical formulas and code blocks embedded natively as crisp vectors.",
+        desc: "Complex mathematical formulas and code blocks embedded natively as crisp vectors",
         bullets: [
-          "Native Typst Math engine: vector typography with zero MathJax lag or pixelation",
-          "Syntax highlighting across 100+ languages using bundled Noto Sans Mono",
-          "Typographically accurate mathematical baselines and tabular numbers"
+          "Native Typst math engine: vector typesetting, no detours",
+          "Syntax highlighting for more than 100 languages"
         ],
         snippet: `# Scientific Computations
 
@@ -390,7 +388,7 @@ def render_pdf(manifest_file: Path) -> bytes:
     doc = load_manifest(manifest_file)
     return typst.compile(doc.to_typst())
 \`\`\``,
-        clip: { x: 0.115, y: 0.152, w: 0.77, h: 0.2334 },
+        clip: { x: 0.115, y: 0.0998, w: 0.77, h: 0.257 },
         svg: "assets/showcase/en_page_3.svg",
         png: "assets/showcase/en_page_3.png"
       }
@@ -405,7 +403,7 @@ def render_pdf(manifest_file: Path) -> bytes:
         rawPath: "sample/de/03_hinweise.md",
         title: "GitHub-Style Callouts & Checklisten",
         pill: "03_hinweise.md",
-        desc: "Visuelle Akzente für professionelle Handbücher, Richtlinien und Prüflisten.",
+        desc: "Visuelle Akzente für professionelle Handbücher, Richtlinien und Prüflisten",
         bullets: [
           "Volle Unterstützung für `[!NOTE]`, `[!TIP]`, `[!WARNING]`, `[!IMPORTANT]` und `[!CAUTION]`",
           "Automatisch lokalisierte Boxen mit Vektor-Icons und dezenten Akzentfarben",
@@ -424,7 +422,7 @@ def render_pdf(manifest_file: Path) -> bytes:
 - [x] Projektmanifest markpublish.yaml validieren
 - [x] Typst Engine kompilieren
 - [ ] Druckfreigabe erteilen`,
-        clip: { x: 0.115, y: 0.1663, w: 0.77, h: 0.2761 },
+        clip: { x: 0.115, y: 0.1722, w: 0.77, h: 0.257 },
         svg: "assets/showcase/de_page_4.svg",
         png: "assets/showcase/de_page_4.png"
       },
@@ -436,7 +434,7 @@ def render_pdf(manifest_file: Path) -> bytes:
         rawPath: "sample/en/03_notes.md",
         title: "GitHub-Style Callouts & Checklists",
         pill: "03_notes.md",
-        desc: "Visual callouts for polished technical manuals, alerts, and publishing checklists.",
+        desc: "Visual callouts for polished technical manuals, alerts, and publishing checklists",
         bullets: [
           "Full support for `[!NOTE]`, `[!TIP]`, `[!WARNING]`, `[!IMPORTANT]`, and `[!CAUTION]`",
           "Automatically localized title labels and embedded vector icons",
@@ -455,7 +453,7 @@ def render_pdf(manifest_file: Path) -> bytes:
 - [x] Validate project manifest markpublish.yaml
 - [x] Compile via Typst engine
 - [ ] Sign off publication`,
-        clip: { x: 0.115, y: 0.1663, w: 0.77, h: 0.2494 },
+        clip: { x: 0.115, y: 0.1722, w: 0.77, h: 0.257 },
         svg: "assets/showcase/en_page_4.svg",
         png: "assets/showcase/en_page_4.png"
       }
