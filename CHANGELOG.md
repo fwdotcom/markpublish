@@ -9,8 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Landing page & interactive feature showcase (`www/`)**: Redesigned the project website with a 4-card showcase featuring realistic torn-paper clippings of compiled PDF pages, a distraction-free vector lightbox zoom with backdrop blur, seamless German/English language switching, and direct downloads for sample projects (`.zip`) and reference PDFs.
+- **Showcase asset build pipeline (`scripts/build_showcase_assets.py`)**: Added an automated script to compile vector SVGs and PNG fallbacks from bundled sample documents (`www/sample/de` and `www/sample/en`).
+
 ### Changed
 - **Relocated `build_manuals.py`**: Moved documentation build script to `scripts/build_manuals.py` and updated all CI workflows, test suites, and project guidelines.
+- **GitHub Pages deployment workflow**: Configured `.github/workflows/deploy-pages.yml` to deploy documentation and website upon GitHub release publication or manual workflow dispatch.
 
 ### Fixed
 - **Leading number escaping in headings & paragraphs**: Escaped leading digits followed by a period (e.g. `1\. `) in heading and paragraph content during Typst serialization. This prevents Typst from parsing manual numbering (such as `# 1. Einführung`) as an ordered list item (`enum.item`), which previously caused the list marker to anchor to the left column edge in running headers (appearing in the middle of the page) separated by a wide void from the right-aligned heading text.
