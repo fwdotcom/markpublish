@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.1.6] - 2026-09-21
+
+### Fixed
+- **Documentation links in README**: Updated the manual and cheat sheet PDF download links in `README.md` to point directly to `www.markpublish.com/manuals/` rather than GitHub repository blob URLs.
+- **Release workflow wheel management**: Fixed release artifact upload in `.github/workflows/release.yml` by explicitly setting repository context and automatically pruning obsolete `.whl` files from earlier releases.
+
 ## [2.1.5] - 2026-09-21
 
 ### Added

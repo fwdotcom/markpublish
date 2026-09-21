@@ -296,7 +296,25 @@ jobs:
           name: dist
           path: dist/
 
-      - name: Upload wheel to release
-        run: gh release upload "${{ github.event.release.tag_name }}" dist/*.whl --clobber
+      - name: Remove wheel from previous releases
+        run: |
+          CURRENT_TAG="${{ github.event.release.tag_name }}"
+          gh release list --repo "${{ github.repository }}" --limit 100 --json tagName --jq '.[].tagName' | while read -r tag; do
+            if [ -n "$tag" ] && [ "$tag" != "$CURRENT_TAG" ]; then
+              gh release view "$tag" --repo "${{ github.repository }}" --json assets --jq '.assets[]?.name' 2>/dev/null | grep '\.whl$' | while read -r asset; do
+                if [ -n "$asset" ]; then
+                  echo "Removing old asset $asset from release $tag..."
+                  gh release delete-asset "$tag" "$asset" --repo "${{ github.repository }}" -y || true
+                fi
+              done
+            fi
+          done
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+
+      - name: Upload wheel to release
+        run: gh release upload "${{ github.event.release.tag_name }}" dist/*.whl --clobber --repo "${{ github.repository }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}

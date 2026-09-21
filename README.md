@@ -34,8 +34,8 @@ everything else is your text.
 
 | Deutsch | English |
 | :--- | :--- |
-| [Benutzerhandbuch (PDF)](https://github.com/fwdotcom/markpublish/blob/main/www/manuals/markpublish_benutzerhandbuch.pdf) | [User Manual (PDF)](https://github.com/fwdotcom/markpublish/blob/main/www/manuals/markpublish_user_manual.pdf) |
-| [Kurzreferenz (PDF)](https://github.com/fwdotcom/markpublish/blob/main/www/manuals/markpublish_kurzreferenz.pdf) | [Quick Reference (PDF)](https://github.com/fwdotcom/markpublish/blob/main/www/manuals/markpublish_quick_reference.pdf) |
+| [Benutzerhandbuch (PDF)](https://www.markpublish.com/manuals/markpublish_benutzerhandbuch.pdf) | [User Manual (PDF)](https://www.markpublish.com/manuals/markpublish_user_manual.pdf) |
+| [Kurzreferenz (PDF)](https://www.markpublish.com/manuals/markpublish_kurzreferenz.pdf) | [Quick Reference (PDF)](https://www.markpublish.com/manuals/markpublish_quick_reference.pdf) |
 
 All four are typeset with markpublish itself (also available online at [www.markpublish.com](https://www.markpublish.com)).
 

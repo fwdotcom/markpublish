@@ -4,7 +4,7 @@ document:
   summary: "Musterdokumentation zur Demonstration aller markpublish Kernfunktionen: Typst-Layout, mathematischer Formelsatz, Syntax-Highlighting und Hinweisboxen."
   author: "Frank Winter"
   copyright: "© 2026 Frank Winter"
-  version: "2.1.5"
+  version: "2.1.6"
   date: "auto"
   language: "de"
 
