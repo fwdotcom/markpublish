@@ -42,7 +42,7 @@ Thank you for your interest in improving **markpublish**!
 
 - **Run the code linter:**
   ```bash
-  ruff check src tests build_manuals.py
+  ruff check src tests scripts
   ```
 
 ---
@@ -52,7 +52,7 @@ Thank you for your interest in improving **markpublish**!
 To compile the user guides and quick references into `manual/`, in every language the
 package ships:
 ```bash
-python build_manuals.py
+python scripts/build_manuals.py
 ```
 These PDFs are committed and carry the version from their `markpublish.yaml`, so a version
 bump is only finished once they are rebuilt. `pytest` fails until then.

@@ -201,7 +201,7 @@ def test_the_built_documents_carry_the_current_version():
     """
     Die PDFs unter www/manuals/ haengen am Release und liegen im Repository.
 
-    Sie entstehen nur, wenn jemand build_manuals.py aufruft; die Zahl in der
+    Sie entstehen nur, wenn jemand scripts/build_manuals.py aufruft; die Zahl in der
     YAML anzuheben genuegt nicht. Bleibt der Lauf aus, zeigt das
     veroeffentlichte Handbuch die Version davor - und auffallen kann es
     keinem Werkzeug, weil Paket, Tag und Changelog ja stimmen.
@@ -226,5 +226,5 @@ def test_the_built_documents_carry_the_current_version():
 
     assert not stale, (
         f"Diese Dokumente nennen nicht {expected}: {', '.join(stale)}\n"
-        "Nach einem Versionssprung gehoert ein 'python build_manuals.py' dazu."
+        "Nach einem Versionssprung gehoert ein 'python scripts/build_manuals.py' dazu."
     )

@@ -258,7 +258,7 @@ err.meta.typo: "The document carries '{candidate}' -- possibly a typo."
 err.meta.known: "Known are: {keys}"
 err.meta.remedy: "Remedy: add '{key}' under 'document:' in the markpublish.yaml (free fields are allowed); or note a fallback in the theme, e.g. meta.at(\"{key}\", default: (value: \"\"))."
 
-# --- build_manuals.py ---------------------------------------------------------
+# --- scripts/build_manuals.py -------------------------------------------------
 manuals.app.help: "Builds the documents shipped with markpublish - manual and quick reference."
 manuals.opt.target: "Output format: 'pdf', 'html' or 'all'."
 manuals.opt.output_dir: "Destination directory for the finished documents."

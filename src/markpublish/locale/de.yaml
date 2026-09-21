@@ -255,7 +255,7 @@ err.meta.typo: "Das Dokument führt '{candidate}' -- möglicherweise ein Schreib
 err.meta.known: "Bekannt sind: {keys}"
 err.meta.remedy: "Abhilfe: '{key}' unter 'document:' in der markpublish.yaml ergänzen (freie Felder sind erlaubt); oder im Theme einen Fallback notieren, z. B. meta.at(\"{key}\", default: (value: \"\"))."
 
-# --- build_manuals.py ---------------------------------------------------------
+# --- scripts/build_manuals.py -------------------------------------------------
 manuals.app.help: "Baut die mitgelieferten markpublish-Dokumente - Handbuch und Kurzreferenz."
 manuals.opt.target: "Ausgabeformat: 'pdf', 'html' oder 'all'."
 manuals.opt.output_dir: "Zielverzeichnis für die fertigen Dokumente."

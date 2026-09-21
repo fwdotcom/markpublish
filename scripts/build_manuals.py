@@ -6,6 +6,7 @@ fertigen Dokumente im Verzeichnis 'www/manuals/' ab.
 
 from __future__ import annotations
 
+import sys
 import time
 from pathlib import Path
 from typing import Annotated
@@ -33,7 +34,7 @@ console = Console()
 DOCUMENTS = ("manual", "cheatsheet")
 
 
-SCRIPT_DIR = Path(__file__).resolve().parent
+REPO_ROOT = Path(__file__).resolve().parent.parent
 
 
 @app.command()
@@ -71,7 +72,7 @@ def main(
     die beim Versionssprung nicht mitgebaut wird, behauptet danach eine
     Version, die es nicht mehr gibt.
     """
-    out_dir = (output_dir if output_dir.is_absolute() else (SCRIPT_DIR / output_dir)).resolve()
+    out_dir = (output_dir if output_dir.is_absolute() else (REPO_ROOT / output_dir)).resolve()
     out_dir.mkdir(parents=True, exist_ok=True)
 
     # Frueh pruefen, statt nach dem ersten gerenderten Dokument abzubrechen:
@@ -247,8 +248,11 @@ def _print_summary(
 if __name__ == "__main__":
     # Falls ein lokales .venv existiert und nicht aktiv ist (z. B. beim Doppelklick im Explorer),
     # fuehre das Skript transparent mit dem venv-Python aus:
-    import sys
-    venv_python = SCRIPT_DIR / ".venv" / "Scripts" / "python.exe"
+    venv_python = (
+        REPO_ROOT / ".venv" / "Scripts" / "python.exe"
+        if sys.platform == "win32"
+        else REPO_ROOT / ".venv" / "bin" / "python"
+    )
     if venv_python.is_file() and Path(sys.executable).resolve() != venv_python.resolve():
         import subprocess
         res = subprocess.run([str(venv_python), str(__file__)] + sys.argv[1:])

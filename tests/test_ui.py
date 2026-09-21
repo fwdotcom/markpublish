@@ -338,7 +338,7 @@ def _sentence_literals(path: pathlib.Path):
 
 def _source_files():
     files = [p for p in PACKAGE_ROOT.rglob("*.py") if "__pycache__" not in str(p)]
-    files.append(REPO_ROOT / "build_manuals.py")
+    files.append(REPO_ROOT / "scripts" / "build_manuals.py")
     return [p for p in files if p.is_file() and p.name not in _EXEMPT_FILES]
 
 

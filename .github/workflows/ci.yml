@@ -38,7 +38,7 @@ jobs:
           PY
 
       - name: Run linter (ruff)
-        run: ruff check src tests build_manuals.py
+        run: ruff check src tests scripts
 
       - name: Run tests (pytest)
         run: pytest
