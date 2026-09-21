@@ -899,23 +899,25 @@ code, pre {
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4), 0 0 20px rgba(56, 189, 248, 0.1);
 }
 
-.feature-icon {
-  font-size: 1.8rem;
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.05);
+.feature-head {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 20px;
-  border: 1px solid var(--border-subtle);
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.feature-icon {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--accent-cyan);
 }
 
 .feature-card h3 {
   font-size: 1.15rem;
   font-weight: 700;
-  margin-bottom: 12px;
+  margin: 0;
   color: var(--text-primary);
 }
 

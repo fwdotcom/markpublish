@@ -9,8 +9,8 @@
   const translations = {
     de: {
       nav_highlights: "Highlights",
-      nav_features: "Features",
-      nav_quickstart: "Quickstart",
+      nav_features: "Funktionen",
+      nav_quickstart: "Schnellstart",
       nav_manuals: "Handbücher",
       hero_badge: "Powered by Typst & Python",
       hero_title: "Moderne PDF-Dokumente aus <span class=\"gradient-text\">strukturiertem Markdown</span>",
@@ -28,28 +28,31 @@
       download_sample_zip: "Projekt (.zip)",
       zoom_btn: "Vergrößern",
       open_pdf_page: "Ganze Seite anzeigen",
+      copy_command: "Befehl kopieren",
+      close: "Schließen",
+      close_esc: "Schließen (Esc)",
       view_full_file: "Ganze Datei öffnen",
       snippet_tag: "SO SCHREIBST DU ES",
       engine_speed: "< 100 ms",
 
       feat_tag: "FUNKTIONEN",
-      feat_title: "Alles, was professionelle Dokumente brauchen",
-      feat_desc: "Kein Herumschlagen mit unzähligen CLI-Flags oder brüchigen LaTeX-Installationen.",
+      feat_title: "Professionelle Dokumente<br/>out-of-the-box",
+      feat_desc: "Keine Probleme mit komplizierten Pipelines",
       f1_title: "Ein Manifest für alles",
-      f1_desc: "Titel, Deckblatt, Inhaltsverzeichnisse, Kopf- und Fußzeilen sowie die Reihenfolge der Kapitel werden zentral in <code>markpublish.yaml</code> definiert.",
-      f2_title: "Teile, Kapitel & Trennseiten",
-      f2_desc: "Teile und Kapitel erhalten auf Wunsch stilvolle Trennseiten mit Untertitel, Zusammenfassung und eigenem lokalem Teil-Inhaltsverzeichnis.",
+      f1_desc: "Titel, Deckblatt, Verzeichnisse sowie die Reihenfolge der Kapitel werden zentral in <code>markpublish.yaml</code> definiert.",
+      f2_title: "Kapitel & Trennseiten",
+      f2_desc: "Abschnitte und Kapitel erhalten auf Wunsch stilvolle Trennseiten mit Untertitel und eigenem lokalem Teil-Inhaltsverzeichnis.",
       f3_title: "Musterbasierte Nummerierung",
-      f3_desc: "Ein einziges Muster wie <code>\"1|.1|+\"</code>, <code>\"A|.1|+\"</code> oder <code>\"I|1|.1|+\"</code> steuert die Nummerierung. Frei anpassbare Präfixe („Kapitel“, „Anhang“) und synchrone Verzeichnisse.",
+      f3_desc: "Muster wie <code>\"1|.1|+\"</code>, <code>\"A|.1|+\"</code> oder <code>\"I|1|.1|+\"</code> steuern die Nummerierung. Frei anpassbare Präfixe („Kapitel“, „Anhang“) sind möglich.",
       f4_title: "Themen in Typst",
-      f4_desc: "Mit <code>markpublish export-template</code> exportieren und anpassen. Schriftarten werden im Theme mitgeliefert — das Dokument sieht überall exakt identisch aus.",
+      f4_desc: "Mit <code>markpublish export-template</code> kann das default-Theme exportiert und angepasst werden.",
       f5_title: "Markdown, das mehr kann",
-      f5_desc: "GitHub-style Alerts (<code>[!NOTE]</code>, <code>[!WARNING]</code>), Fußnoten, Aufgabenlisten, Definitionslisten, LaTeX-Mathe und erstklassiges Code-Highlighting.",
-      f6_title: "Zweisprachig gedacht",
-      f6_desc: "Dokumentensprache steuert Silbentrennung und Bezeichnungen („Kapitel“, „Abbildung“). Das CLI folgt wahlweise dem System oder <code>--ui-lang</code>.",
-      f7_title: "Null externe Abhängigkeiten",
+      f5_desc: "GitHub-style Alerts (<code>[!NOTE]</code>, <code>[!WARNING]</code>), Fußnoten, Aufgabenlisten, Definitionslisten, Mathe in LaTeX-Schreibweise und erstklassiges Code-Highlighting.",
+      f6_title: "Mehrsprachig gedacht",
+      f6_desc: "Flexible Mehrsprachigkeit auch für statische Texte in Templates — aktuell Deutsch und Englisch.",
+      f7_title: "Keine manuellen Abhängigkeiten",
       f7_desc: "Kein separates Typst-Binary oder Pandoc-Setup nötig. Der Typst-Compiler wird direkt über offizielle Python-Wheels eingebettet.",
-      f8_title: "Selbstdokumentierend",
+      f8_title: "Selbst-dokumentierend",
       f8_desc: "<code>markpublish cheatsheet</code> und <code>markpublish manual</code> generieren die Handbücher direkt aus dem installierten Paket — immer versionsgenau.",
 
       qs_tag: "SCHNELLSTART",
@@ -78,24 +81,24 @@
       modal_impressum_content: `
         <h4>Angaben gemäß § 5 DDG (Digitale-Dienste-Gesetz)</h4>
         <p><strong>Frank Winter</strong><br>
-        Softwareentwicklung & Open-Source-Projekte<br>
-        E-Mail: <a href="mailto:frank@markpublish.com">frank@markpublish.com</a><br>
-        Web: <a href="https://github.com/fwdotcom/markpublish" target="_blank" rel="noopener">github.com/fwdotcom/markpublish</a></p>
+        Wilhelmstr. 5A<br>
+        03046 Cottbus<br>
+        E-Mail: <a href="mailto:studio@frankwinter.com">studio@frankwinter.com</a></p>
 
         <h4>Haftung für Inhalte</h4>
-        <p>Als Diensteanbieter sind wir gemäß § 7 Abs.1 DDG für eigene Inhalte auf diesen Seiten nach den allgemeinen Gesetzen verantwortlich. Nach §§ 8 bis 10 DDG sind wir als Diensteanbieter jedoch nicht verpflichtet, übermittelte oder gespeicherte fremde Informationen zu überwachen oder nach Umständen zu forschen, die auf eine rechtswidrige Tätigkeit hinweisen.</p>
+        <p>Als Diensteanbieter bin ich gemäß § 7 Abs. 1 DDG für eigene Inhalte auf diesen Seiten nach den allgemeinen Gesetzen verantwortlich. Nach §§ 8 bis 10 DDG bin ich als Diensteanbieter jedoch nicht verpflichtet, übermittelte oder gespeicherte fremde Informationen zu überwachen oder nach Umständen zu forschen, die auf eine rechtswidrige Tätigkeit hinweisen.</p>
 
         <h4>Haftung für Links</h4>
-        <p>Unser Angebot enthält Links zu externen Websites Dritter, auf deren Inhalte wir keinen Einfluss haben. Deshalb können wir für diese fremden Inhalte auch keine Gewähr übernehmen. Für die Inhalte der verlinkten Seiten ist stets der jeweilige Anbieter oder Betreiber der Seiten verantwortlich.</p>
+        <p>Mein Angebot enthält Links zu externen Websites Dritter, auf deren Inhalte ich keinen Einfluss habe. Deshalb kann ich für diese fremden Inhalte keine Gewähr übernehmen. Für die Inhalte der verlinkten Seiten ist stets der jeweilige Anbieter oder Betreiber der Seiten verantwortlich.</p>
 
         <h4>Urheberrecht & Open Source</h4>
-        <p>Die durch die Seitenbetreiber erstellten Inhalte und Werke auf diesen Seiten unterliegen dem Urheberrecht. Das Softwareprojekt markpublish ist unter der freien <strong>MIT-Lizenz</strong> lizenziert.</p>
+        <p>Die von mir erstellten Inhalte und Werke auf diesen Seiten unterliegen dem Urheberrecht. Das Softwareprojekt markpublish ist unter der freien <strong>MIT-Lizenz</strong> lizenziert.</p>
       `,
 
       modal_datenschutz_title: "Datenschutzerklärung",
       modal_datenschutz_content: `
         <h4>1. Datenschutz auf einen Blick</h4>
-        <p>Diese Website dient ausschließlich der Information über das Open-Source-Projekt <strong>markpublish</strong>. Wir erheben, verarbeiten oder speichern auf dieser Website keine personenbezogenen Daten, setzen keine Tracking-Cookies und verwenden keine externen Analysedienste oder Werbenetzwerke.</p>
+        <p>Diese Website dient ausschließlich der Information über das Open-Source-Projekt <strong>markpublish</strong>. Ich erhebe, verarbeite oder speichere auf dieser Website keine personenbezogenen Daten, setze keine Tracking-Cookies und verwende keine externen Analysedienste oder Werbenetzwerke.</p>
 
         <h4>2. Hosting via GitHub Pages</h4>
         <p>Diese Website wird als statische Seite über <strong>GitHub Pages</strong> gehostet. Anbieter ist die GitHub Inc., 88 Colin P Kelly Jr St, San Francisco, CA 94107, USA.</p>
@@ -103,7 +106,7 @@
         <p>Weitere Informationen finden Sie in der <a href="https://docs.github.com/en/site-policy/privacy-policies/github-privacy-statement" target="_blank" rel="noopener">Datenschutzerklärung von GitHub</a>.</p>
 
         <h4>3. Ihre Rechte als betroffene Person</h4>
-        <p>Sie haben nach der Datenschutz-Grundverordnung (DSGVO) das Recht auf Auskunft (Art. 15 DSGVO), Berichtigung (Art. 16 DSGVO), Löschung (Art. 17 DSGVO) und Einschränkung der Verarbeitung (Art. 18 DSGVO) bezüglich etwaiger personenbezogener Daten. Bei Fragen zum Datenschutz können Sie uns jederzeit unter der im Impressum angegebenen E-Mail-Adresse kontaktieren.</p>
+        <p>Sie haben nach der Datenschutz-Grundverordnung (DSGVO) das Recht auf Auskunft (Art. 15 DSGVO), Berichtigung (Art. 16 DSGVO), Löschung (Art. 17 DSGVO) und Einschränkung der Verarbeitung (Art. 18 DSGVO) bezüglich etwaiger personenbezogener Daten. Bei Fragen zum Datenschutz können Sie mich jederzeit unter der im Impressum angegebenen E-Mail-Adresse kontaktieren.</p>
       `
     },
 
@@ -128,26 +131,29 @@
       download_sample_zip: "Project (.zip)",
       zoom_btn: "Enlarge",
       open_pdf_page: "Show full page",
+      copy_command: "Copy command",
+      close: "Close",
+      close_esc: "Close (Esc)",
       view_full_file: "Open full file",
       snippet_tag: "HOW YOU WRITE IT",
       engine_speed: "< 100 ms",
 
       feat_tag: "FEATURES",
-      feat_title: "Everything Professional Documents Need",
-      feat_desc: "No wrestling with dozens of CLI flags or fragile LaTeX toolchains.",
+      feat_title: "Professional documents<br/>out of the box",
+      feat_desc: "No wrestling with complicated pipelines",
       f1_title: "One manifest for everything",
-      f1_desc: "Title, cover, tables of contents, running headers, footers, and chapter order are configured centrally in <code>markpublish.yaml</code>.",
-      f2_title: "Parts, Chapters & Dividers",
-      f2_desc: "Parts and chapters can feature elegant divider pages with subtitle, summary, and a dedicated local table of contents.",
+      f1_desc: "Title, cover, contents and chapter order are defined centrally in <code>markpublish.yaml</code>.",
+      f2_title: "Chapters & Dividers",
+      f2_desc: "Sections and chapters can get styled divider pages with subtitle and their own local table of contents.",
       f3_title: "Pattern-based numbering",
-      f3_desc: "A single pattern like <code>\"1|.1|+\"</code>, <code>\"A|.1|+\"</code>, or <code>\"I|1|.1|+\"</code> governs numbering across headings and tables of contents synchronously.",
+      f3_desc: "Patterns like <code>\"1|.1|+\"</code>, <code>\"A|.1|+\"</code> or <code>\"I|1|.1|+\"</code> drive the numbering. Freely adjustable prefixes (\"Chapter\", \"Appendix\") are possible.",
       f4_title: "Typst Themes",
-      f4_desc: "Export and customize with <code>markpublish export-template</code>. Bundled fonts ensure identical rendering across every machine.",
+      f4_desc: "<code>markpublish export-template</code> exports the default theme for customization.",
       f5_title: "Supercharged Markdown",
-      f5_desc: "GitHub-style alerts (<code>[!NOTE]</code>, <code>[!WARNING]</code>), footnotes, task lists, definition lists, LaTeX math, and syntax highlighting.",
-      f6_title: "Bilingual by design",
-      f6_desc: "Document language drives hyphenation and labels (\"Chapter\", \"Figure\"). CLI follows your system language or <code>--ui-lang</code>.",
-      f7_title: "Zero external dependencies",
+      f5_desc: "GitHub-style alerts (<code>[!NOTE]</code>, <code>[!WARNING]</code>), footnotes, task lists, definition lists, math in LaTeX notation, and syntax highlighting.",
+      f6_title: "Multilingual by design",
+      f6_desc: "Flexible multilingual support, including static text in templates — currently German and English.",
+      f7_title: "No manual dependencies",
       f7_desc: "No separate Typst executable or Pandoc installation required. The compiler is natively embedded via Python wheels.",
       f8_title: "Self-documenting",
       f8_desc: "<code>markpublish cheatsheet</code> and <code>markpublish manual</code> compile the references directly from the installed package — always version-accurate.",
@@ -178,24 +184,24 @@
       modal_impressum_content: `
         <h4>Information according to § 5 DDG (German Digital Services Act)</h4>
         <p><strong>Frank Winter</strong><br>
-        Software Development & Open-Source Projects<br>
-        Email: <a href="mailto:frank@markpublish.com">frank@markpublish.com</a><br>
-        Website: <a href="https://github.com/fwdotcom/markpublish" target="_blank" rel="noopener">github.com/fwdotcom/markpublish</a></p>
+        Wilhelmstr. 5A<br>
+        03046 Cottbus<br>
+        Email: <a href="mailto:studio@frankwinter.com">studio@frankwinter.com</a></p>
 
         <h4>Liability for Contents</h4>
-        <p>As a service provider, we are responsible for our own content on these pages in accordance with general legislation pursuant to Section 7 (1) of the DDG. According to Sections 8 to 10 of the DDG, however, we are not obliged to monitor transmitted or stored third-party information or to investigate circumstances that indicate illegal activity.</p>
+        <p>As a service provider, I am responsible for my own content on these pages in accordance with general legislation pursuant to Section 7 (1) of the DDG. According to Sections 8 to 10 of the DDG, however, I am not obliged to monitor transmitted or stored third-party information or to investigate circumstances that indicate illegal activity.</p>
 
         <h4>Liability for Links</h4>
-        <p>Our website contains links to external websites of third parties, over whose contents we have no control. Therefore, we cannot assume any liability for these external contents. The respective provider or operator of the pages is always responsible for the content of the linked pages.</p>
+        <p>This website contains links to external websites of third parties, over whose contents I have no control. I therefore cannot assume any liability for these external contents. The respective provider or operator of the pages is always responsible for the content of the linked pages.</p>
 
         <h4>Copyright & Open Source</h4>
-        <p>The contents and works created by the site operators on these pages are subject to copyright law. The software project markpublish is licensed under the permissive <strong>MIT License</strong>.</p>
+        <p>The contents and works I created on these pages are subject to copyright law. The software project markpublish is licensed under the permissive <strong>MIT License</strong>.</p>
       `,
 
       modal_datenschutz_title: "Privacy Policy (Datenschutzerklärung)",
       modal_datenschutz_content: `
         <h4>1. Privacy at a Glance</h4>
-        <p>This website serves exclusively to provide information regarding the open-source project <strong>markpublish</strong>. We do not collect, process, or store personal tracking data, do not use cookies, and do not employ third-party analytics or advertising networks.</p>
+        <p>This website serves exclusively to provide information regarding the open-source project <strong>markpublish</strong>. I do not collect, process, or store personal data on this website, I set no tracking cookies, and I use no third-party analytics or advertising networks.</p>
 
         <h4>2. Hosting via GitHub Pages</h4>
         <p>This static website is hosted via <strong>GitHub Pages</strong> provided by GitHub Inc., 88 Colin P Kelly Jr St, San Francisco, CA 94107, USA.</p>
@@ -539,6 +545,15 @@ def render_pdf(manifest_file: Path) -> bytes:
       const key = el.getAttribute('data-i18n-title');
       if (translations[lang] && translations[lang][key]) {
         el.setAttribute('title', translations[lang][key]);
+      }
+    });
+
+    // Update screen-reader labels marked for translation
+    const ariaElements = document.querySelectorAll('[data-i18n-aria]');
+    ariaElements.forEach(el => {
+      const key = el.getAttribute('data-i18n-aria');
+      if (translations[lang] && translations[lang][key]) {
+        el.setAttribute('aria-label', translations[lang][key]);
       }
     });
 
