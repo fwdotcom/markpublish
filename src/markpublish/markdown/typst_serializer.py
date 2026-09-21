@@ -230,6 +230,9 @@ class TypstSerializer:
                     number_prefix = "".join(child.itertext()).strip()
 
             content = self._visit_heading_content(elem)
+            # Prevent Typst from interpreting leading digits with a dot (e.g. "1. ")
+            # as an ordered list item (enum.item) inside [#heading[...]].
+            content = re.sub(r"^(\s*\d+)\.", r"\1\.", content, count=1)
             label_str = f" <{slug}>" if slug else ""
 
             outlined_param = ""
@@ -245,6 +248,7 @@ class TypstSerializer:
         # Paragraph
         if tag == "p":
             content = self._visit_children_inline(elem)
+            content = re.sub(r"^(\s*\d+)\.", r"\1\.", content, count=1)
             return f"{content}\n"
 
         # Blockquote or Admonition / Callout

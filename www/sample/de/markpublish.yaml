@@ -1,0 +1,26 @@
+document:
+  title: "Systemarchitektur & Design"
+  subtitle: "Technische Referenzspezifikation"
+  summary: "Musterdokumentation zur Demonstration aller markpublish Kernfunktionen: Typst-Layout, mathematischer Formelsatz, Syntax-Highlighting und Hinweisboxen."
+  author: "Frank Winter"
+  copyright: "© 2026 Frank Winter"
+  version: "2.1.4"
+  date: "auto"
+  language: "de"
+
+  cover: true
+  document_toc: "none"
+  autonum_pattern: "_|1|.1|+"
+  header: true
+  footer: true
+
+theme: "default"
+
+parts:
+  - part: "Hauptteil"
+    break_before: "none"
+    chapters:
+      - file: "01_architektur.md"
+      - file: "02_algorithmen.md"
+      - file: "03_hinweise.md"
+

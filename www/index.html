@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>markpublish — Modern PDF Document Publishing from Markdown</title>
+  <meta name="description" content="markpublish typesets structured Markdown chapters into print-ready PDFs with Typst power. Zero external dependencies, blazing fast, single YAML manifest." />
+  <meta name="keywords" content="markdown to pdf, typst, markdown publishing, pdf generator, python typst, cli pdf generator, print-ready pdf" />
+  <meta name="author" content="Frank Winter" />
+
+  <!-- Open Graph / Social Media -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://www.markpublish.com/" />
+  <meta property="og:title" content="markpublish — Modern PDF Document Publishing from Markdown" />
+  <meta property="og:description" content="Typeset structured Markdown into publication-grade, print-ready PDFs. Powered by Typst. Zero binary dependencies." />
+  <meta property="og:image" content="https://www.markpublish.com/assets/markpublish_logo.png" />
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="assets/markpublish_logo.png" />
+
+  <!-- Fonts & Styles -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Background ambient glowing orbs -->
+  <div class="ambient-glow glow-1"></div>
+  <div class="ambient-glow glow-2"></div>
+  <div class="ambient-glow glow-3"></div>
+
+  <!-- Navigation -->
+  <header class="site-header">
+    <div class="container nav-container">
+      <a href="#" class="nav-brand">
+        <img src="assets/markpublish_logo.png" alt="markpublish Logo" class="brand-logo" />
+        <span class="brand-name">markpublish</span>
+      </a>
+
+      <nav class="nav-links" id="nav-links">
+        <a href="#showcase" data-i18n="nav_pipeline">Pipeline</a>
+        <a href="#features" data-i18n="nav_features">Features</a>
+        <a href="#quickstart" data-i18n="nav_quickstart">Quickstart</a>
+        <a href="#manuals" data-i18n="nav_manuals">Handbücher</a>
+        <div class="nav-mobile-extra">
+          <button id="lang-switch-btn-mobile" class="btn-lang-mobile" aria-label="Sprache wechseln / Switch language">
+            <svg class="lang-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="2" y1="12" x2="22" y2="12"></line>
+              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+            </svg>
+            <span id="lang-text-mobile" class="lang-text-mobile">DE (Switch to EN)</span>
+          </button>
+
+          <a href="https://github.com/fwdotcom/markpublish" target="_blank" rel="noopener noreferrer" class="btn-github-mobile" title="GitHub Repository">
+            <svg class="icon-gh" viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+              <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+            </svg>
+            <span>GitHub Repository</span>
+          </a>
+        </div>
+      </nav>
+
+      <div class="nav-actions">
+        <!-- Language Switcher -->
+        <button id="lang-switch-btn" class="btn-lang" title="Sprache wechseln / Switch language" aria-label="Switch Language">
+          <svg class="lang-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="2" y1="12" x2="22" y2="12"></line>
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+          </svg>
+          <span id="lang-text" class="lang-text">DE (Switch to EN)</span>
+        </button>
+
+        <!-- GitHub Link -->
+        <a href="https://github.com/fwdotcom/markpublish" target="_blank" rel="noopener noreferrer" class="btn-github" title="GitHub Repository">
+          <svg class="icon-gh" viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+          </svg>
+          <span>GitHub</span>
+        </a>
+
+        <!-- Burger Toggle Button -->
+        <button id="burger-btn" class="burger-btn" aria-label="Menü umschalten / Toggle menu" aria-expanded="false">
+          <span class="burger-bar"></span>
+          <span class="burger-bar"></span>
+          <span class="burger-bar"></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="container hero-container">
+      <div class="hero-badge">
+        <span class="badge-dot"></span>
+        <span data-i18n="hero_badge">Powered by Typst & Python</span>
+      </div>
+
+      <div class="hero-title-wrap">
+        <img src="assets/markpublish_logo.png" alt="markpublish Logo" class="hero-title-logo" />
+        <h1 class="hero-title" data-i18n="hero_title">
+          Moderne PDF-Dokumente aus <span class="gradient-text">strukturiertem Markdown</span>
+        </h1>
+      </div>
+
+      <p class="hero-subtitle" data-i18n="hero_subtitle">
+        markpublish setzt Markdown-Kapitel in druckreife, hochwertige PDFs. Struktur, Metadaten und Design leben in einem einzigen <code>markpublish.yaml</code> — alles andere ist reiner Text.
+      </p>
+
+      <div class="hero-cta-group">
+        <div class="install-box">
+          <span class="install-prompt">$</span>
+          <code id="pip-command">pip install markpublish</code>
+          <button class="copy-btn" id="copy-pip" title="Befehl kopieren" aria-label="Copy command">
+            <svg class="copy-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+            <span class="copy-tooltip" data-i18n="copied">Kopiert!</span>
+          </button>
+        </div>
+
+        <a href="#manuals" class="btn btn-primary" data-i18n="hero_btn_manuals">
+          <span>Handbücher & Quickstart</span>
+          <svg viewBox="0 0 20 20" width="16" height="16" fill="currentColor">
+            <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"/>
+          </svg>
+        </a>
+      </div>
+
+      <div class="hero-highlights">
+        <div class="highlight-item">
+          <span class="highlight-check">✓</span>
+          <span data-i18n="hi_deps">Keine externen Compiler-Binaries</span>
+        </div>
+        <div class="highlight-item">
+          <span class="highlight-check">✓</span>
+          <span data-i18n="hi_speed">Sub-100ms Kompilierung</span>
+        </div>
+        <div class="highlight-item">
+          <span class="highlight-check">✓</span>
+          <span data-i18n="hi_license">Freie MIT-Lizenz</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Interactive Markdown to PDF Showcase -->
+  <section id="showcase" class="section showcase-section">
+    <div class="container">
+      <div class="section-header text-center">
+        <span class="section-tag" data-i18n="showcase_tag">VON DER IDEE ZUR PUBLIKATION</span>
+        <h2 class="section-title" data-i18n="showcase_title">Markdown eingeben. Druckreifes PDF erhalten.</h2>
+        <p class="section-desc" data-i18n="showcase_desc">
+          markpublish schließt die Lücke zwischen leichtem Markdown und typografischer Buchdruck-Perfektion.
+        </p>
+
+      </div>
+
+      <!-- Four Feature Tiles (populated by script.js) — click opens the matching PDF page -->
+      <div class="showcase-tiles" id="showcase-tiles"></div>
+
+      <!-- Sample Document Downloads -->
+      <div class="showcase-downloads">
+        <a id="showcase-download-pdf" href="manuals/markpublish_beispieldokument.pdf" download class="showcase-dl-btn" data-i18n-title="download_sample_pdf" title="Beispiel-PDF">
+          <svg viewBox="0 0 20 20" width="15" height="15" fill="currentColor">
+            <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/>
+          </svg>
+          <span data-i18n="download_sample_pdf">Beispiel-PDF</span>
+        </a>
+        <a id="showcase-download-zip" href="manuals/markpublish_beispielprojekt.zip" download class="showcase-dl-btn" data-i18n-title="download_sample_zip" title="Projekt (.zip)">
+          <svg viewBox="0 0 20 20" width="15" height="15" fill="currentColor">
+            <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/>
+          </svg>
+          <span data-i18n="download_sample_zip">Projekt (.zip)</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Grid Section -->
+  <section id="features" class="section features-section">
+    <div class="container">
+      <div class="section-header text-center">
+        <span class="section-tag" data-i18n="feat_tag">FUNKTIONEN</span>
+        <h2 class="section-title" data-i18n="feat_title">Alles, was professionelle Dokumente brauchen</h2>
+        <p class="section-desc" data-i18n="feat_desc">
+          Kein Herumschlagen mit unzähligen CLI-Flags oder brüchigen LaTeX-Installationen.
+        </p>
+      </div>
+
+      <div class="features-grid">
+        <!-- Feature 1: Manifest -->
+        <div class="feature-card">
+          <div class="feature-icon">📑</div>
+          <h3 data-i18n="f1_title">Ein Manifest für alles</h3>
+          <p data-i18n="f1_desc">
+            Titel, Deckblatt, Inhaltsverzeichnisse, Kopf- und Fußzeilen sowie die Reihenfolge der Kapitel werden zentral in <code>markpublish.yaml</code> definiert.
+          </p>
+        </div>
+
+        <!-- Feature 2: Parts & Chapters -->
+        <div class="feature-card">
+          <div class="feature-icon">📖</div>
+          <h3 data-i18n="f2_title">Teile, Kapitel & Trennseiten</h3>
+          <p data-i18n="f2_desc">
+            Teile und Kapitel erhalten auf Wunsch stilvolle Trennseiten mit Untertitel, Zusammenfassung und eigenem lokalem Teil-Inhaltsverzeichnis.
+          </p>
+        </div>
+
+        <!-- Feature 3: Autonumbering -->
+        <div class="feature-card">
+          <div class="feature-icon">🔢</div>
+          <h3 data-i18n="f3_title">Musterbasierte Nummerierung</h3>
+          <p data-i18n="f3_desc">
+            Ein einziges Muster wie <code>"1|.1|+"</code>, <code>"A|.1|+"</code> oder <code>"I|1|.1|+"</code> steuert die Nummerierung. Frei anpassbare Präfixe („Kapitel“, „Anhang“) und synchrone Verzeichnisse.
+          </p>
+        </div>
+
+        <!-- Feature 4: Typst Themes -->
+        <div class="feature-card">
+          <div class="feature-icon">🎨</div>
+          <h3 data-i18n="f4_title">Themen in Typst</h3>
+          <p data-i18n="f4_desc">
+            Mit <code>markpublish export-template</code> exportieren und anpassen. Schriftarten werden im Theme mitgeliefert — das Dokument sieht überall exakt identisch aus.
+          </p>
+        </div>
+
+        <!-- Feature 5: Supercharged Markdown -->
+        <div class="feature-card">
+          <div class="feature-icon">✨</div>
+          <h3 data-i18n="f5_title">Markdown, das mehr kann</h3>
+          <p data-i18n="f5_desc">
+            GitHub-style Alerts (<code>[!NOTE]</code>, <code>[!WARNING]</code>), Fußnoten, Aufgabenlisten, Definitionslisten, LaTeX-Mathe und erstklassiges Code-Highlighting.
+          </p>
+        </div>
+
+        <!-- Feature 6: Bilingual -->
+        <div class="feature-card">
+          <div class="feature-icon">🌍</div>
+          <h3 data-i18n="f6_title">Zweisprachig gedacht</h3>
+          <p data-i18n="f6_desc">
+            Dokumentensprache steuert Silbentrennung und Bezeichnungen („Kapitel“, „Abbildung“). Das CLI folgt wahlweise dem System oder <code>--ui-lang</code>.
+          </p>
+        </div>
+
+        <!-- Feature 7: Zero Dependency -->
+        <div class="feature-card">
+          <div class="feature-icon">📦</div>
+          <h3 data-i18n="f7_title">Null externe Abhängigkeiten</h3>
+          <p data-i18n="f7_desc">
+            Kein separates Typst-Binary oder Pandoc-Setup nötig. Der Typst-Compiler wird direkt über offizielle Python-Wheels eingebettet.
+          </p>
+        </div>
+
+        <!-- Feature 8: Self Documenting -->
+        <div class="feature-card">
+          <div class="feature-icon">🚀</div>
+          <h3 data-i18n="f8_title">Selbstdokumentierend</h3>
+          <p data-i18n="f8_desc">
+            <code>markpublish cheatsheet</code> und <code>markpublish manual</code> generieren die Handbücher direkt aus dem installierten Paket — immer versionsgenau.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Quickstart / CLI Section -->
+  <section id="quickstart" class="section quickstart-section">
+    <div class="container">
+      <div class="section-header text-center">
+        <span class="section-tag" data-i18n="qs_tag">SCHNELLSTART</span>
+        <h2 class="section-title" data-i18n="qs_title">In 3 Schritten zum ersten Dokument</h2>
+        <p class="section-desc" data-i18n="qs_desc">
+          Installieren, Projekt anlegen, PDF bauen — fertig.
+        </p>
+      </div>
+
+      <div class="terminal-window">
+        <div class="terminal-bar">
+          <div class="window-dots">
+            <span class="dot red"></span>
+            <span class="dot yellow"></span>
+            <span class="dot green"></span>
+          </div>
+          <span class="terminal-title">bash — markpublish workflow</span>
+        </div>
+        <div class="terminal-content">
+          <div class="term-line">
+            <span class="t-comment" data-i18n="qs_c1"># 1. markpublish installieren (benötigt Python 3.10+)</span>
+          </div>
+          <div class="term-line">
+            <span class="t-prompt">$</span> <span class="t-cmd">pip install markpublish</span>
+          </div>
+          <div class="term-line">&nbsp;</div>
+          <div class="term-line">
+            <span class="t-comment" data-i18n="qs_c2"># 2. Projekt anlegen — erzeugt markpublish.yaml und welcome.md</span>
+          </div>
+          <div class="term-line">
+            <span class="t-prompt">$</span> <span class="t-cmd" data-i18n="qs_cmd2">markpublish init mein-dokument</span>
+          </div>
+          <div class="term-line t-output" data-i18n="qs_out2">
+            [OK] markpublish-Projekt eingerichtet in mein-dokument<br/>markpublish build mein-dokument/markpublish.yaml erzeugt Ihr erstes PDF.
+          </div>
+          <div class="term-line">&nbsp;</div>
+          <div class="term-line">
+            <span class="t-comment" data-i18n="qs_c3"># 3. Druckreifes PDF kompilieren (Dateiname aus dem Dokumententitel)</span>
+          </div>
+          <div class="term-line">
+            <span class="t-prompt">$</span> <span class="t-cmd" data-i18n="qs_cmd3">markpublish build mein-dokument/markpublish.yaml</span>
+          </div>
+          <div class="term-line t-success" data-i18n="qs_out3">
+            [OK] PDF erfolgreich erzeugt: mein-dokument/mein_dokument.pdf
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Manuals & Downloads Section -->
+  <section id="manuals" class="section manuals-section">
+    <div class="container">
+      <div class="section-header text-center">
+        <span class="section-tag" data-i18n="man_tag">DOKUMENTATION & DOWNLOADS</span>
+        <h2 class="section-title" data-i18n="man_title">Handbücher & Kurzreferenzen</h2>
+        <p class="section-desc" data-i18n="man_desc">
+          Alle Handbücher wurden vollständig mit markpublish selbst gesetzt. Direkt als PDF herunterladen oder im Browser ansehen.
+        </p>
+      </div>
+
+      <div class="manuals-grid">
+        <!-- German Manual -->
+        <div class="manual-card" data-manual-lang="de">
+          <div class="manual-content">
+            <div class="manual-type">Umfassendes Handbuch</div>
+            <h3 class="manual-title">Benutzerhandbuch</h3>
+            <p class="manual-description" data-i18n="man_de_user_desc">
+              Vollständige Anleitung zu Konfiguration, Typst-Integration, Kapiteln, Metadaten und CLI-Befehlen.
+            </p>
+          </div>
+          <div class="manual-footer">
+            <a href="manuals/markpublish_benutzerhandbuch.pdf" target="_blank" class="btn btn-download">
+              <svg viewBox="0 0 20 20" width="16" height="16" fill="currentColor">
+                <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/>
+              </svg>
+              <span>PDF herunterladen</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- German Cheat Sheet -->
+        <div class="manual-card" data-manual-lang="de">
+          <div class="manual-content">
+            <div class="manual-type">Kompakte Übersicht</div>
+            <h3 class="manual-title">Kurzreferenz</h3>
+            <p class="manual-description" data-i18n="man_de_ref_desc">
+              Kompakte Referenz aller Syntaxelemente, Autonumbering-Muster, YAML-Optionen und Tastenkürzel.
+            </p>
+          </div>
+          <div class="manual-footer">
+            <a href="manuals/markpublish_kurzreferenz.pdf" target="_blank" class="btn btn-download">
+              <svg viewBox="0 0 20 20" width="16" height="16" fill="currentColor">
+                <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/>
+              </svg>
+              <span>PDF herunterladen</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- English Manual -->
+        <div class="manual-card" data-manual-lang="en">
+          <div class="manual-content">
+            <div class="manual-type">Complete Guide</div>
+            <h3 class="manual-title">User Manual</h3>
+            <p class="manual-description" data-i18n="man_en_user_desc">
+              Comprehensive guide covering configuration, Typst integration, numbering patterns, and CLI options.
+            </p>
+          </div>
+          <div class="manual-footer">
+            <a href="manuals/markpublish_user_manual.pdf" target="_blank" class="btn btn-download">
+              <svg viewBox="0 0 20 20" width="16" height="16" fill="currentColor">
+                <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/>
+              </svg>
+              <span>Download PDF</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- English Quick Reference -->
+        <div class="manual-card" data-manual-lang="en">
+          <div class="manual-content">
+            <div class="manual-type">Cheatsheet</div>
+            <h3 class="manual-title">Quick Reference</h3>
+            <p class="manual-description" data-i18n="man_en_ref_desc">
+              Compact cheat sheet covering all syntax, YAML manifest parameters, formatting rules and commands.
+            </p>
+          </div>
+          <div class="manual-footer">
+            <a href="manuals/markpublish_quick_reference.pdf" target="_blank" class="btn btn-download">
+              <svg viewBox="0 0 20 20" width="16" height="16" fill="currentColor">
+                <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/>
+              </svg>
+              <span>Download PDF</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container footer-container">
+      <div class="footer-brand">
+        <img src="assets/markpublish_logo.png" alt="markpublish Logo" class="footer-logo" />
+        <div>
+          <span class="footer-title">markpublish</span>
+          <p class="footer-copy">© 2026 Frank Winter. Licensed under the MIT License.</p>
+        </div>
+      </div>
+
+      <div class="footer-links">
+        <a href="https://github.com/fwdotcom/markpublish" target="_blank" rel="noopener noreferrer">GitHub</a>
+        <a href="https://pypi.org/project/markpublish/" target="_blank" rel="noopener noreferrer">PyPI</a>
+        <button class="footer-legal-btn" id="open-impressum" data-i18n="footer_impressum">Impressum</button>
+        <button class="footer-legal-btn" id="open-datenschutz" data-i18n="footer_datenschutz">Datenschutz</button>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Lightbox Modal for Full-Size Vector Page Preview -->
+  <!-- Lightbox Modal: Pure Image Zoom (No extra info, blurred background, close X) -->
+  <div class="lightbox-overlay" id="lightbox-modal" aria-hidden="true" role="dialog">
+    <button class="lightbox-close-btn" id="lightbox-close-btn" aria-label="Schließen" title="Schließen (Esc)">&times;</button>
+    <div class="lightbox-pure-container" id="lightbox-content">
+      <!-- Injected via JavaScript -->
+    </div>
+  </div>
+
+  <!-- Legal Modal (Impressum & Datenschutzerklärung) -->
+  <div class="modal-overlay" id="legal-modal" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 id="modal-title">Rechtliche Hinweise</h3>
+        <button class="modal-close" id="modal-close-btn" aria-label="Schließen">&times;</button>
+      </div>
+
+      <div class="modal-body" id="modal-content">
+        <!-- Injected via JavaScript -->
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
+

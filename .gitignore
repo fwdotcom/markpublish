@@ -34,4 +34,4 @@ scratch/
 
 # Die ausgelieferten Handbuecher gehoeren dazu: sie sind das Ergebnis, an dem
 # eine Aenderung am Satz zuerst auffaellt, und sollen im Repository stehen.
-!manual/*.pdf
+!www/manuals/*.pdf

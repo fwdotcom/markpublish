@@ -1,7 +1,7 @@
 """
 Baut die mitgelieferten markpublish-Dokumente - Benutzerhandbuch und
 Kurzreferenz - in allen Sprachen, die im Paket liegen, als PDF und legt die
-fertigen Dokumente im Verzeichnis 'manual/' ab.
+fertigen Dokumente im Verzeichnis 'www/manuals/' ab.
 """
 
 from __future__ import annotations
@@ -53,7 +53,7 @@ def main(
             "-o",
             help=t("manuals.opt.output_dir"),
         ),
-    ] = Path("manual"),
+    ] = Path("www/manuals"),
     lang: Annotated[
         str,
         typer.Option(

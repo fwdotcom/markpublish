@@ -265,3 +265,37 @@ def test_unknown_anchor_stays_a_string():
     assert '#link("#gibt-es-nicht")[Sprung]' in typst_output
     assert "label(" not in typst_output
 
+
+def test_leading_number_dot_is_escaped_to_prevent_typst_enum():
+    """
+    Ueberschriften und Absaetze mit fuehrenden Ziffern und Punkt (z. B. '1. ')
+    muessen mit maskiertem Punkt serialisiert werden ('1\\. '), damit Typst
+    sie als Text parst und nicht als Aufzaehlung (enum.item).
+    """
+    import typst
+
+    from markpublish.markdown.engine import MarkdownEngine
+    from markpublish.markdown.typst_serializer import TypstSerializer, html_to_tree
+
+    md = """# 1. Manuelle Kapitelnummer
+
+1\\. Dies ist ein Absatz, der mit 1. beginnt.
+"""
+    tree = html_to_tree(MarkdownEngine().convert(md))
+    typst_output = TypstSerializer().serialize(tree)
+
+    assert "[1\\. Manuelle Kapitelnummer]" in typst_output
+    assert "1\\. Dies ist ein Absatz" in typst_output
+
+    # Verifiziere gegen echten Typst-Compiler, dass Typst kein enum.item daraus erzeugt
+    test_typst = f"""
+#set page(paper: "a4")
+{typst_output}
+#context {{
+  let h = query(heading).first()
+  assert(h.body.func() != enum.item, message: "Heading body must not be enum.item")
+}}
+"""
+    pdf_bytes = typst.compile(test_typst.encode("utf-8"))
+    assert len(pdf_bytes) > 0
+

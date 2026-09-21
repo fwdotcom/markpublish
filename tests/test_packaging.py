@@ -28,7 +28,7 @@ except ModuleNotFoundError:  # Python 3.10
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DOCS_DIR = REPO_ROOT / "src" / "markpublish" / "docs"
-MANUAL_DIR = REPO_ROOT / "manual"
+MANUAL_DIR = REPO_ROOT / "www" / "manuals"
 
 #: Mitgelieferte Dokumente, die die Version der Software tragen. Die Ordner
 #: unter docs/ heissen wie die Unterbefehle, die sie rendern.
@@ -199,7 +199,7 @@ def test_bundled_documents_declare_the_project_version():
 
 def test_the_built_documents_carry_the_current_version():
     """
-    Die PDFs unter manual/ haengen am Release und liegen im Repository.
+    Die PDFs unter www/manuals/ haengen am Release und liegen im Repository.
 
     Sie entstehen nur, wenn jemand build_manuals.py aufruft; die Zahl in der
     YAML anzuheben genuegt nicht. Bleibt der Lauf aus, zeigt das

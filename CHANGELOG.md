@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Leading number escaping in headings & paragraphs**: Escaped leading digits followed by a period (e.g. `1\. `) in heading and paragraph content during Typst serialization. This prevents Typst from parsing manual numbering (such as `# 1. Einführung`) as an ordered list item (`enum.item`), which previously caused the list marker to anchor to the left column edge in running headers (appearing in the middle of the page) separated by a wide void from the right-aligned heading text.
+
 ## [2.1.4] - 2026-09-10
 
 ### Fixed

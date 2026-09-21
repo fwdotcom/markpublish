@@ -15,7 +15,7 @@ document:
   date: "auto"
   language: "de"
 
-  cover: false
+  cover: true
   document_toc: "none"
   autonum_pattern: none
   header: true
