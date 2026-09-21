@@ -217,13 +217,13 @@
         tabLabel: "Deckblatt",
         filename: "markpublish.yaml",
         rawPath: "sample/de/markpublish.yaml",
-        title: "Deckblatt & Projekt-Manifest",
+        title: "markpublish.yaml",
         pill: "markpublish.yaml",
-        desc: "Metadaten, Gliederung und Theme-Vorgaben zentral im Manifest definiert.",
+        desc: "Metadaten, Gliederung und Theme-Vorgaben zentral in einem Manifest definiert",
         bullets: [
-          "Automatisches, publikationsreifes Deckblatt mit Autoren, Version, Status und Datum",
-          "Reines YAML ohne visuelle Verrenkungen steuert das gesamte Dokumentdesign",
-          "Nummerierungsmuster (`autonum_pattern: \"_|1|.1|+\"`) synchronisiert alle Kapitel"
+          "Reines YAML steuert die gesamte Dokumentenstruktur",
+          "Automatische Deck- und Zwischenblätter mit Abschnitts-Verzeichnissen",
+          "Frei definierbare Nummerierungsmuster"
         ],
         snippet: `document:
   title: "Systemarchitektur & Design"
@@ -248,13 +248,13 @@ theme: "default"`,
         tabLabel: "Cover Page",
         filename: "markpublish.yaml",
         rawPath: "sample/en/markpublish.yaml",
-        title: "Cover Page & Project Manifest",
+        title: "markpublish.yaml",
         pill: "markpublish.yaml",
-        desc: "All metadata, structure, and theme parameters defined in a single manifest.",
+        desc: "Metadata, structure and theme settings defined centrally in one manifest",
         bullets: [
-          "Automated publication-grade cover with authors, version, status, and date",
-          "Clean YAML governs the entire layout without styling clutter in chapters",
-          "Numbering pattern (`autonum_pattern: \"_|1|.1|+\"`) synchronizes all chapters"
+          "Plain YAML drives the entire document structure",
+          "Automatic cover and divider pages with section-level contents",
+          "Freely definable numbering patterns"
         ],
         snippet: `document:
   title: "System Architecture & Design"
@@ -578,13 +578,17 @@ def render_pdf(manifest_file: Path) -> bytes:
             ${bulletsHtml}
           </ul>
 
-          <!-- Clipping: the region of the PDF page carrying this feature -->
-          <div class="tile-clip${item.clip.pageTop ? ' is-page-top' : ''}" aria-hidden="true"
-               style="aspect-ratio: ${clipAspect(item.clip)}; --clip-x: ${item.clip.x}; --clip-y: ${item.clip.y}; --clip-w: ${item.clip.w};">
-            <picture>
-              <source srcset="${item.svg}" type="image/svg+xml">
-              <img src="${item.png}" alt="" width="595" height="842" loading="lazy" />
-            </picture>
+          <!-- Clipping: the region of the PDF page carrying this feature.
+               The wrapper carries the shadow: a filter on it traces the torn
+               silhouette, while a box-shadow would be cut away by the mask. -->
+          <div class="tile-clip-shadow" aria-hidden="true">
+            <div class="tile-clip${item.clip.pageTop ? ' is-page-top' : ''}"
+                 style="aspect-ratio: ${clipAspect(item.clip)}; --clip-x: ${item.clip.x}; --clip-y: ${item.clip.y}; --clip-w: ${item.clip.w};">
+              <picture>
+                <source srcset="${item.svg}" type="image/svg+xml">
+                <img src="${item.png}" alt="" width="595" height="842" loading="lazy" />
+              </picture>
+            </div>
           </div>
 
           <div class="tile-footer">

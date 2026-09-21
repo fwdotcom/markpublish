@@ -688,13 +688,17 @@ code, pre {
 /* Page clipping: the crop of the PDF page that carries this feature.
    --clip-x/-y/-w are fractions of the page; the image is scaled so the
    cropped region exactly fills this box. */
+/* The shadow lives on the wrapper: a filter here traces the torn silhouette,
+   whereas a box-shadow on the masked element itself would be masked away. */
+.tile-clip-shadow {
+  margin-top: 22px;
+  filter: drop-shadow(0 5px 12px rgba(0, 0, 0, 0.38));
+}
+
 .tile-clip {
   position: relative;
   overflow: hidden;
-  margin-top: 22px;
-  background: #ffffff;
   line-height: 0;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
   /* Torn edges: a solid mask for the middle, plus a ragged strip masking the
      top and bottom edge. Mask layers are unioned, so the paper simply ends in
@@ -702,11 +706,11 @@ code, pre {
   --tear-top: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='14' viewBox='0 0 320 14' preserveAspectRatio='none'%3E%3Cpath d='M0.0 5.2 L13.0 8.6 L34.9 9.5 L43.7 6.1 L50.4 2.7 L56.3 7.0 L64.2 9.5 L70.5 4.2 L75.8 7.6 L101.5 4.2 L111.0 7.6 L120.0 9.5 L130.0 6.1 L147.0 9.5 L166.3 3.0 L178.5 6.9 L192.4 2.6 L202.5 9.3 L226.8 1.9 L234.5 8.4 L257.1 5.0 L262.3 8.7 L274.7 5.3 L289.4 1.9 L297.2 7.4 L306.0 4.0 L320.0 5.2 L320 14 L0 14 Z' fill='%23000'/%3E%3C/svg%3E");
   --tear-bottom: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='14' viewBox='0 0 320 14' preserveAspectRatio='none'%3E%3Cpath d='M0.0 8.0 L22.0 4.6 L31.7 12.5 L42.3 9.1 L52.8 5.7 L60.4 10.7 L67.8 6.9 L86.8 10.3 L92.2 6.9 L99.5 10.5 L109.8 6.1 L127.8 10.8 L136.7 6.6 L144.1 10.0 L154.5 12.5 L160.5 9.1 L183.8 5.7 L194.0 4.5 L218.8 9.6 L234.2 12.5 L243.9 7.0 L253.6 10.4 L267.6 12.5 L292.7 9.1 L300.7 5.3 L320.0 8.0 L320 0 L0 0 Z' fill='%23000'/%3E%3C/svg%3E");
   -webkit-mask-image: linear-gradient(#000, #000), var(--tear-top), var(--tear-bottom);
-  -webkit-mask-size: 100% calc(100% - 22px), 320px 14px, 320px 14px;
+  -webkit-mask-size: calc(100% + 6px) calc(100% - 22px), 320px 14px, 320px 14px;
   -webkit-mask-position: center, top left, bottom left;
   -webkit-mask-repeat: no-repeat, repeat-x, repeat-x;
   mask-image: linear-gradient(#000, #000), var(--tear-top), var(--tear-bottom);
-  mask-size: 100% calc(100% - 22px), 320px 14px, 320px 14px;
+  mask-size: calc(100% + 6px) calc(100% - 22px), 320px 14px, 320px 14px;
   mask-position: center, top left, bottom left;
   mask-repeat: no-repeat, repeat-x, repeat-x;
 }
@@ -715,11 +719,11 @@ code, pre {
    the bottom is torn. */
 .tile-clip.is-page-top {
   -webkit-mask-image: linear-gradient(#000, #000), var(--tear-bottom);
-  -webkit-mask-size: 100% calc(100% - 11px), 320px 14px;
+  -webkit-mask-size: calc(100% + 6px) calc(100% - 11px), 320px 14px;
   -webkit-mask-position: top center, bottom left;
   -webkit-mask-repeat: no-repeat, repeat-x;
   mask-image: linear-gradient(#000, #000), var(--tear-bottom);
-  mask-size: 100% calc(100% - 11px), 320px 14px;
+  mask-size: calc(100% + 6px) calc(100% - 11px), 320px 14px;
   mask-position: top center, bottom left;
   mask-repeat: no-repeat, repeat-x;
 }
@@ -733,10 +737,6 @@ code, pre {
   height: auto;
   max-width: none;
   transform: translate(calc(var(--clip-x) * -100%), calc(var(--clip-y) * -100%));
-}
-
-.showcase-tile:hover .tile-clip {
-  transform: translateY(-2px);
 }
 
 /* Tile Footer: click affordance for the PDF page */
@@ -1252,13 +1252,13 @@ html[lang="en"] .manual-card[data-manual-lang="de"] {
   }
 
   .tile-clip {
-    -webkit-mask-size: 100% calc(100% - 10px), 160px 7px, 160px 7px;
-    mask-size: 100% calc(100% - 10px), 160px 7px, 160px 7px;
+    -webkit-mask-size: calc(100% + 6px) calc(100% - 10px), 160px 7px, 160px 7px;
+    mask-size: calc(100% + 6px) calc(100% - 10px), 160px 7px, 160px 7px;
   }
 
   .tile-clip.is-page-top {
-    -webkit-mask-size: 100% calc(100% - 5px), 160px 7px;
-    mask-size: 100% calc(100% - 5px), 160px 7px;
+    -webkit-mask-size: calc(100% + 6px) calc(100% - 5px), 160px 7px;
+    mask-size: calc(100% + 6px) calc(100% - 5px), 160px 7px;
   }
 
   .showcase-downloads {
