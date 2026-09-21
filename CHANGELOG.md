@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [Unreleased]
+## [2.1.5] - 2026-09-21
 
 ### Added
 - **Landing page & interactive feature showcase (`www/`)**: Redesigned the project website with a 4-card showcase featuring realistic torn-paper clippings of compiled PDF pages, a distraction-free vector lightbox zoom with backdrop blur, seamless German/English language switching, and direct downloads for sample projects (`.zip`) and reference PDFs.

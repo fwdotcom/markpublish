@@ -236,7 +236,7 @@
   subtitle: "Technische Referenzspezifikation"
   summary: "Musterdokumentation zur Demonstration aller markpublish Kernfunktionen."
   author: "Frank Winter"
-  version: "2.1.4"
+  version: "2.1.5"
   date: "auto"
   cover: true
   autonum_pattern: "_|1|.1|+"
@@ -267,7 +267,7 @@ theme: "default"`,
   subtitle: "Technical Reference Specification"
   summary: "Sample publication demonstrating core markpublish features."
   author: "Frank Winter"
-  version: "2.1.4"
+  version: "2.1.5"
   date: "auto"
   cover: true
   autonum_pattern: "_|1|.1|+"
