@@ -17,9 +17,11 @@
   --accent-blue: #3b82f6;
   --accent-indigo: #6366f1;
   --accent-emerald: #10b981;
+  --logo-blue: #0088aa; /* wie im Logo */
 
   --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --font-brand: 'Recursive', var(--font-sans);
 
   --radius-sm: 8px;
   --radius-md: 14px;
@@ -189,6 +191,19 @@ code, pre {
 
 .brand-name {
   color: var(--text-primary);
+  font-family: var(--font-brand);
+}
+
+/* Wordmark: "mark" a step lighter than "publish", in the logo colour */
+.brand-mark {
+  font-weight: 800;
+  color: var(--logo-blue);
+}
+
+.brand-publish {
+  font-weight: 1000;
+  /* Im Logo reines Weiss; auf dem dunklen Header eine Spur zurueckgenommen. */
+  color: #cbd5e1;
 }
 
 .nav-links {
