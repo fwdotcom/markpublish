@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [Unreleased]
+## [2.1.7] - 2026-09-22
 
 ### Added
 - **Example projects (`examples/`)**: Added four complete, runnable sample projects in German (`examples/de/`) and English (`examples/en/`) based on the default theme:
