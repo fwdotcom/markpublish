@@ -56,6 +56,9 @@
 
 // --- Stroke Widths ---
 #let stroke-hairline       = 0.35pt // Running header/footer lines
+#let header-lead           = 0.5em  // Zeilenabstand im Kopfzeilen-Raster
+#let footer-lead           = 0.5em  // Zeilenabstand der mehrzeiligen Fusszeile
+#let footer-rule-gap       = 6pt    // Abstand Linie -> Text, wie in der Kopfzeile
 #let stroke-border         = 0.5pt  // Box borders, TOC borders, code blocks
 #let stroke-table-divider  = 0.4pt  // Table body row dividers (A7)
 #let stroke-table-top      = 1.2pt  // Table top & bottom border (Booktabs A6)
@@ -392,6 +395,7 @@
           if num-str != none and str(num-str).trim() != "" [ #num-str #h(0.3em) #active.body ] else [ #active.body ]
         } else { "" }
         set text(hyphenate: false)
+        set par(justify: false, leading: header-lead)
         grid(
           columns: (1fr, 1fr),
           column-gutter: 12pt,
@@ -403,11 +407,12 @@
             ]
           ],
           [
-            #text(size: 8.5pt, fill: c-text-muted)[#ch-title]
+            #text(size: 8.5pt, weight: "bold", fill: c-text-muted)[#ch-title]
           ],
         )
-        v(-2pt)
-        line(length: 100%, stroke: stroke-hairline + c-border)
+        block(above: 6pt, below: 0pt)[
+          #line(length: 100%, stroke: stroke-hairline + c-border)
+        ]
       }
     },
     footer: context {
@@ -416,8 +421,10 @@
         let doc-ends = query(label("doc-end"))
         let total-pages = if doc-ends.len() > 0 { doc-ends.last().location().page() } else { 1 }
         line(length: 100%, stroke: stroke-hairline + c-border)
-        v(-2pt)
-        grid(
+        set par(justify: false, leading: footer-lead)
+        set text(hyphenate: false)
+        block(above: footer-rule-gap, below: 0pt)[
+        #grid(
           columns: (1fr, 1fr),
           align: (left + top, right + top),
           [
@@ -434,6 +441,7 @@
             \ #text(size: 8pt, fill: c-text-muted)[#labels.at("page", default: "Seite") #counter(page).display() #labels.at("page_of", default: "von") #total-pages]
           ],
         )
+        ]
       }
     }
   )

@@ -35,7 +35,7 @@ Metadaten und globale Layout-Schalter. Pflichtangabe ist allein `title`.
 | `copyright` | – | Copyright-Hinweis auf dem Deckblatt |
 | `language` | Systemsprache | ISO-Sprachcode für statische Beschriftungen (`de`, `en`) |
 | `cover` | `false` | Deckblatt erzeugen |
-| `header` / `footer` | `true` | Lebende Kopf- und Fußzeilen |
+| `header` / `footer` | `true` | Kopf- und Fußzeilen aktivieren |
 | `document_toc` | `full` | Haupt-Inhaltsverzeichnis: `none`, `full` oder Tiefe als Zahl |
 | `part_toc` | `full` | Vorgabe für Part-Trennseiten: `none`, `full` oder Tiefe |
 | `chapter_toc` | `full` | Vorgabe für Kapitel-Trennseiten: `none`, `full` oder Tiefe |

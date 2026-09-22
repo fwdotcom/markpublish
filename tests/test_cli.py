@@ -27,7 +27,7 @@ def test_cli_init_and_build(tmp_path: Path):
     init_res = runner.invoke(app, ["init", str(project_dir), "--title", "CLI Test Doc"])
     assert init_res.exit_code == 0
     assert (project_dir / "markpublish.yaml").is_file()
-    assert (project_dir / "welcome.md").is_file()
+    assert (project_dir / "kapitel_1.md").is_file() or (project_dir / "chapter_1.md").is_file()
 
     # 2. Test build HTML fails with code 1 and error notice
     build_html_res = runner.invoke(app, ["build", str(project_dir / "markpublish.yaml"), "--target", "html"])
@@ -68,11 +68,15 @@ def test_cli_init_stays_minimal(tmp_path: Path):
     assert runner.invoke(app, ["init", str(project_dir)]).exit_code == 0
 
     created = sorted(p.name for p in project_dir.iterdir())
-    assert created == ["markpublish.yaml", "welcome.md"]
+    assert created in (
+        ["kapitel_1.md", "kapitel_2.md", "markpublish.yaml"],
+        ["chapter_1.md", "chapter_2.md", "markpublish.yaml"],
+    )
 
     # Der Verweis auf das Cheat Sheet ist der einzige Grund, warum der Stumpf
     # so klein sein darf - faellt er weg, steht der Nutzer ohne Referenz da.
-    assert "markpublish cheatsheet" in (project_dir / "welcome.md").read_text(encoding="utf-8")
+    first_md = project_dir / ("kapitel_1.md" if (project_dir / "kapitel_1.md").exists() else "chapter_1.md")
+    assert "markpublish cheatsheet" in first_md.read_text(encoding="utf-8")
 
 
 def test_cli_init_titles_the_document_after_its_folder(tmp_path: Path):
@@ -194,7 +198,7 @@ def test_cli_init_scaffold_costs_no_divider_page(tmp_path: Path):
     assert config.parts[0].break_before is None
 
     items, _ = MarkdownPipeline(config, base_dir=project_dir).process_document()
-    assert [item.is_part for item in items] == [False]
+    assert [item.is_part for item in items] == [False, False]
 
 
 def test_cli_cheatsheet_renders_into_the_working_directory(tmp_path: Path, monkeypatch):
@@ -419,9 +423,11 @@ def test_cli_init_lang_de(tmp_path: Path):
     assert 'title: "Mein Dokument"' in yaml_de
     assert 'language: "de"' in yaml_de
     assert 'part: "Hauptteil"' in yaml_de
-    assert 'welcome.md' in yaml_de
-    steps_de = (p_de / "welcome.md").read_text(encoding="utf-8")
+    assert 'kapitel_1.md' in yaml_de
+    assert 'kapitel_2.md' in yaml_de
+    steps_de = (p_de / "kapitel_1.md").read_text(encoding="utf-8")
     assert "# Willkommen bei markpublish" in steps_de
+    assert (p_de / "kapitel_2.md").is_file()
 
 
 def test_cli_init_lang_en(tmp_path: Path):
@@ -439,10 +445,12 @@ def test_cli_init_lang_en(tmp_path: Path):
     assert 'title: "My Document"' in yaml_en
     assert 'language: "en"' in yaml_en
     assert 'part: "Main Part"' in yaml_en
-    assert "welcome.md" in yaml_en
+    assert "chapter_1.md" in yaml_en
+    assert "chapter_2.md" in yaml_en
 
-    welcome_en = (p_en / "welcome.md").read_text(encoding="utf-8")
+    welcome_en = (p_en / "chapter_1.md").read_text(encoding="utf-8")
     assert "# Welcome to markpublish" in welcome_en
+    assert (p_en / "chapter_2.md").is_file()
     # Der Verweis auf die Referenz haelt den Stumpf klein - in beiden Sprachen.
     assert "markpublish cheatsheet" in welcome_en
 

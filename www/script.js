@@ -59,7 +59,7 @@
       qs_title: "In 3 Schritten zum ersten Dokument",
       qs_desc: "Installieren, Projekt anlegen, PDF bauen — fertig.",
       qs_c1: "# 1. markpublish installieren (benötigt Python 3.10+)",
-      qs_c2: "# 2. Projekt anlegen — erzeugt markpublish.yaml und welcome.md",
+      qs_c2: "# 2. Projekt anlegen — erzeugt markpublish.yaml und kapitel_1.md",
       qs_cmd2: "markpublish init mein-dokument",
       qs_out2: "[OK] markpublish-Projekt eingerichtet in mein-dokument<br/>markpublish build mein-dokument/markpublish.yaml erzeugt Ihr erstes PDF.",
       qs_c3: "# 3. Druckreifes PDF kompilieren (Dateiname aus dem Dokumententitel)",
@@ -162,7 +162,7 @@
       qs_title: "Publish your first document in 3 steps",
       qs_desc: "Install, initialize project, build PDF — done.",
       qs_c1: "# 1. Install markpublish (requires Python 3.10+)",
-      qs_c2: "# 2. Create a project — writes markpublish.yaml and welcome.md",
+      qs_c2: "# 2. Create a project — writes markpublish.yaml and chapter_1.md",
       qs_cmd2: "markpublish init my-document",
       qs_out2: "[OK] Initialized markpublish project in my-document<br/>Run markpublish build my-document/markpublish.yaml to generate your first PDF.",
       qs_c3: "# 3. Compile the print-ready PDF (filename comes from the document title)",
@@ -236,7 +236,7 @@
   subtitle: "Technische Referenzspezifikation"
   summary: "Musterdokumentation zur Demonstration aller markpublish Kernfunktionen."
   author: "Frank Winter"
-  version: "2.1.8"
+  version: "2.1.9"
   date: "auto"
   cover: true
   autonum_pattern: "_|1|.1|+"
@@ -267,7 +267,7 @@ theme: "default"`,
   subtitle: "Technical Reference Specification"
   summary: "Sample publication demonstrating core markpublish features."
   author: "Frank Winter"
-  version: "2.1.8"
+  version: "2.1.9"
   date: "auto"
   cover: true
   autonum_pattern: "_|1|.1|+"

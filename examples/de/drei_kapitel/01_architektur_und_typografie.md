@@ -29,7 +29,7 @@ Satzspiegel
 : Das harmonische Verhältnis der bedruckten Fläche einer Seite zu den umgebenden Weißräumen (Rändern), berechnet nach klassischen buchgestalterischen Proportionen.
 
 Kolumnentitel
-: Lebende Kopfzeilen, die dem Leser auf geraden und ungeraden Seiten dynamisch das aktuelle Dokument, die Hauptgruppe oder die Kapitelüberschrift anzeigen.
+: Kopfzeilen, die dem Leser auf geraden und ungeraden Seiten dynamisch das aktuelle Dokument, die Hauptgruppe oder die Kapitelüberschrift anzeigen.
 
 > [!TIP]
 > Die integrierte Schriftart `Open Sans` wird mit allen benötigten Schriftschnitten (Regular, Italic, SemiBold, Bold) direkt im Paket mitgeliefert. Dies garantiert eine absolut reproduzierbare Zeilen- und Seitenaufteilung auf jedem Zielsystem.

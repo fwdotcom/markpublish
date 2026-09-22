@@ -43,7 +43,8 @@ This command creates a folder named `my-document/` with the following structure:
 ```text
 my-document/
 ├── markpublish.yaml
-└── welcome.md
+├── chapter_1.md
+└── chapter_2.md
 ```
 
 ### Build Your First PDF

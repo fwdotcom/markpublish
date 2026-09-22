@@ -43,7 +43,8 @@ Dieser Befehl erzeugt einen neuen Ordner `mein-dokument/` mit folgender Grundstr
 ```text
 mein-dokument/
 ├── markpublish.yaml
-└── welcome.md
+├── kapitel_1.md
+└── kapitel_2.md
 ```
 
 ### Erstes PDF erstellen

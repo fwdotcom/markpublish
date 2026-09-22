@@ -1,41 +1,43 @@
 # Welcome to markpublish
 
-Congratulations, you have created your new markpublish project.
+Congratulations, your new markpublish project is ready.
 
-It consists of two files: `markpublish.yaml` and this chapter in `welcome.md`.
+The project follows a clean two-tier architecture: `markpublish.yaml` manages document structure, metadata, and styling, while Markdown files provide your actual content.
 
 ## Building the PDF
 
-Change into the newly created project directory and build the PDF:
+Switch to your new project directory and compile the document:
 
 ```bash
 cd {dir}
 markpublish build
 ```
 
-## Adding further chapters
+markpublish transforms your Markdown via a high-performance Typst pipeline into a print-ready PDF.
 
-Create a new Markdown file and add it with another `file:` key under
-`chapters:` in `markpublish.yaml`. Paths are relative to the configuration
-file:
+## Chapter Structure
+
+Your project is preconfigured with two starter chapters (`chapter_1.md` and `chapter_2.md`):
 
 ```yaml
 parts:
   - part: "Main Part"
     chapters:
-      - file: "welcome.md"
-      - file: "your_new_md_file.md"
+      - file: "chapter_1.md"
+        break_before: "divider"
+        show_title: false
+      - file: "chapter_2.md"
+        break_before: "divider"
+        show_title: false
 ```
 
-That is all it takes: on the next `markpublish build` the new chapter stands in the PDF – in the order the files are listed under `chapters:`.
+To add more chapters, create a new `.md` file and list its path under `chapters:`.
 
-## Looking things up
+## Documentation & Reference
 
-The manual and the quick reference tell you more. markpublish writes both for you straight from the command line:
+markpublish includes built-in reference guides accessible straight from your terminal:
 
 ```bash
-markpublish cheatsheet                  # print the compact quick reference
-markpublish manual                      # print the detailed user guide
+markpublish cheatsheet    # Compact cheat sheet covering all YAML configuration keys
+markpublish manual        # Comprehensive official user manual
 ```
-
-For the current state of development have a look at https://github.com/fwdotcom/markpublish. Enjoy creating documents with markpublish!

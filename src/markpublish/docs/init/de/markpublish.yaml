@@ -1,53 +1,47 @@
 # markpublish.yaml
 #
-# Die Konfiguration Ihres Dokuments: was hineingehört, wie es aussieht, in
-# welcher Reihenfolge. Alle Pfade gelten relativ zu dieser Datei.
-#
-# Alle Schlüssel im Überblick: markpublish cheatsheet
+# Zentrale Konfigurationsdatei Ihres Dokuments.
+# Alle relativen Pfade beziehen sich auf dieses Verzeichnis.
+# Vollständige Dokumentation: markpublish cheatsheet
 
 document:
-  # Titel des Dokuments. Er steht auf dem Deckblatt und gibt den Dateinamen der
-  # Ausgabe vor ("Mein Bericht" wird zu mein_bericht.pdf).
+  # Titel, Untertitel und Zusammenfassung für Deckblatt und Metadaten
   title: "{title}"
   subtitle: "Ihr neues markpublish-Projekt"
+  summary: "Ein Projekt mit zwei Beispielkapiteln zur Demonstration von Aufbau, Formatierung und Typografie."
 
-  # "auto" setzt das Datum des Bauens ein, sonst ein festes: "2026-09-06".
+  # "auto" setzt das Baudatum ein (alternativ ISO-Datum, z. B. "2026-09-22")
   date: "auto"
 
-  # Steuert Silbentrennung und die festen Texte im Dokument (Beschriftung des
-  # Inhaltsverzeichnisses, Kapitel-Marken). Ohne Angabe gilt Ihre Systemsprache.
+  # Steuert Silbentrennung und UI-Beschriftungen ("de", "en")
   language: "de"
 
-  # Deckblatt aus den Angaben oben. Mit false beginnt das Dokument sofort mit
-  # dem ersten Kapitel.
+  # Deckblatt erzeugen (false beginnt direkt mit dem Inhalt)
   cover: true
 
-  # Weitere Angaben fürs Deckblatt.
+  # Optionale Metadaten fürs Deckblatt:
   # author: "Ihr Name"
   # version: "1.0.0"
 
-  # Schalter, hier mit ihrer Vorgabe - eintragen, um sie zu ändern.
-  # document_toc: "full"   # Inhaltsverzeichnis: "none", "full" oder eine Tiefe
-  # header: true           # lebende Kopfzeile
-  # footer: true           # Fußzeile mit Seitenzahl
+  # Layout- und Steuerungsschalter:
+  # document_toc: "full"         # Inhaltsverzeichnis: "none", "full" oder Tiefe (z. B. 2)
+  # header: true                 # Kopfzeile mit Dokumenttitel und Kapitel
+  # footer: true                 # Fußzeile mit Seitenzahlen und Version
+  # autonum_pattern: "_|1|.1|+"  # Nummerierung (Part überspringen, Kapitel 1, Abschnitte 1.1)
 
-# Die Gestaltung. "default" liegt bei; ein eigenes Theme holen Sie sich mit
-# markpublish export-template default ./templates und passen es dort an.
+# Verwendetes Theme (Standard: "default")
 theme: "default"
 
-# Der Aufbau, immer zweistufig: parts: gliedert, chapters: trägt den Inhalt.
+# Dokumentstruktur (zweistufig: parts -> chapters)
 parts:
   - part: "Hauptteil"
-    # Ohne break_before tritt der Abschnitt selbst nicht in Erscheinung - er
-    # klammert nur seine Kapitel. "divider" gäbe ihm eine eigene Trennseite.
     chapters:
-      # Jedes Kapitel ist eine Markdown-Datei.
-      - file: "welcome.md"
-
-        # Trennseite vor dem Kapitel. "page" beginnt nur eine neue Seite,
-        # "none" schließt direkt an den vorigen Text an.
+      - file: "kapitel_1.md"
+        # "divider" erzeugt ein Kapitel-Trennblatt ("page" beginnt neue Seite, "none" schließt an)
         break_before: "divider"
+        # Verhindert, dass die H1-Überschrift nach dem Trennblatt erneut gedruckt wird
+        show_title: false
 
-        # Die Überschrift der Datei steht schon auf der Trennseite; auf der
-        # Textseite dahinter stünde sie sonst ein zweites Mal.
+      - file: "kapitel_2.md"
+        break_before: "divider"
         show_title: false

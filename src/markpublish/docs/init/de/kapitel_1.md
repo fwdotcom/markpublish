@@ -1,41 +1,43 @@
 # Willkommen bei markpublish
 
-Herzlichen Glückwunsch, Sie haben Ihr neues markpublish-Projekt erstellt.
+Herzlichen Glückwunsch, Ihr neues markpublish-Projekt ist eingerichtet.
 
-Es besteht aus zwei Dateien: `markpublish.yaml` und diesem Kapitel in `welcome.md`.
+Das Projekt folgt einem zweistufigen Aufbau: In der Konfigurationsdatei `markpublish.yaml` definieren Sie Metadaten, Theme und Gliederung, während die Markdown-Dateien den Inhalt tragen.
 
-## PDF erstellen
+## Erstes PDF erstellen
 
-Wechseln Sie in das neu erstellte Projekt-Verzeichnis und bauen Sie das PDF:
+Wechseln Sie in das Projektverzeichnis und starten Sie die Kompilierung:
 
 ```bash
 cd {dir}
 markpublish build
 ```
 
-## Weitere Kapitel hinzufügen
+markpublish übersetzt Ihre Inhalte über eine Typst-Pipeline direkt in ein druckreifes PDF-Dokument.
 
-Erstellen Sie eine neue Markdown-Datei und tragen Sie sie mit einem weiteren
-`file:`-Schlüssel unter `chapters:` in die `markpublish.yaml` ein. Pfade gelten
-relativ zur Konfigurationsdatei:
+## Kapitelstruktur
+
+Ihr Dokument ist bereits mit zwei Beispielkapiteln (`kapitel_1.md` und `kapitel_2.md`) vorkonfiguriert:
 
 ```yaml
 parts:
   - part: "Hauptteil"
     chapters:
-      - file: "welcome.md"
-      - file: "ihre_neue_md_datei.md"
+      - file: "kapitel_1.md"
+        break_before: "divider"
+        show_title: false
+      - file: "kapitel_2.md"
+        break_before: "divider"
+        show_title: false
 ```
 
-Nach dem nächsten `markpublish build` steht das neue Kapitel im PDF – in der Reihenfolge, in der die Dateien unter `chapters:` stehen.
+Weitere Kapitel fügen Sie hinzu, indem Sie eine neue `.md`-Datei anlegen und diese unter `chapters:` eintragen.
 
-## Nachschlagen
+## Dokumentation und Nachschlagen
 
-Weitere Informationen entnehmen Sie dem Handbuch oder der Schnellreferenz. Beide können Sie mit markpublish direkt über die Kommandozeile erstellen:
+markpublish bringt integrierte Referenzdokumente mit, die Sie direkt über das Terminal aufrufen können:
 
 ```bash
-markpublish cheatsheet                  # Kompakte Schnellreferenz ausgeben
-markpublish manual                      # Ausführliches Benutzerhandbuch ausgeben
+markpublish cheatsheet    # Kompakte Schnellreferenz zu allen YAML-Schlüsseln
+markpublish manual        # Ausführliches offizielles Benutzerhandbuch
 ```
-
-Für Informationen zum aktuellen Entwicklungsstand besuchen Sie https://github.com/fwdotcom/markpublish. Viel Freude bei der Dokumentenerstellung mit markpublish!

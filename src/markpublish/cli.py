@@ -645,7 +645,7 @@ def init_cmd(
             _fill(yaml_src.read_text(encoding="utf-8")), encoding="utf-8"
         )
 
-    # Copy companion files (e.g. welcome.md, images)
+    # Copy companion files (e.g. chapter Markdown files, images)
     for f in sorted(src_dir.iterdir()):
         if f.name == "markpublish.yaml" or not f.is_file() or f.suffix.lower() == ".pdf":
             continue

@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.1.9] - 2026-09-22
+
+### Changed
+- **Header and footer typography & spacing (default PDF template)**: Introduced `header-lead` (0.5em), `footer-lead` (0.5em), and `footer-rule-gap` (6pt) tokens for consistent multi-line line spacing and precise divider rule gaps.
+- **Bold chapter title in header (default PDF template)**: The running chapter title in the top-right header is now displayed in bold weight (`weight: "bold"`).
+- **Init templates with two chapters and cover summary**: Scaffolding (`markpublish init`) now creates two starter chapters in German (`kapitel_1.md`, `kapitel_2.md`) and English (`chapter_1.md`, `chapter_2.md`) with a pre-configured cover summary, improved comments, callouts, and clean configuration examples.
+
+---
+
 ## [2.1.8] - 2026-09-22
 
 ### Changed
