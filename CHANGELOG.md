@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.1.8] - 2026-09-22
+
+### Changed
+- **Callout boxes are no longer split across pages (default PDF template)**: A callout is an element, not a run of paragraphs. Spread over a page break it lost the very thing that makes it one — the title row with its icon stayed on one page, the warning itself moved to the next, and the colored accent bar broke off mid-box; a reader arriving on the second page saw an indented paragraph with no stated reason for being indented. The box is now set with `breakable: false`. Measured against an otherwise identical template: with a six-line `[!WARNING]` preceded by 24 and 25 filler paragraphs, the box previously ran across pages 3 and 4; it now moves to page 4 as a whole. The trade-off is deliberate and worth knowing: a box that no longer fits on the current page leaves white space above it, and a box taller than the text area (691.65 pt on A4 with the default margins) cannot be placed at all — Typst then lets it run off the bottom of the page, without an error and without a warning. A hint filling an entire page, however, is no longer a hint but a section.
+- **Block quotes are set in the callout box, in grey (default PDF template)**: A plain `>` block without a type in square brackets previously differed from a callout in every respect but its content, although both are the same thing on the page: a voice set apart from the running text. It now uses the same box — identical geometry, verified in the output at x = 85.04 pt, width 425.20 pt, 3.5 pt accent bar, text starting at 99.04 pt, exactly like a `[!NOTE]` beside it — with the grey of the new `c-quote-bar` token (Slate 500) on `c-bg-subtle`. Grey is the one color that carries no meaning here: the five alert types state their kind through color, a quotation states none, so grey is the absence of a classification rather than a sixth one. The token is deliberately separate from `c-text-muted` despite sharing its value, because one is a text color and the other a surface. Two differences from a callout remain by design: a quote carries no title row, and it stays breakable — a quotation is running text and may legitimately be long, so a statute spanning a page and a half should break and stay readable instead of running off the page as an indivisible block. The rule reads `it.body` rather than `it`, since Typst pads a quote block sideways on its own and the text would otherwise be indented twice, once by the box and once by the quote.
+
+---
+
 ## [2.1.7] - 2026-09-22
 
 ### Added

@@ -4,7 +4,7 @@ document:
   summary: "Sample publication demonstrating core markpublish features: Typst typesetting, mathematical formulas, syntax highlighting, and callout boxes."
   author: "Frank Winter"
   copyright: "© 2026 Frank Winter"
-  version: "2.1.7"
+  version: "2.1.8"
   date: "auto"
   language: "en"
 

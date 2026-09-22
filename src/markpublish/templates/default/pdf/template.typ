@@ -36,6 +36,16 @@
 #let c-code           = rgb("#0f172a")  // Codebloecke & Inline-Code (Slate 900)
 #let c-link-underline = rgb("#93c5fd")  // Unterstreichung von Web-Links (Blue 300)
 
+// `c-quote-bar` ist der Akzentbalken des Zitatkastens und trifft zufaellig den
+// Wert von `c-text-muted`. Es bleibt trotzdem eine eigene Marke: die eine ist
+// eine Textfarbe, die andere eine Flaeche. Wer die Metadaten auf dem
+// Titelblatt dunkler haette, soll damit nicht den Balken am Zitat verstellen.
+//
+// Grau, und zwar als einzige Farbe: die fuenf Hinweisarten nennen ihre Art
+// ueber die Farbe, ein Zitat nennt keine. Das Grau ist hier die Abwesenheit
+// einer Einordnung, nicht eine sechste davon.
+#let c-quote-bar      = rgb("#64748b")  // Akzentbalken des Zitatkastens (Slate 500)
+
 // --- Typography Tokens ---
 #let font-family-sans = ("Open Sans", "Liberation Sans", "Arial", "Helvetica")
 #let font-family-mono = ("Noto Sans Mono", "Consolas", "Courier New", "monospace")
@@ -199,20 +209,51 @@
 // Markdown Element Customizations
 // -----------------------------------------------------------------------------
 
+// Der Kasten, in dem Hinweise und Zitate stehen (B4, C2)
+//
+// Eine Funktion fuer beide Faelle, weil ein Zitat aussehen soll wie ein
+// Hinweis -- nur in Grau und ohne Titelzeile. Zwei getrennt gepflegte Bloecke
+// liefen mit der Zeit auseinander: ein geaenderter Einzug hier, ein anderer
+// Radius dort, und der Unterschied zwischen Hinweis und Zitat waere nicht
+// mehr die Farbe allein, sondern ein halbes Dutzend Zufaelle.
+//
+// `breakable` entscheidet die aufrufende Stelle, nicht dieser Helfer: was ein
+// Element ist und was laufender Text, weiss sie, und der Kasten nicht.
+#let _callout-box(border: c-quote-bar, bg: c-bg-subtle, breakable: false, body) = {
+  v(0.6em)
+  block(
+    width: 100%,
+    breakable: breakable,
+    fill: bg,
+    stroke: (left: stroke-callout + border),
+    inset: (top: 10pt, bottom: 10pt, left: 14pt, right: 14pt),
+    radius: (right: radius-md),
+  )[#body]
+  v(0.6em)
+}
+
 // Callout / Admonition Box (B4, C2)
+//
+// `breakable: false`: der Kasten bleibt zusammen.
+//
+// Ein Hinweiskasten ist ein Element, keine Folge von Absaetzen. Ueber zwei
+// Seiten verteilt verliert er genau das, was ihn ausmacht: die Titelzeile mit
+// dem Zeichen steht auf der einen Seite, die Warnung auf der anderen, und der
+// farbige Balken bricht mittendrin ab. Wer nur die zweite Haelfte sieht,
+// liest einen eingerueckten Absatz ohne Anlass.
+//
+// Der Preis: passt der Kasten nicht mehr auf die angefangene Seite, rueckt er
+// als Ganzes auf die naechste und laesst darueber Weissraum stehen. Ist er
+// hoeher als der Satzspiegel, kann Typst ihn nirgends unterbringen -- er
+// laeuft dann unten aus der Seite, ohne Fehler und ohne Warnung. Ein Hinweis,
+// der eine ganze Seite fuellt, ist allerdings keiner mehr, sondern ein
+// Abschnitt.
 #let callout(type: "note", title: none, body) = {
   let safe-type = if type in callout-colors { type } else { "note" }
   let c = callout-colors.at(safe-type)
   let icon-file = "assets/icons/" + safe-type + ".svg"
 
-  v(0.6em)
-  block(
-    width: 100%,
-    fill: c.bg,
-    stroke: (left: stroke-callout + c.border),
-    inset: (top: 10pt, bottom: 10pt, left: 14pt, right: 14pt),
-    radius: (right: radius-md),
-  )[
+  _callout-box(border: c.border, bg: c.bg, breakable: false)[
     #if title != none [
       #grid(
         columns: (auto, 1fr),
@@ -226,7 +267,6 @@
       #text(size: 9.5pt, fill: c-text-body)[#body]
     ]
   ]
-  v(0.6em)
 }
 
 // Task Item Checkbox (C3, B3)
@@ -532,19 +572,37 @@
 
   // Zitate
   //
-  // Ohne diese Regel erbt ein Zitatblock den Absatzabstand des Fliesstextes
-  // (`par-spacing`, 1.5em). Zwei Saetze desselben Zitats stehen dann genauso
-  // weit auseinander wie zwei unabhaengige Absaetze -- gemessen 22.1pt hier
-  // wie dort -- und lesen sich als zwei Dinge statt als eines.
+  // markpublish setzt einen Zitatblock als `#quote[...]` -- also alles, was im
+  // Markdown mit `>` beginnt und keinen Typ in eckigen Klammern nennt.
   //
-  // Unter `par-leading` darf der Wert nicht rutschen: dann staenden die
-  // Absaetze eines Zitats dichter als die Zeilen innerhalb eines Absatzes,
-  // und die Gliederung stuende auf dem Kopf. Zusammengerueckt wird nur das
-  // Innere; der Abstand *um* das Zitat bleibt der des Fliesstextes.
-  show quote: it => {
-    set par(spacing: quote-spacing, leading: par-leading)
-    it
-  }
+  // Er bekommt denselben Kasten wie ein Hinweis, nur in Grau und ohne
+  // Titelzeile: beides sind abgesetzte Stimmen im Text, und beide sollen als
+  // dasselbe Ding erkennbar sein.
+  //
+  // `it.body` statt `it`: Typst rueckt einen Zitatblock von sich aus seitlich
+  // ein. Innerhalb des Kastens saesse der Text dann doppelt eingezogen, einmal
+  // vom Kasten und einmal vom Zitat.
+  //
+  // `breakable: true`, anders als beim Hinweis: ein Zitat ist laufender Text
+  // und darf lang sein. Eine Rechtsvorschrift ueber anderthalb Seiten soll
+  // umbrechen und lesbar bleiben, statt als unteilbarer Block unten aus der
+  // Seite zu laufen.
+  //
+  // Der Absatzabstand im Inneren bleibt enger als der des Fliesstextes
+  // (`par-spacing`, 1.5em): zwei Saetze desselben Zitats stehen sonst genauso
+  // weit auseinander wie zwei unabhaengige Absaetze -- gemessen 22.1pt hier
+  // wie dort -- und lesen sich als zwei Dinge statt als eines. Unter
+  // `par-leading` darf der Wert nicht rutschen: dann staenden die Absaetze
+  // eines Zitats dichter als die Zeilen innerhalb eines Absatzes, und die
+  // Gliederung stuende auf dem Kopf.
+  show quote: it => _callout-box(
+    border: c-quote-bar,
+    bg: c-bg-subtle,
+    breakable: true,
+  )[
+    #set par(spacing: quote-spacing, leading: par-leading)
+    #text(size: 9.5pt, fill: c-text-body)[#it.body]
+  ]
 
   // Code Block styling
   show raw.where(block: true): it => block(
