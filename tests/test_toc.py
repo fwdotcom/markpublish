@@ -959,6 +959,10 @@ def test_show_title_false_suppresses_h1_in_content_but_keeps_toc_node(tmp_path: 
     erhaelt aber den TOCNode im Inhaltsverzeichnis und setzt needs_synthetic_toc_heading.
     """
     (tmp_path / "chapter.md").write_text("# Mein Kapitel\n\nDies ist der Inhalt.", encoding="utf-8")
+    # Zweites Kapitel: bei einem Dokument aus einem einzigen Kapitel laesst das
+    # Hauptverzeichnis dessen Zeile weg, und needs_synthetic_toc_heading waere
+    # schon deshalb False. Geprueft wird hier aber show_title.
+    (tmp_path / "chapter2.md").write_text("# Zweites Kapitel\n\nNoch mehr Inhalt.", encoding="utf-8")
     (tmp_path / "markpublish.yaml").write_text(
         """\
 document:
@@ -969,6 +973,7 @@ parts:
     chapters:
       - file: "chapter.md"
         show_title: false
+      - file: "chapter2.md"
 """,
         encoding="utf-8",
     )
@@ -980,8 +985,8 @@ parts:
     # Part Node -> Child ist das Kapitel mit Titel "Mein Kapitel"
     assert tree[0].children[0].title == "Mein Kapitel"
 
-    # items enthaelt den Part (items[0]) und das Kapitel (items[1])
-    assert len(items) == 2
+    # items enthaelt den Part (items[0]) und die beiden Kapitel
+    assert len(items) == 3
     assert items[0].is_part is True
     ch = items[1]
     assert ch.is_part is False
@@ -991,6 +996,114 @@ parts:
     assert "#heading(level: 1" not in ch.typst_content
     assert "Dies ist der Inhalt." in ch.html_content
     assert "Dies ist der Inhalt." in ch.typst_content
+
+
+def _single_chapter_project(tmp_path: Path, chapter_extra: str = "") -> Path:
+    (tmp_path / "chapter.md").write_text(
+        "# Mein Kapitel\n\nInhalt.\n\n## Erster Abschnitt\n\nText.\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "markpublish.yaml").write_text(
+        f"""\
+document:
+  title: "Doc"
+parts:
+  - part: "Hauptteil"
+    chapters:
+      - file: "chapter.md"{chapter_extra}
+""",
+        encoding="utf-8",
+    )
+    return tmp_path / "markpublish.yaml"
+
+
+def test_single_chapter_document_drops_its_chapter_line_from_the_document_toc(tmp_path: Path):
+    """
+    Bei genau einem Kapitel im Dokument fuehrt das Hauptverzeichnis dessen
+    Zeile nicht: sie wiederholt bloss den Titel des Deckblatts, und ein
+    Eintrag ohne Geschwister unterscheidet nichts. Die H1 wird dafuer
+    `outlined: false` gesetzt, ihre Unterueberschriften bleiben drin.
+    """
+    config = load_config(_single_chapter_project(tmp_path))
+    items, tree = MarkdownPipeline(config, base_dir=tmp_path, labels={}).process_document()
+
+    ch = items[-1]
+    assert ch.is_part is False
+    # Genau eine Ueberschrift faellt aus dem Verzeichnis: die H1 des Kapitels.
+    assert ch.typst_content.count("outlined: false") == 1
+    assert "#heading(level: 1" in ch.typst_content
+    assert "Erster Abschnitt" in ch.typst_content
+    # Der zweite Weg ins Verzeichnis bleibt ebenfalls zu.
+    assert ch.needs_synthetic_toc_heading is False
+    # Der TOCNode selbst bleibt -- das Verzeichnis eines Parts lebt davon.
+    assert tree[0].children[0].title == "Mein Kapitel"
+
+
+def test_single_chapter_document_drops_the_hidden_toc_heading_with_show_title_false(tmp_path: Path):
+    """
+    Der zweite Weg: bei `show_title: false` setzt der Renderer sonst eine
+    versteckte H1, die allein die Verzeichniszeile traegt. Bei einem einzigen
+    Kapitel entfaellt auch sie.
+    """
+    config = load_config(_single_chapter_project(tmp_path, "\n        show_title: false"))
+    items, _ = MarkdownPipeline(config, base_dir=tmp_path, labels={}).process_document()
+
+    assert items[-1].needs_synthetic_toc_heading is False
+
+
+def test_two_chapters_keep_their_lines_in_the_document_toc(tmp_path: Path):
+    """
+    Gegenprobe: sobald es ein zweites Kapitel gibt, unterscheiden die Zeilen
+    etwas voneinander und bleiben stehen.
+    """
+    (tmp_path / "a.md").write_text("# Kapitel A\n\nText.\n\n## Punkt A\n\nText.\n", encoding="utf-8")
+    (tmp_path / "b.md").write_text("# Kapitel B\n\nText.\n", encoding="utf-8")
+    (tmp_path / "markpublish.yaml").write_text(
+        """\
+document:
+  title: "Doc"
+parts:
+  - part: "Hauptteil"
+    chapters:
+      - file: "a.md"
+      - file: "b.md"
+""",
+        encoding="utf-8",
+    )
+    config = load_config(tmp_path / "markpublish.yaml")
+    items, _ = MarkdownPipeline(config, base_dir=tmp_path, labels={}).process_document()
+
+    chapters = [it for it in items if not it.is_part]
+    assert len(chapters) == 2
+    for ch in chapters:
+        assert "outlined: false" not in ch.typst_content
+        assert ch.needs_synthetic_toc_heading is False
+
+
+def test_single_chapter_rule_counts_across_parts(tmp_path: Path):
+    """
+    Gezaehlt wird ueber alle Parts hinweg. Ein Kapitel bleibt ein Kapitel,
+    auch wenn jemand es in einen eigenen Part gesetzt hat.
+    """
+    (tmp_path / "a.md").write_text("# Kapitel A\n\nText.\n\n## Punkt A\n\nText.\n", encoding="utf-8")
+    (tmp_path / "markpublish.yaml").write_text(
+        """\
+document:
+  title: "Doc"
+parts:
+  - part: "Erster Teil"
+    break_before: "divider"
+    chapters:
+      - file: "a.md"
+""",
+        encoding="utf-8",
+    )
+    config = load_config(tmp_path / "markpublish.yaml")
+    items, _ = MarkdownPipeline(config, base_dir=tmp_path, labels={}).process_document()
+
+    ch = items[-1]
+    assert ch.typst_content.count("outlined: false") == 1
+    assert ch.needs_synthetic_toc_heading is False
 
 
 def test_a_numbered_part_keeps_its_number_out_of_the_chapter_numbers(tmp_path: Path):

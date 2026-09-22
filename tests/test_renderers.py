@@ -358,12 +358,20 @@ parts:
       - file: "c1.md"
         break_before: "divider"
         show_title: false
+      - file: "c2.md"
 """,
         encoding="utf-8",
     )
 
     (project / "c1.md").write_text(
         "# Kapitel Eins Mit Titel\n\nStart des Inhalts ohne sichtbare H1.\n\n## Unterabschnitt 1",
+        encoding="utf-8",
+    )
+    # Zweites Kapitel, sonst greift die Ein-Kapitel-Regel und das
+    # Hauptverzeichnis liesse die Kapitelzeile weg. Geprueft wird hier
+    # show_title, nicht die Gliederungstiefe.
+    (project / "c2.md").write_text(
+        "# Kapitel Zwei\n\nWeiterer Inhalt.",
         encoding="utf-8",
     )
 

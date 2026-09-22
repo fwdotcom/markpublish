@@ -218,6 +218,63 @@ parts:
     assert "Header Suppression Test" not in text.split("\n")[0]
 
 
+def test_single_chapter_header_suppresses_chapter_title(tmp_path: Path):
+    """
+    Bei genau einem Kapitel unterdrückt das Standard-Theme den Kapiteltitel
+    oben rechts in der Kopfzeile, um Redundanz zum Dokumenttitel zu vermeiden.
+    """
+    yaml_text = """\
+document:
+  title: "Hauptdokument"
+  language: "de"
+  cover: false
+  header: true
+  footer: false
+  document_toc: "none"
+parts:
+  - part: "Hauptteil"
+    chapters:
+      - file: "ch.md"
+"""
+    # Zwei Absätze, die durch viel Text oder Umbruch auf Seite 2 fließen
+    ch_md = "# Einziges Kapitel\n\nErster Absatz.\n\n" + ("Viel Text im ersten Kapitel.\n\n" * 40)
+    out_pdf = _compile_pdf(tmp_path, yaml_text, {"ch.md": ch_md})
+    doc = pdfium.PdfDocument(out_pdf)
+    assert len(doc) >= 2
+    # Auf Folgeseiten steht der Dokumenttitel links, aber rechts nicht der redundante Kapiteltitel
+    page2_text = doc[1].get_textpage().get_text_range()
+    assert "Hauptdokument" in page2_text.split("\n")[0]
+    assert "Einziges Kapitel" not in page2_text.split("\n")[0]
+
+
+def test_multi_chapter_header_shows_chapter_title(tmp_path: Path):
+    """
+    Bei mehreren Kapiteln wird der aktive Kapiteltitel rechts in der Kopfzeile gedruckt.
+    """
+    yaml_text = """\
+document:
+  title: "Hauptdokument"
+  language: "de"
+  cover: false
+  header: true
+  footer: false
+  document_toc: "none"
+parts:
+  - part: "Hauptteil"
+    chapters:
+      - file: "c1.md"
+      - file: "c2.md"
+"""
+    c1_md = "# Erstes Kapitel\n\nText 1.\n"
+    c2_md = "# Zweites Kapitel\n\n" + ("Viel Text im zweiten Kapitel.\n\n" * 40)
+    out_pdf = _compile_pdf(tmp_path, yaml_text, {"c1.md": c1_md, "c2.md": c2_md})
+    doc = pdfium.PdfDocument(out_pdf)
+    assert len(doc) >= 3
+    # Auf Folgeseiten von Kapitel 2 steht dessen Kapiteltitel im Header
+    page3_text = doc[2].get_textpage().get_text_range()
+    assert "Zweites Kapitel" in page3_text.split("\n")[0]
+
+
 def test_markdown_extensions_render_properly(tmp_path: Path):
     """
     Tests that tables, callouts/admonitions, definition lists, and footnotes

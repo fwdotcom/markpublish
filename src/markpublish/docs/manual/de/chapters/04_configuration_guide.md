@@ -31,6 +31,13 @@ Globale Verzeichnisvorgaben
 > [!IMPORTANT] Keine Wahrheitswerte bei Verzeichnisschaltern
 > Die Schalter `document_toc`, `part_toc` und `chapter_toc` akzeptieren **keine** Booleans (`true` oder `false`). Verwenden Sie `"full"` (volle Tiefe), `"none"` (kein Verzeichnis) oder eine positive Zahl ab `1` für die maximale Gliederungstiefe (z. B. `2`). Ein notiertes `document_toc: false` bricht die Validierung mit einer deutlichen Meldung ab.
 
+> [!NOTE] Dokumente aus einem einzigen Kapitel
+> Besteht das Dokument aus genau einem Kapitel, lässt das Gesamt-Inhaltsverzeichnis dessen eigene Zeile weg. Sie wiederholte nur den Titel des Deckblatts, und ein Eintrag ohne Geschwister unterscheidet nichts von etwas anderem. Die Unterüberschriften des Kapitels bleiben aufgeführt — anders als bei `document_toc: "none"`, das den gesamten Ast aus dem Verzeichnis nimmt. Verloren geht dabei nichts: die Kapitelnummer steht weiterhin über dem Text beziehungsweise als Marke auf der Trennseite, und das Verzeichnis eines Abschnitts führt sein Kapitel unverändert auf. Sobald ein zweites Kapitel hinzukommt, erscheinen beide Zeilen.
+>
+> Die **Nummerierung** bleibt davon unberührt: die Abschnitte tragen weiterhin die Kapitelnummer im Präfix (`1.1`, `1.2`). Soll auch sie die Kapitelebene überspringen, notieren Sie unter `document:` das Muster `autonum_pattern: "_|_|1|.1|+"` — Part und Kapitel ohne Nummer, die H2 wird zur 1., 2., 3., die H3 zu 1.1. Kommt später ein zweites Kapitel hinzu, gehört diese Zeile wieder entfernt, sonst zählen die H2 über die Kapitelgrenze hinweg durch.
+>
+> Die Tiefenangabe `document_toc` zählt dabei **Gliederungsebenen, nicht sichtbare Zeilen**. Die Kapitelebene ist übersprungen, aber nicht verschwunden: eine H3 liegt auf Ebene 3, gleich ob die Kapitelzeile gedruckt wird. Für zwei sichtbare Ebenen (H2 und H3) notieren Sie deshalb `document_toc: 3`. Das ist so gewollt — andernfalls bedeutete dieselbe Zahl je nach Anzahl der Kapitel etwas anderes.
+
 Nummerierungsregeln
 : Vorgaben zur automatischen Nummerierung (`autonum_pattern`, `autonum_reset`).
 

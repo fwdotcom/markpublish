@@ -31,6 +31,13 @@ Global Table of Contents Settings
 > [!IMPORTANT] No Booleans in TOC Switches
 > The switches `document_toc`, `part_toc`, and `chapter_toc` do **not** accept Booleans (`true` or `false`). Use `"full"` (full depth), `"none"` (no TOC), or a positive integer starting at `1` for the maximum heading depth (e.g., `2`). Writing `document_toc: false` aborts validation with a clear error message.
 
+> [!NOTE] Documents Consisting of a Single Chapter
+> If the document consists of exactly one chapter, the global table of contents omits that chapter's own line. It would merely repeat the cover title, and an entry without siblings distinguishes nothing from anything else. The chapter's subheadings remain listed — unlike with `document_toc: "none"`, which removes the entire branch from the table of contents. Nothing is lost: the chapter number still appears above the text or as a tag on the divider page, and a part's own table of contents lists its chapter unchanged. As soon as a second chapter is added, both lines appear.
+>
+> **Numbering** is untouched by this: sections still carry the chapter number as a prefix (`1.1`, `1.2`). To have the numbering skip the chapter level as well, write `autonum_pattern: "_|_|1|.1|+"` under `document:` — part and chapter unnumbered, H2 becomes 1., 2., 3., and H3 becomes 1.1. Once a second chapter is added, that line should be removed again, or the H2 headings will count straight across the chapter boundary.
+>
+> The depth setting `document_toc` still counts **structural levels, not visible lines**. The chapter level is skipped, not gone: an H3 sits at level 3 whether or not its chapter line is printed. For two visible levels (H2 and H3), therefore write `document_toc: 3`. This is deliberate — otherwise the same number would mean different things depending on how many chapters a document has.
+
 Numbering Rules
 : Settings for automatic numbering (`autonum_pattern`, `autonum_reset`).
 

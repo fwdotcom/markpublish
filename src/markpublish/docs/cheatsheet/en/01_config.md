@@ -45,6 +45,8 @@ Metadata and global layout toggles. Only `title` is required.
 | `chapter_label` | from i18n | Word before a chapter number (`Chapter`); `""` drops it |
 | `pagenum_reset` | `false` | Restart page numbering per part or chapter |
 
+If the document consists of **exactly one chapter**, the main table of contents omits that chapter's own line: it would merely repeat the cover title, and an entry without siblings distinguishes nothing. The chapter's subheadings stay listed, and its number still appears above the text or on the divider page. `document_toc` still counts structural levels rather than visible lines: for two visible levels (H2 and H3), write `document_toc: 3`.
+
 Custom fields under `document:` (`department: "R&D"`) reach the theme through the `meta` dictionary (`meta.at("department").value`). Static labels belong in `i18n.yaml`, not here.
 
 ## parts
@@ -122,6 +124,7 @@ A pattern describes the levels *below* the place it stands — so slot 1 shifts 
 
 ```text
   on document   "_|1|.1|+"               part unnumbered · chapter 1 · 1.1
+  on document   "_|_|1|.1|+"             single-chapter document: H2 becomes 1., 2., 3.
   on document   "I|1|.1|+"               Part I · chapters 1, 2, 3 through
   on a part     "A|.1|+"                 chapter A · A.1 · A.1.1
   on a part     "'Article '1|' ('1')'"   Article 1 · Article 1 (2)

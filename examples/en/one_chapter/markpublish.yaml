@@ -1,0 +1,22 @@
+document:
+  title: "Project Report: Digital Publishing Pipelines"
+  subtitle: "Efficient Documentation Workflows with markpublish"
+  summary: "Sample document for markpublish demonstrating core layout and formatting features and serving as a baseline for layout tests. All content is entirely fictional."
+  author: "Frank Winter"
+  copyright: "© 2026 Frank Winter"
+  version: "1.0.0"
+  date: "auto"
+  language: "en"
+
+  cover: true
+  document_toc: "none"
+  autonum_pattern: "_|_|1|.1|+"
+  header: true
+  footer: true
+
+theme: "default"
+
+parts:
+  - part: "Main"
+    chapters:
+      - file: "report.md"

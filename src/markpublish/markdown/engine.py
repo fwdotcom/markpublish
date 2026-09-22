@@ -278,6 +278,20 @@ class MarkdownPipeline:
         item, _ = self._process_chapter(chapter_cfg)
         return item.local_toc_items
 
+    def _is_single_chapter_document(self) -> bool:
+        """
+        Besteht das Dokument aus genau einem Kapitel?
+
+        Dann laesst das Hauptverzeichnis dessen Zeile weg (siehe
+        _process_chapter). Gezaehlt wird ueber alle Parts hinweg: ob das eine
+        Kapitel allein steht oder in einem von mehreren Parts, aendert nichts
+        daran, dass seine Zeile nichts von etwas anderem unterscheidet.
+        """
+        if not self.config:
+            return False
+        parts = getattr(self.config, "parts", None) or []
+        return sum(len(getattr(part, "chapters", None) or []) for part in parts) == 1
+
     def process_document(self) -> Tuple[List[ContentItem], List[TOCNode]]:
         """
         Parses all parts and chapters, builds content items and global TOC tree.
@@ -618,6 +632,24 @@ class MarkdownPipeline:
         if chapter_cfg.toc_title and file_h1 and allowed_toc_slugs:
             allowed_toc_slugs = {s for s in allowed_toc_slugs if s != slug}
 
+        # Ein Dokument aus einem einzigen Kapitel fuehrt dessen Zeile nicht im
+        # Hauptverzeichnis: sie wiederholt bloss den Titel des Deckblatts, und
+        # ein Eintrag ohne Geschwister unterscheidet nichts. Die
+        # Unterueberschriften bleiben stehen -- anders als bei
+        # `document_toc: "none"`, das den ganzen Ast aus dem Verzeichnis nimmt.
+        #
+        # Verloren geht dabei nichts: die Kapitelnummer steht weiter ueber dem
+        # Text bzw. als Marke auf der Trennseite, und das Verzeichnis eines
+        # Parts fuehrt sein Kapitel unveraendert auf. Betroffen ist allein das
+        # Hauptverzeichnis.
+        #
+        # Zwei Wege bringen die Zeile dorthin; hier wird der erste geschlossen,
+        # die im Text gesetzte H1. Den zweiten -- die versteckte H1, die der
+        # Renderer bei `show_title: false` an ihrer Stelle setzt -- schliesst
+        # `needs_synthetic_toc_heading` weiter unten.
+        if allowed_toc_slugs and self._is_single_chapter_document():
+            allowed_toc_slugs = {s for s in allowed_toc_slugs if s != slug}
+
         # Convert ElementTree to Typst markup using the clean AST serializer
         serializer = TypstSerializer(
             file_base_dir=file_base_dir,
@@ -658,7 +690,10 @@ class MarkdownPipeline:
         )
 
         item.needs_synthetic_toc_heading = bool(
-            in_doc_toc and effective_toc_title and (not file_h1 or bool(chapter_cfg.toc_title) or not chapter_cfg.show_title)
+            in_doc_toc
+            and effective_toc_title
+            and not self._is_single_chapter_document()
+            and (not file_h1 or bool(chapter_cfg.toc_title) or not chapter_cfg.show_title)
         )
         item.allowed_toc_slugs = allowed_toc_slugs
 

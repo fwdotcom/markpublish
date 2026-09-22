@@ -8,7 +8,6 @@
 
 // --- Color Palette ---
 #let c-primary        = rgb("#2563eb")  // Brand / accent color (Blue 600)
-#let c-primary-light  = rgb("#dbeafe")  // Soft accent background (Blue 100)
 #let c-text-dark      = rgb("#0f172a")  // Headings & primary text (Slate 900)
 #let c-text-body      = rgb("#1e293b")  // Body & callout text (Slate 800)
 #let c-text-secondary = rgb("#334155")  // Secondary text / TOC / subtitles (Slate 700)
@@ -19,6 +18,23 @@
 #let c-bg-subtle      = rgb("#f8fafc")  // Callouts, boxes, cards (Slate 50)
 #let c-bg-muted       = rgb("#f1f5f9")  // Badges & code blocks (Slate 100)
 #let c-white          = rgb("#ffffff")
+
+// Farben, die bewusst nicht an der Textfarbe haengen.
+//
+// `c-code` stand vorher nur am Inline-Code; der Codeblock setzte gar keine
+// Farbe und erbte damit die des Fliesstextes. Beide Wege endeten heute bei
+// Slate 900, liefen aber auseinander, sobald jemand `c-text-dark` anfasst:
+// die Bloecke waeren mitgewandert, der Inline-Code nicht. Syntax ist eine
+// eigene Ebene und bekommt deshalb ihren eigenen Wert.
+//
+// `c-link-underline` stand als rgb("#93c5fd") mitten in der Show-Regel -- die
+// einzige Farbe der Datei, die an dieser Palette vorbeiging. Sie ist die helle
+// Stufe zum Akzent (Blue 300 zu Blue 600); wer `c-primary` aendert, muss sie
+// mit aendern. Wer das nicht von Hand tun will, schreibt hier
+// `c-primary.lighten(55%)` -- das trifft den Ton nicht auf den Punkt, folgt
+// dem Akzent dafuer von selbst.
+#let c-code           = rgb("#0f172a")  // Codebloecke & Inline-Code (Slate 900)
+#let c-link-underline = rgb("#93c5fd")  // Unterstreichung von Web-Links (Blue 300)
 
 // --- Typography Tokens ---
 #let font-family-sans = ("Open Sans", "Liberation Sans", "Arial", "Helvetica")
@@ -45,6 +61,7 @@
 #let par-leading      = 0.85em
 #let par-spacing      = 1.5em
 #let list-spacing     = 1.2em
+#let quote-spacing    = 1.0em  // Absatzabstand *innerhalb* eines Zitats
 #let size-code-block    = 8.5pt
 #let size-code-inline   = 1.0em
 #let weight-code-inline = "medium"
@@ -329,7 +346,9 @@
           let n = counter(heading).at(active.location())
           numbering(active.numbering, ..n)
         } else { none }
-        let ch-title = if active != none and active.location().page() <= cur-page {
+        // Bei genau einem Kapitel im Dokument entfaellt der Kapiteltitel oben rechts:
+        // er wiederholt nur den Dokumenttitel oder unterscheidet nichts.
+        let ch-title = if chapter-h.len() > 1 and active != none and active.location().page() <= cur-page {
           if num-str != none and str(num-str).trim() != "" [ #num-str #h(0.3em) #active.body ] else [ #active.body ]
         } else { "" }
         set text(hyphenate: false)
@@ -442,7 +461,7 @@
   // Links styling: Web URLs blue and underlined, internal links natural
   show link: it => {
     if type(it.dest) == str {
-      text(fill: c-primary, underline(stroke: 0.5pt + rgb("#93c5fd"), offset: 2pt)[#it])
+      text(fill: c-primary, underline(stroke: 0.5pt + c-link-underline, offset: 2pt)[#it])
     } else {
       it
     }
@@ -511,6 +530,22 @@
   show table: set text(number-width: "tabular")
   show table: it => block(stroke: (bottom: stroke-table-top + c-text-dark))[#it]
 
+  // Zitate
+  //
+  // Ohne diese Regel erbt ein Zitatblock den Absatzabstand des Fliesstextes
+  // (`par-spacing`, 1.5em). Zwei Saetze desselben Zitats stehen dann genauso
+  // weit auseinander wie zwei unabhaengige Absaetze -- gemessen 22.1pt hier
+  // wie dort -- und lesen sich als zwei Dinge statt als eines.
+  //
+  // Unter `par-leading` darf der Wert nicht rutschen: dann staenden die
+  // Absaetze eines Zitats dichter als die Zeilen innerhalb eines Absatzes,
+  // und die Gliederung stuende auf dem Kopf. Zusammengerueckt wird nur das
+  // Innere; der Abstand *um* das Zitat bleibt der des Fliesstextes.
+  show quote: it => {
+    set par(spacing: quote-spacing, leading: par-leading)
+    it
+  }
+
   // Code Block styling
   show raw.where(block: true): it => block(
     fill: c-bg-muted,
@@ -518,7 +553,7 @@
     inset: 10pt,
     radius: radius-md,
     width: 100%,
-    text(font: font-family-mono, size: size-code-block)[#it]
+    text(fill: c-code, font: font-family-mono, size: size-code-block)[#it]
   )
   // Relative Schriftgröße für Inline-Code (Optischer Grauwert angepasst über weight-code-inline)
   show raw.where(block: false): it => highlight(
@@ -527,7 +562,7 @@
     extent: 1.5pt,
     top-edge: "ascender",
     bottom-edge: "descender",
-  )[#text(fill: c-text-dark, font: font-family-mono, size: size-code-inline, weight: weight-code-inline)[#it]]
+  )[#text(fill: c-code, font: font-family-mono, size: size-code-inline, weight: weight-code-inline)[#it]]
 
   // Render Cover Page if enabled (A1: kein Blocksatz, keine Silbentrennung auf Titeln)
   if show-cover {

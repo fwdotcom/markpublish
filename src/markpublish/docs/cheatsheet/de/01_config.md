@@ -45,6 +45,8 @@ Metadaten und globale Layout-Schalter. Pflichtangabe ist allein `title`.
 | `chapter_label` | aus i18n | Wort vor der Kapitelnummer (`Kapitel`); `""` lässt es weg |
 | `pagenum_reset` | `false` | Seitennummerierung je Part oder Kapitel neu beginnen |
 
+Besteht das Dokument aus **genau einem Kapitel**, lässt das Haupt-Inhaltsverzeichnis dessen eigene Zeile weg: sie wiederholte nur den Titel des Deckblatts, und ein Eintrag ohne Geschwister unterscheidet nichts. Die Unterüberschriften des Kapitels bleiben aufgeführt, seine Nummer steht weiterhin über dem Text bzw. auf der Trennseite. `document_toc` zählt dabei weiter Gliederungsebenen und nicht sichtbare Zeilen: für zwei sichtbare Ebenen (H2 und H3) notieren Sie `document_toc: 3`.
+
 Eigene Zusatzfelder unter `document:` (`abteilung: "F&E"`) erreichen das Theme über das Wörterbuch `meta` (`meta.at("abteilung").value`). Statische Beschriftungen gehören in die `i18n.yaml`, nicht hierher.
 
 ## parts
@@ -122,6 +124,7 @@ Ein Pattern beschreibt die Ebenen *unterhalb* der Stelle, an der es steht — Sl
 
 ```text
   an document   "_|1|.1|+"               Part ohne Nummer · Kapitel 1 · 1.1
+  an document   "_|_|1|.1|+"             Ein-Kapitel-Dokument: H2 wird 1., 2., 3.
   an document   "I|1|.1|+"               Teil I · Kapitel 1, 2, 3 durchlaufend
   am Part       "A|.1|+"                 Kapitel A · A.1 · A.1.1
   am Part       "'Artikel '1|' ('1')'"   Artikel 1 · Artikel 1 (2)

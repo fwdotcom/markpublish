@@ -1,0 +1,41 @@
+document:
+  title: "Systemarchitektur & Referenzhandbuch"
+  subtitle: "Architektur und Satzpraxis"
+  summary: "Fiktives Referenzdokument zur Demonstration des markpublish-Layouts, fortschrittlicher Typografie und mathematischen Formelsatzes über drei strukturierte Kapitel. Dient als visuelle und technische Grundlage für Layout- und Regressionstests."
+  author: "Frank Winter"
+  copyright: "© 2026 Frank Winter"
+  version: "1.0.0"
+  date: "auto"
+  language: "de"
+
+  cover: true
+  document_toc: "full"
+  autonum_pattern: "_|1|.1|+"
+  header: true
+  footer: true
+
+  document_toc: 2
+  chapter_toc: 2
+
+theme: "default"
+
+parts:
+  - part: "Hauptteil"
+    chapters:
+      - file: "01_architektur_und_typografie.md"
+        break_before: "divider"
+        show_title: false
+        subtitle: "Architekturprinzipien und mikrotypografische Harmonie"
+        summary: "Über die strikte Entkopplung von Form und Inhalt, dynamische Umbruchalgorithmen zur Vermeidung typografischer Fehler sowie die konsistente Gliederung anspruchsvoller Publikationen."
+
+      - file: "02_syntax_code_und_formeln.md"
+        break_before: "divider"
+        show_title: false
+        subtitle: "Präzisionssatz für Wissenschaft und Softwareentwicklung"
+        summary: "Elegante Integration nativer mathematischer Formeln, kontrastreicher Quelltextauszüge mit automatischer Syntaxhervorhebung sowie typografisch feinjustierter Datentabellen."
+
+      - file: "03_prozesse_und_qualitaetssicherung.md"
+        break_before: "divider"
+        show_title: false
+        subtitle: "Automatisierte Workflows von der Redaktion bis zum Druck"
+        summary: "Strukturierte Veröffentlichungszyklen, kontinuierliche CI/CD-Validierung und praxisnahe Prüfprozesse für reproduzierbare und archivfeste Dokumente."

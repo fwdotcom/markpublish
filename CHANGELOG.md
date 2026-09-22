@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+### Added
+- **Example projects (`examples/`)**: Added four complete, runnable sample projects in German (`examples/de/`) and English (`examples/en/`) based on the default theme:
+  - `ein_kapitel` / `one_chapter`: Minimal single-chapter report utilizing section autonumbering (`autonum_pattern: "_|_|1|.1|+"`), comparison tables, and callouts without redundant chapter running headers.
+  - `drei_kapitel` / `three_chapters`: Comprehensive three-chapter technical specification showcasing chapter divider pages (`break_before: "divider"`), table of contents, Typst math equations (inline and display blocks), multi-language syntax highlighting, definition lists, footnotes, and pre-flight task lists.
+
+### Changed
+- **Single-chapter documents no longer list their chapter in the table of contents**: When a project consists of exactly one chapter across all parts, the main table of contents now omits that chapter's own line. It only repeated the cover title, and an entry without siblings distinguishes nothing. Its subheadings remain listed — unlike `document_toc: "none"` on a chapter, which removes the entire branch and leaves the page empty. Nothing is lost: the chapter number still appears above the text or as a tag on the divider page, and a part's own table of contents lists its chapter unchanged. Adding a second chapter brings both lines back. `document_toc` keeps counting structural levels rather than visible lines — the chapter level is skipped, not gone, so a single-chapter document needs `document_toc: 3` to list two visible levels (H2 and H3); otherwise the same number would mean different things depending on how many chapters a document has. Numbering is deliberately untouched by this rule: a number is an address, and collapsing it automatically would silently renumber sections that existing documents already cite.
+- **Running header chapter title suppression in single-chapter documents (default PDF template)**: When a document contains only one chapter in total, the top-right running header now suppresses the chapter title. In single-chapter documents (e.g. reports, whitepapers, or onepagers), repeating the sole chapter title across every page added visual clutter and duplicated the document title from the left header column. Multi-chapter documents continue to display the active chapter title and number as before.
+- **Dedicated color token for code (`c-code`)**: The two `raw` show rules disagreed — inline code pinned its color to `c-text-dark`, while code blocks set no fill at all and silently inherited the global body text color. Both resolved to Slate 900 today, but diverged the moment `c-text-dark` was changed: blocks followed the body text, inline code did not. Both rules now read `c-code`, so syntax is a layer of its own. No visual change.
+- **Dedicated color token for link underlines (`c-link-underline`)**: The underline under web links was hard-wired as `rgb("#93c5fd")` inside the `show link` rule — the only color in the template that bypassed the palette. Changing `c-primary` left the underline blue. The value now sits in the palette next to the accent it belongs to. No visual change.
+
+### Fixed
+- **Paragraph spacing inside block quotes (default PDF template)**: Block quotes had no show rule of their own, so a `#quote` inherited the document's paragraph spacing (`par-spacing`, 1.5em). Two paragraphs of the *same* quotation were therefore set as far apart as two unrelated body paragraphs — measured at 22.1 pt in both cases — and read as two separate statements rather than one. A `show quote` rule now tightens spacing inside the quote to the new `quote-spacing` token (1.0em, measured 17.1 pt), which sits between the intra-paragraph leading (15.7 pt) and the body paragraph spacing. The spacing *around* the quote is unchanged.
+
+### Removed
+- **Unused `c-primary-light` token**: The palette declared a "soft accent background" (Blue 100) that no element in the template or anywhere else in the repository ever read. It promised a wired-up slot that did not exist. Existing themes exported with `markpublish export-template` carry their own copy and are unaffected.
+
 ## [2.1.6] - 2026-09-21
 
 ### Fixed

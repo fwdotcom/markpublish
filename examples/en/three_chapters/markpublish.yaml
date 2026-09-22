@@ -1,0 +1,38 @@
+document:
+  title: "System Architecture & Reference Guide"
+  subtitle: "Architecture and Typesetting"
+  summary: "Fictional reference document demonstrating markpublish page geometry, advanced typography, and mathematical typesetting across three structured chapters. Serves as a visual and technical baseline for layout and regression testing."
+  author: "Frank Winter"
+  copyright: "© 2026 Frank Winter"
+  version: "1.0.0"
+  date: "auto"
+  language: "en"
+
+  cover: true
+  document_toc: "full"
+  autonum_pattern: "_|1|.1|+"
+  header: true
+  footer: true
+
+theme: "default"
+
+parts:
+  - part: "Main"
+    chapters:
+      - file: "01_architecture_and_typography.md"
+        break_before: "divider"
+        show_title: false
+        subtitle: "Architectural Foundations and Microtypographic Balance"
+        summary: "Exploring strict decoupling of presentation and content, dynamic page-breaking algorithms, and consistent structural pacing for demanding publications."
+
+      - file: "02_syntax_code_and_math.md"
+        break_before: "divider"
+        show_title: false
+        subtitle: "Precision Typesetting for Scientific and Software Engineering"
+        summary: "Seamless integration of native mathematical equations, high-contrast syntax-highlighted code listings, and finely tuned tabular data."
+
+      - file: "03_workflows_and_quality_assurance.md"
+        break_before: "divider"
+        show_title: false
+        subtitle: "Automated Lifecycles from Authoring to Print Distribution"
+        summary: "Structured release workflows, continuous CI/CD verification gates, and robust pre-flight inspection for reproducible, archival-grade documents."
