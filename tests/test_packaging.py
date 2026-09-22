@@ -74,7 +74,8 @@ def test_readme_links_point_at_the_real_repository():
     urls = tomllib.loads(
         (REPO_ROOT / "pyproject.toml").read_text(encoding="utf-8")
     )["project"]["urls"]
-    repository = urls["Homepage"].rstrip("/")
+    repo_url = urls.get("Repository", urls["Homepage"])
+    repository = repo_url.rstrip("/").removesuffix(".git")
 
     github_links = [
         target
