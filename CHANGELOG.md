@@ -10,170 +10,180 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [2.1.8] - 2026-09-22
 
 ### Changed
-- **Callout boxes are no longer split across pages (default PDF template)**: A callout is an element, not a run of paragraphs. Spread over a page break it lost the very thing that makes it one — the title row with its icon stayed on one page, the warning itself moved to the next, and the colored accent bar broke off mid-box; a reader arriving on the second page saw an indented paragraph with no stated reason for being indented. The box is now set with `breakable: false`. Measured against an otherwise identical template: with a six-line `[!WARNING]` preceded by 24 and 25 filler paragraphs, the box previously ran across pages 3 and 4; it now moves to page 4 as a whole. The trade-off is deliberate and worth knowing: a box that no longer fits on the current page leaves white space above it, and a box taller than the text area (691.65 pt on A4 with the default margins) cannot be placed at all — Typst then lets it run off the bottom of the page, without an error and without a warning. A hint filling an entire page, however, is no longer a hint but a section.
-- **Block quotes are set in the callout box, in grey (default PDF template)**: A plain `>` block without a type in square brackets previously differed from a callout in every respect but its content, although both are the same thing on the page: a voice set apart from the running text. It now uses the same box — identical geometry, verified in the output at x = 85.04 pt, width 425.20 pt, 3.5 pt accent bar, text starting at 99.04 pt, exactly like a `[!NOTE]` beside it — with the grey of the new `c-quote-bar` token (Slate 500) on `c-bg-subtle`. Grey is the one color that carries no meaning here: the five alert types state their kind through color, a quotation states none, so grey is the absence of a classification rather than a sixth one. The token is deliberately separate from `c-text-muted` despite sharing its value, because one is a text color and the other a surface. Two differences from a callout remain by design: a quote carries no title row, and it stays breakable — a quotation is running text and may legitimately be long, so a statute spanning a page and a half should break and stay readable instead of running off the page as an indivisible block. The rule reads `it.body` rather than `it`, since Typst pads a quote block sideways on its own and the text would otherwise be indented twice, once by the box and once by the quote.
+- **Callout boxes set to non-breakable (default PDF template)**: Admonition/callout boxes now use `breakable: false` so title, icon, accent bar, and text remain together on a single page instead of splitting across page breaks.
+- **Block quotes styled as callout boxes (default PDF template)**: Markdown block quotes (`>`) use the shared callout box layout with a neutral grey accent bar (`c-quote-bar`, Slate 500) and `breakable: true`, without a title row.
 
 ---
 
 ## [2.1.7] - 2026-09-22
 
 ### Added
-- **Example projects (`examples/`)**: Added four complete, runnable sample projects in German (`examples/de/`) and English (`examples/en/`) based on the default theme:
-  - `ein_kapitel` / `one_chapter`: Minimal single-chapter report utilizing section autonumbering (`autonum_pattern: "_|_|1|.1|+"`), comparison tables, and callouts without redundant chapter running headers.
-  - `drei_kapitel` / `three_chapters`: Comprehensive three-chapter technical specification showcasing chapter divider pages (`break_before: "divider"`), table of contents, Typst math equations (inline and display blocks), multi-language syntax highlighting, definition lists, footnotes, and pre-flight task lists.
+- **Example projects (`examples/`)**: Added four complete sample projects in German (`examples/de/`) and English (`examples/en/`) for single-chapter reports and three-chapter guides.
 
 ### Changed
-- **Single-chapter documents no longer list their chapter in the table of contents**: When a project consists of exactly one chapter across all parts, the main table of contents now omits that chapter's own line. It only repeated the cover title, and an entry without siblings distinguishes nothing. Its subheadings remain listed — unlike `document_toc: "none"` on a chapter, which removes the entire branch and leaves the page empty. Nothing is lost: the chapter number still appears above the text or as a tag on the divider page, and a part's own table of contents lists its chapter unchanged. Adding a second chapter brings both lines back. `document_toc` keeps counting structural levels rather than visible lines — the chapter level is skipped, not gone, so a single-chapter document needs `document_toc: 3` to list two visible levels (H2 and H3); otherwise the same number would mean different things depending on how many chapters a document has. Numbering is deliberately untouched by this rule: a number is an address, and collapsing it automatically would silently renumber sections that existing documents already cite.
-- **Running header chapter title suppression in single-chapter documents (default PDF template)**: When a document contains only one chapter in total, the top-right running header now suppresses the chapter title. In single-chapter documents (e.g. reports, whitepapers, or onepagers), repeating the sole chapter title across every page added visual clutter and duplicated the document title from the left header column. Multi-chapter documents continue to display the active chapter title and number as before.
-- **Dedicated color token for code (`c-code`)**: The two `raw` show rules disagreed — inline code pinned its color to `c-text-dark`, while code blocks set no fill at all and silently inherited the global body text color. Both resolved to Slate 900 today, but diverged the moment `c-text-dark` was changed: blocks followed the body text, inline code did not. Both rules now read `c-code`, so syntax is a layer of its own. No visual change.
-- **Dedicated color token for link underlines (`c-link-underline`)**: The underline under web links was hard-wired as `rgb("#93c5fd")` inside the `show link` rule — the only color in the template that bypassed the palette. Changing `c-primary` left the underline blue. The value now sits in the palette next to the accent it belongs to. No visual change.
+- **Single-chapter table of contents**: When a document contains only one chapter in total, the main table of contents omits the redundant chapter line and directly lists subheadings (H2, H3).
+- **Single-chapter running headers (default PDF template)**: Top-right running headers suppress the chapter title in single-chapter documents to avoid repeating the document title.
+- **Dedicated color token for code (`c-code`)**: Added `c-code` token (Slate 900) to unify syntax coloring for inline code and code blocks.
+- **Dedicated color token for link underlines (`c-link-underline`)**: Added `c-link-underline` token (Blue 300) to control link underline styling from the palette.
 
 ### Fixed
-- **Paragraph spacing inside block quotes (default PDF template)**: Block quotes had no show rule of their own, so a `#quote` inherited the document's paragraph spacing (`par-spacing`, 1.5em). Two paragraphs of the *same* quotation were therefore set as far apart as two unrelated body paragraphs — measured at 22.1 pt in both cases — and read as two separate statements rather than one. A `show quote` rule now tightens spacing inside the quote to the new `quote-spacing` token (1.0em, measured 17.1 pt), which sits between the intra-paragraph leading (15.7 pt) and the body paragraph spacing. The spacing *around* the quote is unchanged.
+- **Paragraph spacing inside block quotes (default PDF template)**: Added `quote-spacing` token (1.0em) to tighten spacing inside multi-paragraph quotes.
 
 ### Removed
-- **Unused `c-primary-light` token**: The palette declared a "soft accent background" (Blue 100) that no element in the template or anywhere else in the repository ever read. It promised a wired-up slot that did not exist. Existing themes exported with `markpublish export-template` carry their own copy and are unaffected.
+- **Unused `c-primary-light` token**: Removed unused color token from the default palette.
+
+---
 
 ## [2.1.6] - 2026-09-21
 
 ### Fixed
-- **Documentation links in README**: Updated the manual and cheat sheet PDF download links in `README.md` to point directly to `www.markpublish.com/manuals/` rather than GitHub repository blob URLs.
-- **Release workflow wheel management**: Fixed release artifact upload in `.github/workflows/release.yml` by explicitly setting repository context and automatically pruning obsolete `.whl` files from earlier releases.
+- **Documentation links in README**: Updated manual and cheat sheet PDF download links in `README.md` to point to `www.markpublish.com/manuals/`.
+- **Release workflow wheel management**: Fixed release artifact upload in `.github/workflows/release.yml` by pruning obsolete `.whl` files from earlier releases.
+
+---
 
 ## [2.1.5] - 2026-09-21
 
 ### Added
-- **Landing page & interactive feature showcase (`www/`)**: Redesigned the project website with a 4-card showcase featuring realistic torn-paper clippings of compiled PDF pages, a distraction-free vector lightbox zoom with backdrop blur, seamless German/English language switching, and direct downloads for sample projects (`.zip`) and reference PDFs.
+- **Landing page & interactive feature showcase (`www/`)**: Redesigned the project website with a 4-card showcase featuring PDF page clippings, vector lightbox zoom, German/English language toggle, and downloads for sample projects and PDFs.
 - **Showcase asset build pipeline (`scripts/build_showcase_assets.py`)**: Added an automated script to compile vector SVGs and PNG fallbacks from bundled sample documents (`www/sample/de` and `www/sample/en`).
 
 ### Changed
-- **Relocated `build_manuals.py`**: Moved documentation build script to `scripts/build_manuals.py` and updated all CI workflows, test suites, and project guidelines.
-- **GitHub Pages deployment workflow**: Configured `.github/workflows/deploy-pages.yml` to deploy documentation and website upon GitHub release publication or manual workflow dispatch.
+- **Relocated `build_manuals.py`**: Moved documentation build script to `scripts/build_manuals.py` and updated CI workflows and guidelines.
+- **GitHub Pages deployment workflow**: Configured `.github/workflows/deploy-pages.yml` to deploy website and documentation on release publication or manual trigger.
 
 ### Fixed
-- **Leading number escaping in headings & paragraphs**: Escaped leading digits followed by a period (e.g. `1\. `) in heading and paragraph content during Typst serialization. This prevents Typst from parsing manual numbering (such as `# 1. Einführung`) as an ordered list item (`enum.item`), which previously caused the list marker to anchor to the left column edge in running headers (appearing in the middle of the page) separated by a wide void from the right-aligned heading text.
+- **Leading number escaping in headings & paragraphs**: Escaped leading digits followed by a period (e.g. `1\. `) to prevent Typst from interpreting them as ordered list items in headers.
+
+---
 
 ## [2.1.4] - 2026-09-10
 
 ### Fixed
-- **Table text justification in PDF template**: Tables now explicitly disable justified text alignment (`show table: set par(justify: false)`). Cells in narrower columns are set ragged-right, avoiding overstretched word spacing and awkward gaps inside table content.
-- **Callout icon size & content spacing**: Adjusted callout icon dimensions from 14 pt to 11 pt and increased the margin between callout title and content body from 4 pt to 7 pt, providing a more balanced optical proportion and breathing room inside admonition boxes.
+- **Table text justification in PDF template**: Tables explicitly disable text justification (`show table: set par(justify: false)`) to prevent overstretched word spacing in narrow columns.
+- **Callout icon size & content spacing**: Adjusted callout icon size to 11 pt and title-to-content margin to 7 pt for balanced optical proportions.
+
+---
 
 ## [2.1.3] - 2026-09-09
 
 ### Added
-- **Bundled Monospace Font (`Noto Sans Mono`)**: Bundled `NotoSansMono-VariableFont_wdth,wght.ttf` (SIL Open Font License 1.1) in the default template under `templates/default/pdf/fonts/`. Monospace elements (code blocks and inline code) now render identically across all operating systems (Windows, macOS, Linux, and CI/Docker containers) without relying on local system fonts.
-- **Version on the quick reference**: `markpublish cheatsheet` now prints the version it belongs to in the footer, matching the behavior of the manual.
+- **Bundled monospace font (`Noto Sans Mono`)**: Bundled `NotoSansMono-VariableFont_wdth,wght.ttf` under `templates/default/pdf/fonts/` for consistent code rendering across all platforms.
+- **Version in quick reference**: Added version display in `markpublish cheatsheet` footer.
 
 ### Changed
-- **Inline code & code block typography**: Replaced hardcoded font sizes in the default template with centralized design tokens (`size-code-block = 8.5pt`, `size-code-inline = 1.0em`, `weight-code-inline = "medium"`). Using the variable font's `medium` (500) weight balances the stroke thickness with *Open Sans Regular*, ensuring inline code matches the optical gray value of the surrounding body text without appearing shrunken or frail.
-- **Design tokens consolidation in default template**: Refactored `template.typ` to declare centralized tokens at the top of the file for colors, strokes, corner radii, body metrics, heading scales, and code typography.
-- **Running header column ratio & hyphenation**: Changed the running header columns from `(2fr, 3fr)` to `(1fr, 1fr)` and disabled hyphenation on header cells. Subtitles now stay on a single line, keeping the running header strictly two lines high and vertically anchored to the chapter title.
-- **Unified list and definition list spacing**: Set `list-spacing = 1.2em` and configured `set terms(spacing: list-spacing, tight: false)` in `setup-document`. Bullet lists, numbered lists, task lists, and definition lists now share an identical vertical rhythm, cleanly separating multi-line items without creating excessive paragraph voids.
-- **Document TOC vertical rhythm**: Added balanced spacing (`v(0.85em)`) between part divider titles and subsequent chapter lists in the table of contents, while suppressing leading vertical space when the outline starts with a part divider.
-- **Cover, divider, and heading typography**: Explicitly disabled text justification (`justify: false`) and hyphenation (`hyphenate: false`) on headings, cover page titles, and part/chapter dividers, preventing stretched word spacing and awkward hyphen breaks on large titles.
-- **Booktabs table formatting**: Cleaned up default table styling with dedicated top/mid/bottom rules (`stroke-table-top`, `stroke-table-mid`, `stroke-table-divider`) and tabular figures (`number-width: "tabular"`).
+- **Inline code & code block typography**: Centralized code font tokens (`size-code-block = 8.5pt`, `size-code-inline = 1.0em`, `weight-code-inline = "medium"`).
+- **Design tokens consolidation in default template**: Centralized design tokens at top of `template.typ` for colors, strokes, radii, and metrics.
+- **Running header column ratio & hyphenation**: Changed header columns to `(1fr, 1fr)` and disabled hyphenation to keep headers strictly two lines high.
+- **Unified list and definition list spacing**: Set `list-spacing = 1.2em` across bullet, numbered, task, and definition lists for a consistent vertical rhythm.
+- **Document TOC vertical rhythm**: Added spacing (`v(0.85em)`) between part divider titles and chapter lists in table of contents.
+- **Cover, divider, and heading typography**: Disabled text justification and hyphenation on headings, cover page titles, and part/chapter dividers.
+- **Booktabs table formatting**: Cleaned up default table styling with dedicated top/mid/bottom rules and tabular figures (`number-width: "tabular"`).
+
+---
 
 ## [2.1.2] - 2026-09-09
 
 ### Fixed
-- **Strict root-level configuration validation**: `MarkpublishConfig` now forbids unknown top-level keys (`extra = "forbid"`). Typos such as `theam:` or `templtes_dir:` are rejected immediately with `did_you_mean` suggestions rather than being silently ignored.
-- **Config loader error handling**: `load_config` clearly distinguishes between missing files (`FileNotFoundError`) and invalid YAML content (`ValueError`), rejecting scalars, lists, and empty files with precise error messages instead of misleading fallbacks.
-- **CLI `--target html` exit behavior**: Requesting `--target html` directly now exits with code 1 and a clear error message instead of exiting with 0 without generating output, preventing CI false positives.
-- **Heading anchor collision handling**: Verified AST slug generation in `TypstSerializer` against duplicate heading titles and explicit anchor collisions.
+- **Strict root-level configuration validation**: Rejected unknown top-level keys in `MarkpublishConfig` with `did_you_mean` suggestions.
+- **Config loader error handling**: Differentiated between missing files and invalid YAML content with explicit error messages.
+- **CLI `--target html` exit behavior**: Requesting `--target html` exits with code 1 and an explanatory message.
+- **Heading anchor collision handling**: Verified AST slug generation against duplicate titles and explicit anchor collisions.
 
 ### Removed
-- **v1.x legacy modules**: Removed dormant `assets.py` (legacy HTML data-URI inliner) and `typst_converter.py` (legacy regex-based Typst converter) along with deprecated tests, unifying all rendering onto `TypstSerializer`.
+- **v1.x legacy modules**: Removed dormant `assets.py` and `typst_converter.py` along with deprecated tests.
+
+---
 
 ## [2.1.1] - 2026-09-08
 
 ### Fixed
-- **A notated empty label switches the word off**: `part_label:`, `chapter_label:` and `label:` written without a value (or as `""`) leave the divider page and the heading without a naming word instead of falling back to the i18n default — a part then carries only its number and its title. A key that is not written still inherits as before; only the notated empty one silences the label. Where a number remains, it moves up into the tag line rather than being set behind a blank word.
+- **Empty label support**: Setting `part_label: ""`, `chapter_label: ""` or `label: ""` suppresses the label prefix entirely on divider pages and headings.
+
+---
 
 ## [2.1.0] - 2026-09-08
 
 ### Added
-- **`autonum_pattern`**: One key describes how numbers are built. `"1|.1|+"` gives 1, 1.1, 1.1.1; slots are separated by `|`, literals sit in the slot (`"'Artikel '1"`), `_` leaves a level unnumbered and `+` repeats the slot before it. Each slot belongs to the level *below* the place the pattern stands, so the same pattern starts at the chapter on a part and at the H2 on a chapter.
-- **`label`, `part_label`, `chapter_label`**: The word naming an element — "Kapitel", "Anhang" — comes from the configuration instead of the heading text, and falls back to the i18n cascade. Notated, it steps in front of the number in the heading and its table-of-contents entry (`Anhang A: Schema-Referenz`) without reaching the subheadings, which keep counting `A.1`. The separator between the two is theme business and sits in the cascade as `label_separator`.
-- **Parts can be numbered**: `autonum_pattern: "I|1|.1|+"` under `document:` numbers them. The number appears on the divider page and in the table of contents but not inside the chapter numbers, and a part hidden with `document_toc: "none"` gets none — otherwise removing a divider page would silently renumber every chapter below it.
+- **`autonum_pattern`**: Added pattern syntax (e.g. `"1|.1|+"`, `"_|1|.1|+"`) to define section and heading numbering across document levels.
+- **`label`, `part_label`, `chapter_label`**: Configurable structural labels for parts and chapters via `markpublish.yaml` and the i18n cascade.
+- **Numbered parts**: Parts can be numbered via `autonum_pattern` under `document:`.
 
 ### Changed
-- **`autonum_reset`** now means that the levels below start again at one when the block is entered. Entering a numbered level already discards the counters beneath it, so the switch is needed only where no numbered level supplies that: under a skipped level (`_`) and under a part.
-- **Theme contract**: `render-part-divider` takes a `number:` argument. A theme that does not declare it aborts the build.
-- **A label key written at the wrong level aborts with a pointer**: `part_label` on a part and `chapter_label` on a chapter name the level below and belong on the enclosing block; the block itself uses `label`. The generic hint would have suggested `chapter` — a field that was accepted and did nothing.
-- **Pattern errors name the base level**: every rejection ends with what slot 1 means where the pattern stands, because that is the open question when a slot shifts with its place.
+- **`autonum_reset`**: Resets numbering counters for child levels when entering a block.
+- **Theme contract**: `render-part-divider` requires a `number:` parameter.
+- **Strict label placement**: Validates label placement (`part_label`/`chapter_label` on parent block, `label` on target element).
+- **Descriptive pattern errors**: Pattern validation errors indicate the base level where the pattern applies.
 
 ### Removed
-- **`autonum_style`, `autonum_from_level` and `autonum_prefix`**: replaced by `autonum_pattern`, without aliases or a migration path.
-- **`title` and `chapter` on a chapter**: both were accepted and did nothing. A chapter takes its name from its `#` heading, and `toc_title` / `divider_title` override it where they should differ; either key now aborts as the unknown key it is.
-- **`title` as a spelling of `part`**: a part is named by `part:` alone. The alias was a second way to the same value, and two spellings for one thing drift apart sooner or later.
+- **Deprecated numbering keys**: Replaced `autonum_style`, `autonum_from_level`, and `autonum_prefix` with `autonum_pattern`.
+- **Redundant chapter keys**: Disallowed unused `title` and `chapter` keys on chapter definitions.
+- **`title` alias for parts**: Parts are named exclusively via `part:`.
+
+---
 
 ## [2.0.1] - 2026-09-08
 
 ### Removed
-- **Nested subchapters (`chapters:` inside a chapter)**: A chapter no longer takes a `chapters:` list of its own; the structure is exactly two levels, `parts:` → `chapters:`. The nesting was a relic of earlier versions and is not pursued further.
+- **Nested subchapters**: Restricted document structure to two levels (`parts:` → `chapters:`).
+
+---
 
 ## [2.0.0] - 2026-09-06
 
 ### Added
-- **The program speaks your language (`--ui-lang`, `MARKPUBLISH_UI_LANG`)**: Help texts, status lines and error messages are available in English and German, and markpublish follows your system language without being asked. This is the *interface* language and has nothing to do with `language:` in the markpublish.yaml, which decides what the PDF says — a German user typesetting an English document now gets English headings in the document and German messages in the terminal. Resolution, nearest to the call wins: `--ui-lang` → `MARKPUBLISH_UI_LANG` → the system (POSIX variables, or the Windows display language) → English. A regional form falls back to its base language (`de-AT` → `de`); a language with no catalogue falls back to English rather than being guessed at. Deliberately absent from the cascade: the markpublish.yaml — the terminal language belongs to a person's working environment, not to the repository. Texts live in `markpublish/locale/<language>.yaml`, one flat file per language.
-- **An English project scaffold (`markpublish init --lang en`)**: `docs/init/en` ships alongside the German one — configuration and welcome chapter, comments and prose translated, and `language: "en"` set in the configuration, so the built document carries English labels ("Table of Contents", "CHAPTER", ISO date) rather than English text under German ones. Without `--lang`, `init` follows the system language as before; it now has somewhere to go when that language is English. The manual and the quick reference ship in both languages as well.
-- **A theme without touching the document (`--theme`)**: `build`, `cheatsheet`, `manual` and `labels` take `--theme <name>` and use it for that one run, ahead of `theme:` in the markpublish.yaml. Trying a theme on a document no longer means editing the document, and the bundled reference can be rendered in your own theme without a project at all.
-- **`show_title:` and `divider_title:` on a chapter**: `show_title: false` keeps the file's H1 off the content page — the counterpart to a chapter that already carries its title on a divider page, where it would otherwise stand twice. `divider_title:` sets what that divider page says wherever it should differ from the heading; `toc_title:` does the same for the table of contents and the running header.
-- **Unified Document Metadata Model (`meta`)**: All document metadata is grouped into a structured Typst dictionary passed to `setup-document`. Each entry is a record — `(key, label, value, in-grid)` — so a theme can enumerate the metadata instead of knowing every field by name. Custom fields under `document:` reach the cover page without a schema change.
-- **Typed metadata values**: Values keep their YAML type on the way to Typst. A `reviewed: true` arrives as a Typst boolean, and the theme words it through the cascade (`bool_true` / `bool_false`, new in `i18n.yaml`) instead of printing Python's `True`.
-- **Project level in the i18n cascade**: An `i18n.yaml` next to `markpublish.yaml` is now the last and winning level. It is where a document names the captions of its own free metadata fields (`abteilung: "F&E"` under `document:` → `abteilung: "Abteilung"`), and it can override a theme text for a single document without forking the theme.
-- **Formulas**: LaTeX math between single dollars runs inline, between double dollars as a displayed block, and Typst's own math syntax is accepted as well. Fractions, roots, sums, integrals and greek letters are normalised on the way and set by Typst rather than pictured.
-- **Anchor links inside the document (`[Text](#slug)`)**: A link to a heading becomes a real jump target in the PDF. Only slugs that exist in the finished document are labelled — a link to a heading that is not there would otherwise abort the Typst compilation instead of simply not jumping anywhere.
-- **Native Typst AST Serializer (`TypstSerializer`)**: A dedicated, robust ElementTree-to-Typst serializer converting Python-Markdown trees directly into clean, well-formed Typst markup.
-- **Synchronized AST Numbering & TOC**: Headings, autoincrement numbers, and slugs are calculated and injected directly into the syntax tree, ensuring 100% synchronization between document headings and the table of contents.
-- **Local Image Resolution & Isolation**: Local image paths referenced in Markdown chapters are resolved relative to the chapter source and automatically copied to the build directory (`images/`), avoiding sandbox path restrictions.
-- **Build Diagnostics**: In case of a Typst compilation error, the complete generated Typst source is saved to `.markpublish/last_failed_build.typ` for immediate troubleshooting.
-- **Real Compilation Test Suite**: Added `tests/test_typst_compile_cases.py` and `tests/test_typst_serializer.py`, verifying real Typst compilation for prices ($5), programming languages (C#), HTML-like tags, special characters, and extensions.
-- **Enhanced `markpublish labels` diagnostics**: The table now shows theme usage (`key`, `wert`, `key/wert`), the fallback a theme has notated, the document value, and a per-key diagnosis. It also reports a theme whose `setup-document` does not declare an argument markpublish sends — before the build, not during it.
-- **`UndefinedMetadataError`**: A theme reading a metadata key the document does not define now aborts with its own message, naming the exact file and line in the theme and pointing at `document:` in `markpublish.yaml`. Previously this ran through the label message and advised editing an `i18n.yaml`, which does not fix it.
+- **CLI localization (`--ui-lang`, `MARKPUBLISH_UI_LANG`)**: Added German and English interface translations with automatic system language detection.
+- **English project scaffold (`markpublish init --lang en`)**: Bundled English project templates and sample documents alongside German.
+- **CLI theme override (`--theme`)**: Added `--theme <name>` option to preview themes without modifying `markpublish.yaml`.
+- **Chapter title & divider controls**: Added `show_title:` and `divider_title:` options to customize or suppress H1 headings and divider titles.
+- **Unified document metadata model (`meta`)**: Grouped document metadata into a structured Typst dictionary for themes.
+- **Typed metadata values**: Preserved YAML types (booleans, numbers) when passing metadata to Typst.
+- **Project-level i18n**: Added project-level `i18n.yaml` to override labels and define custom metadata captions.
+- **Math formula support**: Supported inline (`$...$`) and display (`$$...$$`) math using LaTeX and Typst syntax.
+- **Internal heading anchors (`[Text](#slug)`)**: Converted heading references into clickable PDF jump targets.
+- **Native Typst AST serializer (`TypstSerializer`)**: Converted Python-Markdown AST directly into well-formed Typst markup.
+- **Synchronized headings and TOC**: Synchronized heading numbers and anchors between the syntax tree and table of contents.
+- **Local image resolution**: Automatically resolves local Markdown image paths and copies them to the build sandbox.
+- **Build diagnostics**: Saves failed Typst sources to `.markpublish/last_failed_build.typ` on compilation errors.
+- **Compilation test suite**: Added test suites verifying Typst compilation for formulas, code blocks, and special characters.
+- **Enhanced `markpublish labels`**: Displays theme usage, fallback values, and cascade resolution per label.
+- **`UndefinedMetadataError`**: Provides descriptive error messages when themes access undefined metadata keys.
 
 ### Changed
-- **Typst as Native PDF Compiler**: Replaced WeasyPrint and W3C CSS Paged Media with **Typst**, eliminating all native C/GTK/Pango runtime dependencies while accelerating PDF builds by an order of magnitude (~1.3s for 30+ pages).
-- **Single Markdown Pipeline**: Replaced the previous dual regex/HTML pipeline with a unified single AST pipeline powered by `python-markdown` and `pymdown-extensions`.
-- **Full Markdown Extension Support**: Restored complete support for all 16 standard markdown extensions (tables with column alignment, GitHub alerts/callouts, definition lists, footnotes, task lists, smart quotes, and pygments code blocks).
-- **Robust Typst String Escaping**: Full escaping of metadata and content strings (`\`, `"`, `$`, `#`, `@`, `~`, backticks) preventing syntax errors on special characters.
-- **`part:` names a part, a chapter names itself**: `part:` is the key that carries a part's name (`title:` there is tolerated as the legacy spelling and still supplies it). A chapter takes its name from its own H1, with `toc_title:` and `divider_title:` overriding it where needed; `chapter:` and `title:` on a chapter are accepted for compatibility and ignored.
-- **Breaking: theme contract signature**: Document metadata now reaches a theme *only* through `meta`. The individual parameters `title`, `subtitle`, `authors`, `version`, `date`, `copyright`, `status` and `summary` are no longer sent; `setup-document` must accept `meta: (:)` (or use `..rest`) and read them as `meta.at("title").value`. Two routes to the same value could drift apart, and every new field would otherwise have had to decide whether it also gets a parameter.
-- **Breaking: `break_before:` on a part defaults to `"none"`**: A part without the key no longer produces a divider page. It brackets its chapters and passes its settings down, but takes no page of its own and therefore does not appear in the document TOC either. The two-level structure (`parts:` → `chapters:`) is mandatory, so a part is often just a bracket the format demands — and it billed a full page for it that nobody had asked for. Notate `break_before: "divider"` for the designed divider page, or `"page"` for a heading on a fresh page. Chapters are unchanged: they still default to `"page"`.
-- **`cover:` defaults to `false`**: A cover page is a decision about the document, not standard equipment. Whoever typesets a few pages of Markdown got a title page they had not ordered and first had to find out which key removes it again. Set `cover: true` to get one; documents that already notate the key are unaffected.
-- **Console scripts run through `markpublish.entry:main`**: `markpublish` and `mpub` no longer point at `markpublish.cli:app` directly. The wrapper reads `--ui-lang` from the command line and sets the language *before* importing the CLI, because Typer evaluates `help=` at import time — resolving it any later would leave `--ui-lang de --help` printing English help. Importing `markpublish.cli:app` yourself still works and takes the language from the environment and the system.
-- **The interface no longer speaks two languages at once**: the CLI shell was English while the messages underneath it were German — a mistyped key in a chapter produced an English `Error:` in front of a German sentence. Every user-facing text now goes through one catalogue, and both languages are complete. A test walks the sources and fails on any user-facing string still written at the call site, so the next one cannot creep back in.
-- **`clean_locale` and `detect_system_language` moved to `markpublish.syslang`**: the document language and the interface language both need to know what the system speaks, and the interface catalogue supplies the messages the document i18n raises — leaving the detection in `i18n.py` would have been a circular import. Both names remain importable from `markpublish.i18n`.
-- **Cover metadata order lives in the theme**: `cover-order` in `template.typ` decides the order of the metadata grid; keys it does not list — your own fields — follow behind in configuration order. The shipped order is unchanged (version, date, author, copyright, status), but it is now one editable line in the theme rather than a side effect of a constant in `i18n.py`.
-- **Heading numbers**: Headings carry their number in Typst's `numbering` property instead of inside the heading text. Running headers therefore show the plain chapter title, and no acronym (`API`, `CLI`) is mistaken for a numeral.
-- **Task lists without bullet markers**: Task lists are rendered with only the checkbox and text, eliminating the redundant preceding bullet point (`•`). Sub-lines in multiline tasks remain cleanly aligned.
-- **Physical Page Count & Layout Refinement**: Fixed `pagenum_reset` page counting (accurate total page count across counter resets via `<doc-end>`) and decoupled cover page detection (`<cover-page>`) from page number checks.
-- **Header & Footer Controls**: `document.header` and `document.footer` configuration flags are now wired directly into `setup-document` in Typst.
-- **`markpublish labels` shows the cascade again**: The `i18n-Quelle` column names the level that supplied each text — `mpub`, `theme`, `target`, `projekt` — and highlights the ones a theme or the project overrode. The language block is appended only where it differs from the document language (`(*)`, or a fall back to English). The footer resolves the short names to full paths. `--overridden` filters for exactly those overrides again — it had come to mean "hide what the theme does not read".
-- **`markpublish labels` summary**: Warnings are counted and reported; the all-clear line appears only when there is genuinely nothing to report.
-- **Unknown keys on `parts:` and `chapters:` are rejected**: Both accepted any field and dropped it — including `break_befor` instead of `break_before`, which silently set the chapter with the default break. Unknown keys now abort with the closest declared name as a suggestion. Free fields remain available under `document:`, where they reach the theme.
-- **`markpublish init` names the document after its folder**: Without `--title`, the new project is titled after the target directory (`markpublish init mein-dokument` → `mein-dokument`, built as `mein-dokument.pdf`) instead of the fixed placeholder `New Document`. The folder name is the one thing the user has already named at that point; a placeholder was wrong in nearly every project and surfaced late — not only on the cover, but in the output file name. `--title` still wins, and only a drive root (where the directory has no name) falls back to `New Document`.
-- **`init` refuses a target that is not empty**: A directory that already holds files aborts the run, naming the path, instead of quietly writing past whatever is there. Scattering a configuration and a chapter into an existing project is superfluous at best and the silent loss of a file of the same name at worst; the way out is a different directory, not a switch that permits the loss. An existing but empty directory is fine — nothing can be lost there.
-- **`init` hands you the build command that actually works**: The closing hint now names the configuration just created — `markpublish build Test\markpublish.yaml` instead of a bare `markpublish build`, which looks for a markpublish.yaml in the working directory and, after `init <folder>`, finds the wrong one or none at all. A path containing spaces comes quoted; initializing the working directory itself keeps the short form.
-- **A second placeholder in the scaffold, `{dir}`**: the target folder, which is what the commands in the welcome chapter need (`cd Test`), while `{title}` stays the document title. The two part ways as soon as `--title` is given, and the welcome chapter used to print the title as a folder name.
-- **The scaffold explains itself**: the generated `markpublish.yaml` now carries comments on every key it sets, shows the most useful optional ones commented out with their defaults, and opens the chapter with a divider page (`break_before: "divider"` plus `show_title: false`, so the heading does not appear twice).
-- **The `init` scaffold costs no divider page**: Its single part brackets its single chapter and takes no page of its own — the generated configuration does not notate `break_before` on the part at all and relies on the new default (the chapter below it notates one on purpose). What the scaffold *shows* remains a matter of taste and stays in the template; what it *structures* does not.
-- **`build_manuals.py` selects languages with `--lang`**: `de,en` by default, `all` for every shipped translation, and the summary marks which documents this run actually wrote — a file it did not touch is reported as unchanged instead of passing for current.
-- **Streamlined CI/CD Matrix**: Completely removed Pango, GTK, Homebrew, and MSYS2 pacman installation steps from `.github/workflows/ci.yml` and `release.yml`, resulting in fast, portable wheel-based CI across Ubuntu, macOS, and Windows.
+- **Typst as native PDF compiler**: Replaced WeasyPrint with Typst, removing GTK/Pango dependencies and accelerating builds.
+- **Unified single AST pipeline**: Consolidated Markdown processing onto `python-markdown` and `pymdown-extensions`.
+- **Full Markdown extension support**: Supported tables, callouts, definition lists, footnotes, task lists, and syntax highlighting.
+- **Robust Typst escaping**: Escaped special characters in metadata and Markdown content.
+- **Theme contract signature**: Document metadata is passed to `setup-document` via `meta: (:)`.
+- **Default `break_before` for parts**: Parts default to `break_before: "none"`; divider pages require `break_before: "divider"`.
+- **Default `cover` setting**: Documents default to `cover: false`.
+- **Refactored CLI entry point**: CLI entry point resolves `--ui-lang` before importing command definitions.
+- **Unified CLI messages**: Consolidated user-facing CLI strings into centralized localization catalogs.
+- **Relocated system language detection**: Moved locale detection logic to `markpublish.syslang`.
+- **Theme cover metadata ordering**: Themes define metadata field order via `cover-order`.
+- **Typst native heading numbering**: Heading numbers use Typst's native numbering property instead of text prefixes.
+- **Task list styling**: Rendered task lists with checkboxes only, removing redundant bullet points.
+- **Page numbering fixes**: Fixed total page counting across counter resets and decoupled cover page logic.
+- **Header & footer controls**: Wired `document.header` and `document.footer` flags to Typst layout.
+- **Updated `markpublish labels` output**: Improved cascade source display and override filtering.
+- **Strict key validation on parts and chapters**: Rejected unknown keys on parts and chapters with suggestions.
+- **Smart `markpublish init` defaults**: Document title defaults to directory name; target directory must be empty.
+- **Context-aware `init` command hints**: Displays exact build command with created configuration path.
+- **Scaffold placeholders**: Added `{dir}` placeholder for path references in scaffold welcome text.
+- **Self-documenting scaffold**: Generated `markpublish.yaml` includes inline comments and recommended options.
+- **Multi-language build script**: `build_manuals.py` supports language selection via `--lang`.
+- **Streamlined CI/CD matrix**: Removed OS-level GTK/Pango dependencies from CI workflows.
 
 ### Fixed
-- **Nested sub-chapters are validated**: `chapters:` inside a chapter was carried along as an undeclared extra, so its contents passed unchecked — a typo in a sub-chapter reached nothing and was reported nowhere. It is now a declared field, validated recursively like the top level.
-- **A code sample is no longer read as a call**: The theme-contract check scanned the whole generated Typst source, so a ```` ```typst ```` block in a chapter — the manual has one showing `setup-document(...)` — was taken for a real call and produced phantom "undeclared parameter" errors. Raw blocks are now excluded.
-- **"1 Dokumente aktualisiert"**: `build_manuals.py` counted in a single plural form, so a run that wrote one document reported it in the plural. Counted messages now carry `.one` and `.other` forms and are selected through `tn()`.
-- **Headings no longer stand alone at the foot of a page**: A heading whose text began on the next page is now carried over with it. Typst's built-in heading is a sticky block, but the default theme's `show heading:` rule replaces that output and so had to reproduce the property by hand. The heading text now sits in `block(..., sticky: true)` — placed inside `text(...)` and taking `above`/`below` from `par.spacing`, so every spacing value stays where it was: as a paragraph in the flow the heading carried its own paragraph spacing, resolved at the heading's font size (1.5em is 27pt at 18pt, not 15pt). Measured across the manual, all heading positions are unchanged down to the first affected page; six orphaned headings are resolved and the document grows by the one page that content displaces.
+- **Nested subchapter validation**: Validates nested chapters recursively during configuration loading.
+- **Raw code theme check fix**: Excluded code blocks from theme contract parameter scanning.
+- **Pluralization fix in build script**: Corrected plural forms in build summary messages.
+- **Heading orphan prevention**: Headings use `sticky: true` to prevent orphan headings at page bottoms.
 
 ### Removed
-- **WeasyPrint & GTK Dependencies**: Removed `weasyprint`, `cffi`, and native GTK runtime installers.
-- **Obsolete Fontconfig Configuration**: Deleted `src/markpublish/data/fonts.conf`.
-- **HTML Output Pipeline**: Temporarily removed HTML output rendering (`--target html`) and HTML Jinja2 templates to concentrate fully on top-quality Typst PDF publishing. The `--target` switch informs the user gracefully.
-- **`label_overview()` / `LabelUsage`**: Superseded by `diagnose_labels_and_metadata()`, which the CLI actually uses.
-- **Legacy parameter detection in the theme contract**: The heuristic that guessed which core fields a theme set through its own parameters is gone with the parameters themselves.
+- **WeasyPrint & GTK dependencies**: Removed WeasyPrint runtime dependencies and configurations.
+- **HTML output deprecated**: Removed legacy HTML pipeline to focus exclusively on Typst PDF output.
+- **Removed obsolete internal APIs**: Removed `label_overview()` and legacy parameter detection.
 
 ---
 
@@ -185,7 +195,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Global metadata (`title`, `subtitle`, `author`, `date`, `version`, `language`, `status`, `copyright`).
   - Layout controls: `cover`, `header`, `footer`, `document_toc`, `part_toc`, `chapter_toc`.
   - Numbering controls: `autonum_style`, `autonum_from_level`, `autonum_prefix`, `autonum_reset`, and `pagenum_reset`.
-  - Two-tier document structure: **Parts** (`parts:`) divide the document, chapters (`chapters:`) beneath them carry the content; depth inside a chapter comes from its own headings.
+  - Two-tier document structure: **Parts** (`parts:`) divide the document, chapters (`chapters:`) beneath them carry the content.
   - Flexible page-break controls via `break_before` (`page`, `divider`, `none`).
 - **Target-Based Template Engine & 3-Tier Resolution**:
   - Hierarchical template resolution: User (`~/.markpublish/templates`) > Project/Workspace (`./templates`) > Package Built-in.
@@ -206,5 +216,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `markpublish export-template`: Exports built-in themes into the workspace for customization.
   - `markpublish labels`: Inspects resolved static texts and cascade origins.
 - **Build Utilities**:
-  - `build_manuals.py`: One command builds all four showcase documents — German and English, PDF and HTML — into `manual/`.
-
+  - `build_manuals.py`: One command builds all four showcase documents into `www/manuals/`.
