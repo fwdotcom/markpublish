@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.1.10] - 2026-09-23
+
+### Changed
+- **CLI help output cleaned**: Configured `add_completion=False` on the Typer application to suppress shell-completion options (`--install-completion`, `--show-completion`) in `--help`.
+- **Project URLs updated (`pyproject.toml`)**: Pointed `Homepage` to the official website (`https://www.markpublish.com`) and `Documentation` to `#manuals`, retaining `Repository` for the GitHub source code.
+
+---
+
 ## [2.1.9] - 2026-09-22
 
 ### Changed

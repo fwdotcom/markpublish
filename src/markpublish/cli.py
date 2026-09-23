@@ -63,6 +63,7 @@ from markpublish.ui import set_ui_language, t, tn
 app = typer.Typer(
     name="markpublish",
     help=t("app.help"),
+    add_completion=False,
 )
 console = Console()
 _DEBUG: bool = False
