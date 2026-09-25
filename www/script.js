@@ -98,15 +98,24 @@
       modal_datenschutz_title: "Datenschutzerklärung",
       modal_datenschutz_content: `
         <h4>1. Datenschutz auf einen Blick</h4>
-        <p>Diese Website dient ausschließlich der Information über das Open-Source-Projekt <strong>markpublish</strong>. Ich erhebe, verarbeite oder speichere auf dieser Website keine personenbezogenen Daten, setze keine Tracking-Cookies und verwende keine externen Analysedienste oder Werbenetzwerke.</p>
+        <p>Diese Website dient ausschließlich der Information über das Open-Source-Projekt <strong>markpublish</strong>. Ich betreibe keinen eigenen Server, erhebe keine personenbezogenen Daten, setze keine Cookies und verwende keine Analyse-, Tracking- oder Werbedienste. Alle Schriften und Dateien werden von dieser Website selbst ausgeliefert; es werden keine Inhalte von Drittanbietern nachgeladen.</p>
 
-        <h4>2. Hosting via GitHub Pages</h4>
-        <p>Diese Website wird als statische Seite über <strong>GitHub Pages</strong> gehostet. Anbieter ist die GitHub Inc., 88 Colin P Kelly Jr St, San Francisco, CA 94107, USA.</p>
-        <p>Beim Besuch dieser Website erfasst GitHub automatisch technische Server-Logfiles (u.a. Browsertyp, Betriebssystem, Referrer URL, Hostname des zugreifenden Rechners, Uhrzeit der Serveranfrage und IP-Adresse). Dies ist technisch erforderlich, um die Website sicher und stabil bereitzustellen (Rechtsgrundlage: Art. 6 Abs. 1 lit. f DSGVO berechtigtes Interesse an einer verlässlichen Bereitstellung).</p>
-        <p>Weitere Informationen finden Sie in der <a href="https://docs.github.com/en/site-policy/privacy-policies/github-privacy-statement" target="_blank" rel="noopener">Datenschutzerklärung von GitHub</a>.</p>
+        <h4>2. Verantwortlicher</h4>
+        <p>Frank Winter, Wilhelmstr. 5A, 03046 Cottbus<br>
+        E-Mail: <a href="mailto:studio@frankwinter.com">studio@frankwinter.com</a></p>
 
-        <h4>3. Ihre Rechte als betroffene Person</h4>
-        <p>Sie haben nach der Datenschutz-Grundverordnung (DSGVO) das Recht auf Auskunft (Art. 15 DSGVO), Berichtigung (Art. 16 DSGVO), Löschung (Art. 17 DSGVO) und Einschränkung der Verarbeitung (Art. 18 DSGVO) bezüglich etwaiger personenbezogener Daten. Bei Fragen zum Datenschutz können Sie mich jederzeit unter der im Impressum angegebenen E-Mail-Adresse kontaktieren.</p>
+        <h4>3. Hosting via GitHub Pages</h4>
+        <p>Diese Website wird als statische Seite über <strong>GitHub Pages</strong> bereitgestellt. Anbieter ist die GitHub Inc., 88 Colin P Kelly Jr St, San Francisco, CA 94107, USA.</p>
+        <p>Beim Aufruf erfasst GitHub automatisch technische Server-Logfiles (u. a. IP-Adresse, Datum und Uhrzeit des Abrufs, Browsertyp, Betriebssystem und Referrer-URL). Dies ist technisch erforderlich, um die Website sicher und stabil bereitzustellen (Rechtsgrundlage: Art. 6 Abs. 1 lit. f DSGVO, berechtigtes Interesse an einer verlässlichen Bereitstellung). Ich habe auf diese Logfiles keinen Zugriff. Weitere Informationen finden Sie in der <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement" target="_blank" rel="noopener noreferrer">Datenschutzerklärung von GitHub</a>.</p>
+
+        <h4>4. Lokale Speicherung in Ihrem Browser</h4>
+        <p>Die gewählte Sprache (Deutsch/Englisch) wird im lokalen Speicher Ihres Browsers (localStorage) abgelegt, damit sie beim nächsten Besuch erhalten bleibt. Diese Angabe verlässt Ihr Gerät nicht und lässt sich über die Einstellungen Ihres Browsers löschen.</p>
+
+        <h4>5. Externe Links</h4>
+        <p>Die Website verlinkt auf externe Angebote, etwa die GitHub-Projektseite und PyPI. Mit dem Aufruf eines solchen Links verlassen Sie diese Website; es gelten die Datenschutzbestimmungen des jeweiligen Anbieters.</p>
+
+        <h4>6. Ihre Rechte als betroffene Person</h4>
+        <p>Sie haben nach der Datenschutz-Grundverordnung (DSGVO) das Recht auf Auskunft (Art. 15 DSGVO), Berichtigung (Art. 16 DSGVO), Löschung (Art. 17 DSGVO) und Einschränkung der Verarbeitung (Art. 18 DSGVO) bezüglich etwaiger personenbezogener Daten sowie das Recht, sich bei einer Datenschutz-Aufsichtsbehörde zu beschweren (Art. 77 DSGVO). Bei Fragen zum Datenschutz können Sie mich jederzeit unter der oben angegebenen E-Mail-Adresse kontaktieren.</p>
       `
     },
 
@@ -201,15 +210,24 @@
       modal_datenschutz_title: "Privacy Policy (Datenschutzerklärung)",
       modal_datenschutz_content: `
         <h4>1. Privacy at a Glance</h4>
-        <p>This website serves exclusively to provide information regarding the open-source project <strong>markpublish</strong>. I do not collect, process, or store personal data on this website, I set no tracking cookies, and I use no third-party analytics or advertising networks.</p>
+        <p>This website serves exclusively to provide information regarding the open-source project <strong>markpublish</strong>. I run no server of my own, collect no personal data, set no cookies, and use no analytics, tracking, or advertising services. All fonts and files are served by this website itself; no third-party content is loaded.</p>
 
-        <h4>2. Hosting via GitHub Pages</h4>
+        <h4>2. Controller</h4>
+        <p>Frank Winter, Wilhelmstr. 5A, 03046 Cottbus, Germany<br>
+        Email: <a href="mailto:studio@frankwinter.com">studio@frankwinter.com</a></p>
+
+        <h4>3. Hosting via GitHub Pages</h4>
         <p>This static website is hosted via <strong>GitHub Pages</strong> provided by GitHub Inc., 88 Colin P Kelly Jr St, San Francisco, CA 94107, USA.</p>
-        <p>When you visit this website, GitHub automatically collects server log files (such as browser type, operating system, referrer URL, host name of the accessing device, time of server request, and IP address). This is technically necessary to deliver the website reliably and securely (Legal basis: Art. 6 (1) (f) GDPR legitimate interest).</p>
-        <p>For more details, please review the <a href="https://docs.github.com/en/site-policy/privacy-policies/github-privacy-statement" target="_blank" rel="noopener">GitHub Privacy Statement</a>.</p>
+        <p>When you visit this website, GitHub automatically collects server log files (such as IP address, date and time of the request, browser type, operating system, and referrer URL). This is technically necessary to deliver the website reliably and securely (legal basis: Art. 6 (1) (f) GDPR, legitimate interest in reliable delivery). I have no access to these log files. For more details, please review the <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement" target="_blank" rel="noopener noreferrer">GitHub General Privacy Statement</a>.</p>
 
-        <h4>3. Your Rights</h4>
-        <p>Under the GDPR, you have the right to information, rectification, erasure, and restriction of processing regarding any personal data. For privacy inquiries, feel free to reach out via the email address indicated in the Legal Notice.</p>
+        <h4>4. Local Storage in Your Browser</h4>
+        <p>Your language choice (German/English) is stored in your browser's local storage (localStorage) so it persists on your next visit. This setting never leaves your device and can be deleted via your browser settings.</p>
+
+        <h4>5. External Links</h4>
+        <p>This website links to external services such as the GitHub project page and PyPI. When you follow such a link, you leave this website and the privacy policy of the respective provider applies.</p>
+
+        <h4>6. Your Rights</h4>
+        <p>Under the GDPR, you have the right to access (Art. 15), rectification (Art. 16), erasure (Art. 17), and restriction of processing (Art. 18) regarding any personal data, as well as the right to lodge a complaint with a data protection supervisory authority (Art. 77). For privacy inquiries, feel free to reach out via the email address given above.</p>
       `
     }
   };
