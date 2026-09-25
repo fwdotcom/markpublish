@@ -232,7 +232,7 @@
     }
   };
 
-  // --- Showcase 4-Feature Focus Content ---
+  // --- Showcase Feature Focus Content ---
   const showcaseFiles = {
     cover: {
       de: {
@@ -254,7 +254,7 @@
   subtitle: "Technische Referenzspezifikation"
   summary: "Musterdokumentation zur Demonstration aller markpublish Kernfunktionen."
   author: "Frank Winter"
-  version: "2.1.10"
+  version: "2.2.0"
   date: "auto"
   cover: true
   autonum_pattern: "_|1|.1|+"
@@ -285,7 +285,7 @@ theme: "default"`,
   subtitle: "Technical Reference Specification"
   summary: "Sample publication demonstrating core markpublish features."
   author: "Frank Winter"
-  version: "2.1.10"
+  version: "2.2.0"
   date: "auto"
   cover: true
   autonum_pattern: "_|1|.1|+"
@@ -357,15 +357,137 @@ Documents can be organized into parts, chapters, and divider pages...`,
       }
     },
 
-    math: {
+    figures: {
       de: {
         page: 3,
         badge: "Markdown",
+        tabLabel: "Abbildungen",
+        filename: "02_abbildungen.md",
+        rawPath: "sample/de/02_abbildungen.md",
+        title: "Beschriftete Abbildungen und Verweise",
+        pill: "02_abbildungen.md",
+        desc: "Grafiken werden zu nummerierten Abbildungen, auf die der Text verweist",
+        bullets: [
+          "Beschriftung mit `/// figure-caption`, Nummer und Wort setzt markpublish",
+          "Verweise per `[](#id)` werden zu „Abbildung 1“, klickbar im PDF",
+          "Breite, Höhe und Rahmen direkt am Bild: `{width=100% noframe}`"
+        ],
+        snippet: `# Abbildungen & Verweise
+
+![Verarbeitungskette](pipeline.svg){width=100% noframe}
+
+/// figure-caption
+    attrs: {id: abb-pipeline}
+Vom Markdown-Kapitel zum druckfertigen PDF
+///
+
+Wie [](#abb-pipeline) zeigt, liest markpublish
+die Kapiteldateien ein ...`,
+        clip: { x: 0.115, y: 0.225, w: 0.77, h: 0.257 },
+        svg: "assets/showcase/de_page_3.svg",
+        png: "assets/showcase/de_page_3.png"
+      },
+      en: {
+        page: 3,
+        badge: "Markdown",
+        tabLabel: "Figures",
+        filename: "02_figures.md",
+        rawPath: "sample/en/02_figures.md",
+        title: "Captioned Figures and References",
+        pill: "02_figures.md",
+        desc: "Graphics become numbered figures that the text can refer to",
+        bullets: [
+          "Captions via `/// figure-caption`; markpublish sets word and number",
+          "References via `[](#id)` turn into “Figure 1”, clickable in the PDF",
+          "Width, height and frame right at the image: `{width=100% noframe}`"
+        ],
+        snippet: `# Figures & References
+
+![Processing chain](pipeline.svg){width=100% noframe}
+
+/// figure-caption
+    attrs: {id: fig-pipeline}
+From Markdown chapter to print-ready PDF
+///
+
+As [](#fig-pipeline) shows, markpublish reads
+the chapter files ...`,
+        clip: { x: 0.115, y: 0.225, w: 0.77, h: 0.257 },
+        svg: "assets/showcase/en_page_3.svg",
+        png: "assets/showcase/en_page_3.png"
+      }
+    },
+
+    tables: {
+      de: {
+        page: 4,
+        badge: "Markdown",
+        tabLabel: "Tabellen",
+        filename: "03_tabellen.md",
+        rawPath: "sample/de/03_tabellen.md",
+        title: "Tabellen mit Beschriftung und Verzeichnis",
+        pill: "03_tabellen.md",
+        desc: "Nummerierte Tabellen im Buchsatz – samt Verweis und Tabellenverzeichnis",
+        bullets: [
+          "Beschriftung mit `/// table-caption`, typografisch korrekt über der Tabelle",
+          "„Abbildung“ und „Tabelle“ folgen der Dokumentsprache (i18n)",
+          "Abbildungs- und Tabellenverzeichnis per `list_of` an beliebiger Stelle"
+        ],
+        snippet: `| Element   | Markdown             |
+| :-------- | :------------------- |
+| Abbildung | \`/// figure-caption\` |
+| Tabelle   | \`/// table-caption\`  |
+
+/// table-caption
+    attrs: {id: tab-elemente}
+Beschriftete Elemente und ihre Schreibweise
+///
+
+[](#tab-elemente) fasst die Schreibweisen zusammen.`,
+        clip: { x: 0.115, y: 0.222, w: 0.77, h: 0.257 },
+        svg: "assets/showcase/de_page_4.svg",
+        png: "assets/showcase/de_page_4.png"
+      },
+      en: {
+        page: 4,
+        badge: "Markdown",
+        tabLabel: "Tables",
+        filename: "03_tables.md",
+        rawPath: "sample/en/03_tables.md",
+        title: "Captioned Tables and Lists",
+        pill: "03_tables.md",
+        desc: "Numbered tables in book style – with references and a list of tables",
+        bullets: [
+          "Captions via `/// table-caption`, typeset above the table as in print",
+          "“Figure” and “Table” follow the document language (i18n)",
+          "Lists of figures and tables via `list_of`, placed wherever you like"
+        ],
+        snippet: `| Element | Markdown             |
+| :------ | :------------------- |
+| Figure  | \`/// figure-caption\` |
+| Table   | \`/// table-caption\`  |
+
+/// table-caption
+    attrs: {id: tbl-elements}
+Captioned elements and how to write them
+///
+
+[](#tbl-elements) sums up the notation.`,
+        clip: { x: 0.115, y: 0.222, w: 0.77, h: 0.257 },
+        svg: "assets/showcase/en_page_4.svg",
+        png: "assets/showcase/en_page_4.png"
+      }
+    },
+
+    math: {
+      de: {
+        page: 5,
+        badge: "Markdown",
         tabLabel: "Formeln & Code",
-        filename: "02_algorithmen.md",
-        rawPath: "sample/de/02_algorithmen.md",
+        filename: "04_algorithmen.md",
+        rawPath: "sample/de/04_algorithmen.md",
         title: "Wissenschaftlicher Satz und Syntax Highlighting",
-        pill: "02_algorithmen.md",
+        pill: "04_algorithmen.md",
         desc: "Komplexe mathematische Formeln und Quellcode nativ im Dokument verankert",
         bullets: [
           "Native Typst Math Engine: Vektorsatz ohne Umwege",
@@ -384,17 +506,17 @@ def render_pdf(manifest_file: Path) -> bytes:
     return typst.compile(doc.to_typst())
 \`\`\``,
         clip: { x: 0.115, y: 0.0998, w: 0.77, h: 0.257 },
-        svg: "assets/showcase/de_page_3.svg",
-        png: "assets/showcase/de_page_3.png"
+        svg: "assets/showcase/de_page_5.svg",
+        png: "assets/showcase/de_page_5.png"
       },
       en: {
-        page: 3,
+        page: 5,
         badge: "Markdown",
         tabLabel: "Formulas & Code",
-        filename: "02_algorithms.md",
-        rawPath: "sample/en/02_algorithms.md",
+        filename: "04_algorithms.md",
+        rawPath: "sample/en/04_algorithms.md",
         title: "Scientific Typesetting and Syntax Highlighting",
-        pill: "02_algorithms.md",
+        pill: "04_algorithms.md",
         desc: "Complex mathematical formulas and code blocks embedded natively as crisp vectors",
         bullets: [
           "Native Typst math engine: vector typesetting, no detours",
@@ -413,20 +535,20 @@ def render_pdf(manifest_file: Path) -> bytes:
     return typst.compile(doc.to_typst())
 \`\`\``,
         clip: { x: 0.115, y: 0.0998, w: 0.77, h: 0.257 },
-        svg: "assets/showcase/en_page_3.svg",
-        png: "assets/showcase/en_page_3.png"
+        svg: "assets/showcase/en_page_5.svg",
+        png: "assets/showcase/en_page_5.png"
       }
     },
 
     callouts: {
       de: {
-        page: 4,
+        page: 6,
         badge: "Markdown",
         tabLabel: "Callouts & Listen",
-        filename: "03_hinweise.md",
-        rawPath: "sample/de/03_hinweise.md",
+        filename: "05_hinweise.md",
+        rawPath: "sample/de/05_hinweise.md",
         title: "GitHub-Style Callouts & Checklisten",
-        pill: "03_hinweise.md",
+        pill: "05_hinweise.md",
         desc: "Visuelle Akzente für professionelle Handbücher, Richtlinien und Prüflisten",
         bullets: [
           "Volle Unterstützung für `[!NOTE]`, `[!TIP]`, `[!WARNING]`, `[!IMPORTANT]` und `[!CAUTION]`",
@@ -447,17 +569,17 @@ def render_pdf(manifest_file: Path) -> bytes:
 - [x] Typst Engine kompilieren
 - [ ] Druckfreigabe erteilen`,
         clip: { x: 0.115, y: 0.1722, w: 0.77, h: 0.257 },
-        svg: "assets/showcase/de_page_4.svg",
-        png: "assets/showcase/de_page_4.png"
+        svg: "assets/showcase/de_page_6.svg",
+        png: "assets/showcase/de_page_6.png"
       },
       en: {
-        page: 4,
+        page: 6,
         badge: "Markdown",
         tabLabel: "Callouts & Lists",
-        filename: "03_notes.md",
-        rawPath: "sample/en/03_notes.md",
+        filename: "05_notes.md",
+        rawPath: "sample/en/05_notes.md",
         title: "GitHub-Style Callouts & Checklists",
-        pill: "03_notes.md",
+        pill: "05_notes.md",
         desc: "Visual callouts for polished technical manuals, alerts, and publishing checklists",
         bullets: [
           "Full support for `[!NOTE]`, `[!TIP]`, `[!WARNING]`, `[!IMPORTANT]`, and `[!CAUTION]`",
@@ -478,13 +600,13 @@ def render_pdf(manifest_file: Path) -> bytes:
 - [x] Compile via Typst engine
 - [ ] Sign off publication`,
         clip: { x: 0.115, y: 0.1722, w: 0.77, h: 0.257 },
-        svg: "assets/showcase/en_page_4.svg",
-        png: "assets/showcase/en_page_4.png"
+        svg: "assets/showcase/en_page_6.svg",
+        png: "assets/showcase/en_page_6.png"
       }
     }
   };
 
-  const tileKeys = ['cover', 'structure', 'math', 'callouts'];
+  const tileKeys = ['cover', 'structure', 'figures', 'tables', 'math', 'callouts'];
 
   function escapeHtml(str) {
     if (!str) return '';

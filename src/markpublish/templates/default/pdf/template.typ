@@ -607,7 +607,18 @@
   )
   show table: set par(justify: false)
   show table: set text(number-width: "tabular")
-  let table-rule(it) = block(stroke: (bottom: stroke-table-top + c-text-dark))[#it]
+  // Die Abschlusslinie wird nach der Tabelle gezeichnet und deckt die helle
+  // Trennlinie der letzten Zeile ab -- als Rahmen des Blocks laege sie
+  // darunter, und die helle Linie teilte sie optisch in zwei. Die Stilfunktion
+  // oben kann die letzte Zeile nicht erkennen. Gemessen wird, damit die Linie
+  // so breit ist wie die Tabelle und nicht wie die Seite.
+  let table-rule(it) = layout(size => {
+    let width = measure(it, width: size.width).width
+    block(width: width, {
+      it
+      place(bottom + left, line(length: 100%, stroke: stroke-table-top + c-text-dark))
+    })
+  })
   show table: it => _set-off(table-rule(it))
 
   // Abbildungen und Tabellen mit Beschriftung
@@ -682,6 +693,7 @@
   // Der Abstand haengt hier am Codeblock selbst: Typst setzt ihn als eigenen
   // Block, und ein Abstand am Rand seines Inhalts entfiele.
   show raw.where(block: true): set block(spacing: block-spacing)
+  show math.equation.where(block: true): set block(spacing: block-spacing)
   show raw.where(block: true): it => block(
     fill: c-bg-muted,
     stroke: stroke-border + c-border-strong,

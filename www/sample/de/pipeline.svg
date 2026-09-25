@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 150" width="640" height="150">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#94a3b8"/>
+    </marker>
+  </defs>
+  <g font-family="Open Sans" text-anchor="middle">
+    <rect x="10" y="35" width="130" height="80" rx="8" fill="#f8fafc" stroke="#cbd5e1"/>
+    <text x="75" y="70" font-size="15" font-weight="700" fill="#0f172a">Markdown</text>
+    <text x="75" y="92" font-size="11.5" fill="#64748b">Kapiteldateien</text>
+
+    <rect x="170" y="35" width="130" height="80" rx="8" fill="#eff6ff" stroke="#2563eb"/>
+    <text x="235" y="70" font-size="15" font-weight="700" fill="#1e3a8a">markpublish</text>
+    <text x="235" y="92" font-size="11.5" fill="#64748b">AST &amp; Nummerierung</text>
+
+    <rect x="330" y="35" width="130" height="80" rx="8" fill="#f8fafc" stroke="#cbd5e1"/>
+    <text x="395" y="70" font-size="15" font-weight="700" fill="#0f172a">Typst</text>
+    <text x="395" y="92" font-size="11.5" fill="#64748b">Satz &amp; Layout</text>
+
+    <rect x="490" y="35" width="130" height="80" rx="8" fill="#2563eb"/>
+    <text x="555" y="70" font-size="15" font-weight="700" fill="#ffffff">PDF</text>
+    <text x="555" y="92" font-size="11.5" fill="#dbeafe">druckfertig</text>
+  </g>
+  <g stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)">
+    <line x1="142" y1="75" x2="166" y2="75"/>
+    <line x1="302" y1="75" x2="326" y2="75"/>
+    <line x1="462" y1="75" x2="486" y2="75"/>
+  </g>
+</svg>
