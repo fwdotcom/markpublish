@@ -25,6 +25,12 @@ en:
   chapter_toc_title: "In this chapter"
   part_toc_title: "In this part"
 
+  # Abbildungen und Tabellen: Beschriftung, Verweis und Verzeichnis
+  figure: "Figure"
+  table: "Table"
+  list_of_figures: "List of Figures"
+  list_of_tables: "List of Tables"
+
   # Marken auf den Trennseiten
   chapter: "Chapter"
   part: "Part"
@@ -57,6 +63,11 @@ de:
   toc_title: "Inhaltsverzeichnis"
   chapter_toc_title: "Inhalt dieses Kapitels"
   part_toc_title: "Inhalt dieses Abschnitts"
+
+  figure: "Abbildung"
+  table: "Tabelle"
+  list_of_figures: "Abbildungsverzeichnis"
+  list_of_tables: "Tabellenverzeichnis"
 
   chapter: "Kapitel"
   part: "Teil"

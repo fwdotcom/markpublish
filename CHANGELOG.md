@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+### Added
+- **Figure and table captions**: `/// figure-caption` and `/// table-caption` (`pymdownx.blocks.caption`) become numbered Typst figures; `[](#id)` renders a numbered reference ("Figure 1").
+- **Lists of figures and tables**: `list_of: figures|tables` as an entry under `chapters:`.
+- **Image attributes**: `width`, `height` (aspect ratio kept), `frame` / `noframe` (with or without dot) to override the theme's default.
+- **i18n labels**: `figure`, `table`, `list_of_figures`, `list_of_tables`.
+
+### Changed
+- Stand-alone images are centered and framed by default (`image-frame-default` in the default theme); inline images stay within their line.
+- **Spacing of set-off elements (default theme)**: code blocks, callouts and quotes (`block-spacing`) and figures, tables and images (`figure-spacing`) get more space than paragraphs; the spacing no longer adds up between consecutive elements. Captions sit close to their figure (`caption-gap`).
+
+---
+
 ## [2.1.10] - 2026-09-23
 
 ### Changed

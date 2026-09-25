@@ -77,6 +77,7 @@ A chapter is one Markdown file. Its name comes from that file's `#` heading.
 | Key | Default | Meaning |
 | :--- | :--- | :--- |
 | `file` | *required* | Path to the Markdown file |
+| `list_of` | – | Instead of `file`: list of `figures` or `tables` at this position |
 | `show_title` | `true` | Show the file's H1 on the content page |
 | `toc_title` | file H1 | Title in the table of contents and running header |
 | `divider_title` | file H1 | Title on the divider page |

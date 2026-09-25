@@ -226,6 +226,74 @@ Frequent symbols and operators typed in plain text are automatically converted i
 
 ---
 
+## Images, Figures and Tables
+
+Image attributes go in curly braces right after the image:
+
+```markdown
+![Revenue](img/revenue.png){width=60%}
+![Logo](img/logo.png){width=4cm noframe}
+```
+
+| Attribute | Values | Effect |
+| :--- | :--- | :--- |
+| `width`, `height` | `60%`, `4cm`, `12mm`, `100pt`, `300` (pixels) | Image size |
+| `frame`, `noframe` | – | Frame on or off, overriding the theme; also with a dot (`.frame`) |
+
+The aspect ratio is always kept: with one of the two, the other follows; with both, the image is fitted into that area without being distorted or cropped.
+
+Whether images are framed is up to the theme in use; `frame` and `noframe` override it for a single image. The default theme frames every image that stands alone in its paragraph – there, `noframe` suits logos or cut-out graphics.
+
+A caption follows as a block below the image or table. markpublish sets number and word itself:
+
+```markdown
+![markpublish logo](img/markpublish_logo.png){width=3cm}
+
+/// figure-caption
+    attrs: {id: fig-logo}
+The markpublish logo
+///
+
+Text between figure and table: the default theme sets figures and tables off from running text with a little more space than between two paragraphs, while their caption stays close to the image or table.
+
+| Kind | Caption | Reference |
+| :--- | :--- | :--- |
+| Figure | `/// figure-caption` | `[](#fig-logo)` |
+| Table | `/// table-caption` | `[](#tbl-captions)` |
+
+/// table-caption
+    attrs: {id: tbl-captions}
+Captions and references
+///
+```
+
+Result:
+
+![markpublish logo](../../img/markpublish_logo.png){width=3cm}
+
+/// figure-caption
+    attrs: {id: fig-logo}
+The markpublish logo
+///
+
+Text between figure and table: the default theme sets figures and tables off from running text with a little more space than between two paragraphs, while their caption stays close to the image or table.
+
+| Kind | Caption | Reference |
+| :--- | :--- | :--- |
+| Figure | `/// figure-caption` | `[](#fig-logo)` |
+| Table | `/// table-caption` | `[](#tbl-captions)` |
+
+/// table-caption
+    attrs: {id: tbl-captions}
+Captions and references
+///
+
+A link without text to the `id` becomes a numbered reference: `[](#fig-logo)` yields [](#fig-logo), `[](#tbl-captions)` yields [](#tbl-captions). With text (`[see above](#fig-logo)`) it stays an ordinary link.
+
+The words come from the i18n cascade (`figure`, `table`). Lists of figures and tables are placed in `markpublish.yaml` (`list_of`, see the schema reference).
+
+---
+
 ## Automatic Linking and Cross-References
 
 Web URLs and email addresses are automatically recognized and turned into clickable links. In addition, internal cross-references allow linking directly to any heading:

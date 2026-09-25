@@ -49,6 +49,7 @@ CONTRACT_FUNCTIONS = (
     "setup-document",
     "render-part-divider",
     "render-chapter-divider",
+    "render-list-of",
 )
 
 #: `#let name(` -- Typst-Bezeichner duerfen Bindestriche enthalten.
@@ -571,6 +572,10 @@ ENGINE_LABELS = frozenset(
         "part",
         "chapter_toc_title",
         "part_toc_title",
+        "figure",
+        "table",
+        "list_of_figures",
+        "list_of_tables",
     }
 )
 

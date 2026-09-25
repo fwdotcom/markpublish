@@ -213,6 +213,8 @@ class PDFRenderer(BaseRenderer):
         ]
 
         link_targets = self._collect_link_targets(context)
+        figure_labels = self._collect_figure_labels(context)
+        link_targets |= figure_labels
 
         # Track if there is already content on the current page.
         # At document start (after cover and/or TOC pagebreak), we are already on a fresh page.
@@ -284,6 +286,7 @@ class PDFRenderer(BaseRenderer):
                 ch_typst, has_content = self._render_chapter(
                     item, labels, build_dir, has_content,
                     lang_code=lang_code, link_targets=link_targets,
+                    figure_labels=figure_labels,
                 )
                 parts.append(ch_typst)
 
@@ -329,6 +332,20 @@ class PDFRenderer(BaseRenderer):
 
         return targets
 
+    @staticmethod
+    def _collect_figure_labels(context: DocumentContext) -> Set[str]:
+        """IDs aller beschrifteten Abbildungen und Tabellen -- Ziele fuer `#ref`."""
+        labels: Set[str] = set()
+        for item in context.content_items:
+            tree = getattr(item, "element_tree", None)
+            if tree is None:
+                continue
+            for figure in tree.iter("figure"):
+                figure_id = figure.attrib.get("id")
+                if figure_id and figure.find("figcaption") is not None:
+                    labels.add(figure_id)
+        return labels
+
     def _render_chapter(
         self,
         chapter_item: Any,
@@ -337,6 +354,7 @@ class PDFRenderer(BaseRenderer):
         has_content: bool,
         lang_code: str = "de",
         link_targets: Optional[Set[str]] = None,
+        figure_labels: Optional[Set[str]] = None,
     ) -> Tuple[str, bool]:
         """Renders an individual chapter item into Typst markup."""
         res: List[str] = []
@@ -410,6 +428,17 @@ class PDFRenderer(BaseRenderer):
         if getattr(chapter_item, "pagenum_reset", False):
             res.append("#counter(page).update(1)\n")
 
+        list_of = getattr(chapter_item, "list_of", None)
+        if list_of:
+            in_toc = getattr(chapter_item, "in_document_toc", True)
+            res.append(
+                f'#render-list-of(kind: "{list_of}", '
+                f'title: "{typst_string(chapter_item.display_title)}", '
+                f'slug: "{typst_string(chapter_item.slug)}", '
+                f"in-toc: {str(in_toc).lower()})\n"
+            )
+            return "\n".join(res), True
+
         if needs_synth and not synth_placed_on_divider:
             res.append(_synthetic_heading())
 
@@ -423,6 +452,7 @@ class PDFRenderer(BaseRenderer):
                 labels=labels,
                 allowed_toc_slugs=getattr(chapter_item, "allowed_toc_slugs", None),
                 known_labels=link_targets,
+                figure_labels=figure_labels,
             )
             ch_typst = serializer.serialize(element_tree)
             if ch_typst.strip():

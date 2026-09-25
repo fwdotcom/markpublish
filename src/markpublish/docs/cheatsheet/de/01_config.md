@@ -77,6 +77,7 @@ Ein Kapitel ist eine Markdown-Datei. Sein Name kommt aus deren `#`-Überschrift.
 | Schlüssel | Standard | Bedeutung |
 | :--- | :--- | :--- |
 | `file` | *Pflichtangabe* | Pfad zur Markdown-Datei |
+| `list_of` | – | Statt `file`: Verzeichnis der `figures` oder `tables` an dieser Stelle |
 | `show_title` | `true` | Datei-H1 auf der Inhaltsseite anzeigen |
 | `toc_title` | Datei-H1 | Titel im Inhaltsverzeichnis und in der Kopfzeile |
 | `divider_title` | Datei-H1 | Titel auf der Trennseite |

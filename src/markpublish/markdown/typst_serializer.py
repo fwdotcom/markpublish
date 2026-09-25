@@ -61,6 +61,26 @@ def typst_value(value: Any) -> str:
     return f'"{typst_string(value)}"'
 
 
+_LENGTH_RE = re.compile(r"^\s*(\d+(?:\.\d+)?)\s*(%|cm|mm|pt|in|em|px)?\s*$")
+
+
+def typst_length(value: Optional[str]) -> Optional[str]:
+    """
+    Uebersetzt eine Laengenangabe aus dem Markdown (`60%`, `4cm`, `300`) in Typst.
+
+    Eine Zahl ohne Einheit ist wie in HTML und Pandoc ein Pixelwert; Typst kennt
+    keine Pixel, gerechnet wird mit 96 dpi. Was sich nicht lesen laesst, ergibt
+    None -- die Angabe entfaellt dann, statt die Kompilierung abzubrechen.
+    """
+    match = _LENGTH_RE.match(value or "")
+    if not match:
+        return None
+    number, unit = match.groups()
+    if unit in (None, "px"):
+        return f"{float(number) * 0.75:g}pt"
+    return f"{number}{unit}"
+
+
 def escape_typst_text(text: str) -> str:
     """
     Escapes plain text so that Typst does not interpret special markup characters.
@@ -142,6 +162,19 @@ class TypstSerializer:
         "caution": "caution",
     }
 
+    #: Klasse, die `pymdownx.blocks.caption` an die Abbildung setzt -> Typst-`kind`
+    #: und der Label-Schluessel fuer das Wort davor ("Abbildung", "Tabelle").
+    CAPTION_KINDS = {"caption-image": "image", "caption-table": "table"}
+    KIND_LABELS = {"image": "figure", "table": "table"}
+
+    #: Marken an der `box` um ein Bild ausserhalb des Fliesstexts. Ob <mp-image>
+    #: gerahmt wird, entscheidet das Theme; `frame` und `noframe`
+    #: im Markdown weichen davon ab. Ein Theme ohne Regeln dafuer rahmt nie.
+    IMAGE_LABEL = "mp-image"
+    IMAGE_FRAME_LABELS = {"frame": "mp-image-frame", "noframe": "mp-image-noframe"}
+    #: Marke am Block um ein Bild ohne Beschriftung; das Theme richtet ihn aus.
+    IMAGE_BLOCK_LABEL = "mp-image-block"
+
     def __init__(
         self,
         file_base_dir: Optional[Path] = None,
@@ -149,12 +182,16 @@ class TypstSerializer:
         labels: Optional[Dict[str, str]] = None,
         allowed_toc_slugs: Optional[Set[str]] = None,
         known_labels: Optional[Set[str]] = None,
+        figure_labels: Optional[Set[str]] = None,
     ):
         self.file_base_dir = file_base_dir
         self.images_dir = images_dir
         self.labels = labels or {}
         self.allowed_toc_slugs = allowed_toc_slugs
         self.known_labels = known_labels
+        # IDs beschrifteter Abbildungen und Tabellen: nur auf sie laesst sich
+        # mit `#ref` verweisen, ohne dass Typst eine Nummerierung vermisst.
+        self.figure_labels = figure_labels or set()
         self.copied_images: Dict[str, str] = {}
         self.footnotes: Dict[str, str] = {}  # footnote_id -> typst_text
 
@@ -245,8 +282,15 @@ class TypstSerializer:
             else:
                 return f"#heading(level: {effective_level}, numbering: none{outlined_param})[{content}]{label_str}\n"
 
+        # Beschriftete Abbildung oder Tabelle (pymdownx.blocks.caption)
+        if tag == "figure":
+            return self._visit_figure(elem)
+
         # Paragraph
         if tag == "p":
+            block_image = self._sole_image(elem)
+            if block_image is not None:
+                return f"#block[{self._framed_image(block_image)}] <{self.IMAGE_BLOCK_LABEL}>\n"
             content = self._visit_children_inline(elem)
             content = re.sub(r"^(\s*\d+)\.", r"\1\.", content, count=1)
             return f"{content}\n"
@@ -490,6 +534,84 @@ class TypstSerializer:
             f")\n"
         )
 
+    def _visit_figure(self, fig_elem: etree.Element) -> str:
+        """
+        Renders <figure> with <figcaption> as a Typst #figure.
+
+        Wort und Nummer der Beschriftung setzt Typst; das Wort kommt aus der
+        i18n-Kaskade, damit Beschriftung, Verweis und Verzeichnis gleich lauten.
+        """
+        classes = fig_elem.attrib.get("class", "").split()
+        body_elems = [c for c in fig_elem if c.tag.lower() != "figcaption"]
+        caption_elem = fig_elem.find("figcaption")
+
+        kind = next((self.CAPTION_KINDS[c] for c in classes if c in self.CAPTION_KINDS), None)
+        if kind is None:
+            kind = "table" if fig_elem.find(".//table") is not None else "image"
+
+        if len(body_elems) == 1 and self._sole_image(body_elems[0]) is not None:
+            body = self._framed_image(self._sole_image(body_elems[0]))
+        else:
+            body = "\n\n".join(
+                part.strip() for part in (self._visit_block(b) for b in body_elems) if part.strip()
+            )
+
+        params = [f"kind: {kind}"]
+        word = self.labels.get(self.KIND_LABELS[kind])
+        if word:
+            params.append(f"supplement: [{escape_typst_text(word)}]")
+        if caption_elem is not None:
+            caption_parts = []
+            for child in caption_elem:
+                caption_parts.append(self._visit_children_inline(child).strip())
+            if caption_elem.text and caption_elem.text.strip():
+                caption_parts.insert(0, escape_typst_text(caption_elem.text.strip()))
+            caption = " ".join(p for p in caption_parts if p)
+            if caption:
+                params.append(f"caption: [{caption}]")
+
+        fig_id = fig_elem.attrib.get("id", "")
+        label_str = f" <{fig_id}>" if fig_id else ""
+        return f"#figure({', '.join(params)})[\n{body}\n]{label_str}\n"
+
+    @staticmethod
+    def _sole_image(elem: etree.Element) -> Optional[etree.Element]:
+        """Das Bild, wenn ein Absatz aus nichts als diesem einen Bild besteht."""
+        if elem.tag.lower() != "p" or len(elem) != 1:
+            return None
+        child = elem[0]
+        if child.tag.lower() != "img":
+            return None
+        if (elem.text or "").strip() or (child.tail or "").strip():
+            return None
+        return child
+
+    def _image_call(self, img: etree.Element) -> str:
+        """`image(...)` mit Breite, Hoehe und Alternativtext aus den Attributen."""
+        resolved_src = self._resolve_and_copy_image(img.attrib.get("src", ""))
+        params = [f'"{typst_string(resolved_src)}"']
+        sizes = {attr: typst_length(img.attrib.get(attr)) for attr in ("width", "height")}
+        params += [f"{attr}: {length}" for attr, length in sizes.items() if length]
+        if all(sizes.values()):
+            # Mit beiden Angaben fuellt Typst den Rahmen sonst ("cover") und
+            # schneidet ab; "contain" haelt das Seitenverhaeltnis ohne Verlust.
+            params.append('fit: "contain"')
+        alt = img.attrib.get("alt", "")
+        if alt:
+            params.append(f'alt: "{typst_string(alt)}"')
+        return f"image({', '.join(params)})"
+
+    def _framed_image(self, img: etree.Element) -> str:
+        """Ein Bild als eigener Block, mit der Marke fuer den Rahmen."""
+        # `.frame` ist eine Klasse, `frame` ohne Punkt macht attr_list zu einem
+        # Attribut gleichen Namens -- gemeint ist beides dasselbe.
+        marks = img.attrib.get("class", "").split() + list(img.attrib)
+        label = next(
+            (self.IMAGE_FRAME_LABELS[m] for m in marks if m in self.IMAGE_FRAME_LABELS),
+            self.IMAGE_LABEL,
+        )
+        return f"#box[#{self._image_call(img)}] <{label}>"
+
     def _visit_def_list(self, dl_elem: etree.Element) -> str:
         """Renders HTML definition lists <dl><dt>...</dt><dd>...</dd></dl>."""
         items: List[str] = []
@@ -728,6 +850,12 @@ class TypstSerializer:
         if tag == "a":
             href = elem.attrib.get("href", "")
             inner = self._visit_children_inline(elem)
+
+            # Ein Link ohne Text auf eine Abbildung oder Tabelle ist ein
+            # Verweis: Typst setzt "Abbildung 3" samt Nummer selbst.
+            if not inner and href.startswith("#") and href[1:] in self.figure_labels:
+                return f'#ref(label("{typst_string(href[1:])}"))'
+
             if not inner:
                 inner = escape_typst_text(href)
 
@@ -751,13 +879,9 @@ class TypstSerializer:
 
         # Image
         if tag == "img":
-            src = elem.attrib.get("src", "")
-            alt = elem.attrib.get("alt", "")
-            resolved_src = self._resolve_and_copy_image(src)
-            escaped_src = typst_string(resolved_src)
-            escaped_alt = escape_typst_text(alt)
-            alt_param = f', alt: "{escaped_alt}"' if escaped_alt else ""
-            return f'#image("{escaped_src}"{alt_param})'
+            # `box`: ein nacktes `image` ist in Typst ein Block und risse die
+            # Zeile auf, in der es steht.
+            return f"#box({self._image_call(elem)})"
 
         # Line break
         if tag == "br":

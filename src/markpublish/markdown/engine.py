@@ -56,6 +56,7 @@ DEFAULT_EXTENSION_NAMES = [
     "pymdownx.caret",
     "pymdownx.smartsymbols",
     "pymdownx.arithmatex",
+    "pymdownx.blocks.caption",
 ]
 
 DEFAULT_EXTENSION_CONFIGS = {
@@ -72,6 +73,15 @@ DEFAULT_EXTENSION_CONFIGS = {
     },
     "pymdownx.superfences": {
         "custom_fences": []
+    },
+    # Nummer und Wort ("Abbildung 1") setzt Typst, damit Verweise und
+    # Verzeichnisse dieselbe Zaehlung sehen -- deshalb hier ohne Praefix.
+    "pymdownx.blocks.caption": {
+        "auto": False,
+        "types": [
+            {"name": "figure-caption", "classes": "caption-image"},
+            {"name": "table-caption", "classes": "caption-table"},
+        ],
     },
 }
 
@@ -148,6 +158,7 @@ class ContentItem:
         divider_title: Optional[str] = None,
         has_h1: bool = False,
         show_title: bool = True,
+        list_of: Optional[str] = None,
     ):
         self.title = title
         self.display_title = display_title
@@ -171,6 +182,8 @@ class ContentItem:
         self.divider_title = divider_title
         self.has_h1 = has_h1
         self.show_title = show_title
+        # "figures" oder "tables": der Eintrag setzt ein Verzeichnis statt Text.
+        self.list_of = list_of
         # `number_prefix` ist die nackte Nummer -- die Trennseite setzt ihr Wort
         # selbst davor. `display_number` ist, was vor der Ueberschrift steht.
         self.label = label
@@ -427,6 +440,46 @@ class MarkdownPipeline:
 
         return content_items, global_toc_tree
 
+    def _process_list_of(
+        self,
+        chapter_cfg: ChapterItem,
+        inherited_document_toc: Optional[TocScope],
+        inherited_pagenum_reset: bool,
+    ) -> Tuple[ContentItem, List[TOCNode]]:
+        """
+        Ein Abbildungs- oder Tabellenverzeichnis an seiner Stelle im Aufbau.
+
+        Es steht im Inhaltsverzeichnis wie ein Kapitel, bekommt aber keine
+        Nummer: es gliedert nicht den Inhalt, es verweist auf ihn.
+        """
+        kind = chapter_cfg.list_of.value
+        title = chapter_cfg.toc_title or self.labels.get(f"list_of_{kind}") or kind
+        document_toc = (
+            chapter_cfg.document_toc
+            if chapter_cfg.document_toc is not None
+            else inherited_document_toc
+        )
+        in_doc_toc = _document_toc_enabled(document_toc)
+        slug = self.numbering_ctx.unique_slug(title)
+        pagenum_reset = (
+            chapter_cfg.pagenum_reset
+            if chapter_cfg.pagenum_reset is not None
+            else inherited_pagenum_reset
+        )
+        item = ContentItem(
+            title=title,
+            display_title=title,
+            slug=slug,
+            break_before=chapter_cfg.break_before,
+            pagenum_reset=pagenum_reset,
+            document_toc=document_toc,
+            toc_title=title,
+            list_of=kind,
+        )
+        item.in_document_toc = in_doc_toc
+        toc_nodes = [TOCNode(title=title, slug=slug, level=1)] if in_doc_toc else []
+        return item, toc_nodes
+
     def _process_chapter(
         self,
         chapter_cfg: ChapterItem,
@@ -440,6 +493,11 @@ class MarkdownPipeline:
     ) -> Tuple[ContentItem, List[TOCNode]]:
         if isinstance(chapter_cfg, dict):
             chapter_cfg = ChapterItem(**chapter_cfg)
+
+        if chapter_cfg.list_of is not None:
+            return self._process_list_of(
+                chapter_cfg, inherited_document_toc, inherited_pagenum_reset
+            )
 
         raw_md = ""
         file_base_dir = self.base_dir

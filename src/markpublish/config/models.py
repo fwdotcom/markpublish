@@ -80,6 +80,12 @@ class BreakBefore(str, Enum):
     NONE = "none"          # Kapitel laeuft im Fliesstext weiter
 
 
+class ListOf(str, Enum):
+    """Welches Verzeichnis ein Eintrag `list_of:` an seiner Stelle setzt."""
+    FIGURES = "figures"
+    TABLES = "tables"
+
+
 class TocScope(BaseModel):
     """
     Wie weit ein Kapitel in *ein* Inhaltsverzeichnis hineinreicht.
@@ -333,6 +339,10 @@ class ChapterItem(BaseModel):
     Represents a single chapter (content markdown file).
     """
     file: Optional[str] = Field(default=None, description="Path to markdown file")
+    list_of: Optional[ListOf] = Field(
+        default=None,
+        description="Place a list of 'figures' or 'tables' here instead of a Markdown file",
+    )
     toc_title: Optional[str] = Field(default=None, description="Title for document TOC, part TOC and running headers")
     divider_title: Optional[str] = Field(default=None, description="Title on chapter divider page")
     show_title: bool = Field(default=True, description="Whether to render the markdown H1 heading on the content page")
@@ -413,6 +423,29 @@ class ChapterItem(BaseModel):
         raise ValueError(
             t("err.config.break_before", key_path="chapters.break_before", allowed=allowed, value=repr(v))
         )
+
+    @field_validator("list_of", mode="before")
+    @classmethod
+    def parse_list_of(cls, v: Any) -> Optional[ListOf]:
+        if v is None or isinstance(v, ListOf):
+            return v
+        if isinstance(v, str):
+            for item in ListOf:
+                if item.value == v.lower().strip():
+                    return item
+        allowed = ", ".join(f"'{item.value}'" for item in ListOf)
+        raise ValueError(t("err.config.list_of", allowed=allowed, value=repr(v)))
+
+    @model_validator(mode="after")
+    def check_list_of(self) -> "ChapterItem":
+        # Ein Verzeichnis hat keinen eigenen Text und keine Trennseite: es ist
+        # selbst die Seite.
+        if self.list_of is not None:
+            if self.file:
+                raise ValueError(t("err.config.list_of_file"))
+            if self.break_before == BreakBefore.DIVIDER:
+                raise ValueError(t("err.config.list_of_divider"))
+        return self
 
     @property
     def is_part(self) -> bool:

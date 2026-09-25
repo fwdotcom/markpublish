@@ -122,6 +122,14 @@ The chapter heading on the content page is determined by default by the file's l
 | `autonum_reset` | Boolean | `None` | Makes the headings of this chapter start again at one. |
 | `label` | String | inherited | Word naming this chapter (e.g. `"Excursus"`). Notated empty (`""`), it is dropped. |
 | `pagenum_reset` | Boolean | `None` | Resets page numbering to 1 at the start of this chapter. |
+| `list_of` | String | `None` | Places a list instead of a file: `"figures"` or `"tables"`. Title from the i18n cascade or `toc_title`; unnumbered, no divider page. |
+
+```yaml
+chapters:
+  - list_of: figures
+  - list_of: tables
+    toc_title: "Tables"
+```
 
 > [!IMPORTANT]
 > Under `parts:` and `chapters:`, **only** the keys listed above are allowed. Any unrecognized key halts compilation and provides fuzzy spelling suggestions – catching mistakes like `break_befor` before chapters are rendered with incorrect breaks. Custom metadata fields belong exclusively under `document:`.

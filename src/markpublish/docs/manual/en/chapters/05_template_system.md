@@ -98,6 +98,12 @@ Metadata preserves its native YAML data type on its way to Typst:
 
 Which fields a theme actually consumes can be inspected with `markpublish labels`: any field ignored by the theme is flagged as *unused*.
 
+### Figures, Images and Lists
+
+* Captioned figures and tables arrive as a Typst `figure`; style them with `show figure...` rules.
+* Every image outside running text sits in a `box` labelled `<mp-image>`, `<mp-image-frame>` (`frame`) or `<mp-image-noframe>` (`noframe`). Whether `<mp-image>` is framed is the theme's default; in the default theme, `image-frame-default` (`true`) controls it.
+* A `list_of` entry calls `render-list-of(kind:, title:, slug:, in-toc:)`. A theme only needs to define it if the document uses `list_of`.
+
 ## Creating and Customizing Themes
 
 The fastest and safest way to develop your own corporate design is to export the built-in standard theme:

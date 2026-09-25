@@ -36,7 +36,7 @@ requires-python = ">=3.10"
 dependencies = [
     "typst>=0.15.0",
     "markdown>=3.5.0",
-    "pymdown-extensions>=10.0.0",
+    "pymdown-extensions>=11.0.2",
     "pygments>=2.15.0",
     "pydantic>=2.0.0",
     "pyyaml>=6.0.0",

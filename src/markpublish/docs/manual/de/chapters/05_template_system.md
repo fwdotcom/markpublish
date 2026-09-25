@@ -98,6 +98,12 @@ Metadaten behalten ihren YAML-Typ auf dem Weg zu Typst bei:
 
 Welche Felder ein Theme tatsächlich abholt, zeigt `markpublish labels`: Ein Feld, das kein Theme verwendet, erscheint dort mit dem Befund *ungenutzt*.
 
+### Abbildungen, Bilder und Verzeichnisse
+
+* Beschriftete Abbildungen und Tabellen kommen als Typst-`figure` an; gestaltet werden sie mit `show figure...`-Regeln.
+* Jedes Bild außerhalb des Fließtexts steckt in einer `box` mit der Marke `<mp-image>`, `<mp-image-frame>` (`frame`) oder `<mp-image-noframe>` (`noframe`). Ob `<mp-image>` gerahmt wird, ist der Standard des Themes; im Standard-Theme steuert ihn `image-frame-default` (`true`).
+* Ein Eintrag `list_of` ruft `render-list-of(kind:, title:, slug:, in-toc:)` auf. Das Theme muss die Funktion nur definieren, wenn das Dokument `list_of` verwendet.
+
 ## Eigene Themes erstellen und anpassen
 
 Der einfachste und sicherste Weg zur Erstellung eines eigenen Corporate Designs ist der Export des integrierten Standard-Themes:

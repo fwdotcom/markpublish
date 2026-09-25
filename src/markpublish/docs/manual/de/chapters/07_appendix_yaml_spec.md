@@ -123,6 +123,14 @@ Die Überschrift auf der Inhaltsseite wird standardmäßig durch die führende `
 | `autonum_reset` | Boolean | `None` | Lässt die Überschriften dieses Kapitels wieder bei 1 anfangen. |
 | `label` | String | geerbt | Wort, das dieses Kapitel benennt (z. B. `"Exkurs"`). Leer notiert (`""`) entfällt es. |
 | `pagenum_reset` | Boolean | `None` | Setzt die Seitennummerierung zu Beginn dieses Kapitels auf 1 zurück. |
+| `list_of` | String | `None` | Setzt statt einer Datei ein Verzeichnis: `"figures"` (Abbildungen) oder `"tables"` (Tabellen). Titel aus der i18n-Kaskade oder `toc_title`; ohne Nummer, ohne Trennseite. |
+
+```yaml
+chapters:
+  - list_of: figures
+  - list_of: tables
+    toc_title: "Verzeichnis der Tabellen"
+```
 
 > [!IMPORTANT]
 > Auf `parts:` und `chapters:` sind **nur** die hier aufgeführten Schlüssel erlaubt. Ein unbekannter Schlüssel bricht den Build ab und nennt, falls vorhanden, den ähnlich geschriebenen – `break_befor` also, bevor das Kapitel still mit dem falschen Umbruch gesetzt wird. Freie Felder gibt es ausschließlich unter `document:`; dort erreichen sie das Theme, hier blieben sie wirkungslos.

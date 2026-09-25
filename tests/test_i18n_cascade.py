@@ -442,6 +442,7 @@ def test_mapping_methods_are_not_mistaken_for_labels(tmp_path: Path):
 #: den Test.
 EXPECTED_KEYS = {
     "toc_title", "chapter_toc_title", "part_toc_title",
+    "figure", "table", "list_of_figures", "list_of_tables",
     "chapter", "part", "label_separator",
     "author", "status", "version", "date", "copyright",
     "bool_true", "bool_false",

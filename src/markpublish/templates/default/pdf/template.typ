@@ -88,6 +88,25 @@
 #let size-chapter-title    = 20pt
 #let size-chapter-subtitle = 11.5pt
 #let size-toc-title        = 16pt
+#let size-caption          = 9pt
+
+// --- Images ---
+#let image-frame-default   = true  // Standard fuer Bilder ohne `frame`/`noframe`
+#let image-align           = center // Bilder und Abbildungen
+#let image-frame-inset     = 4pt   // Abstand Bild -> Rahmen
+
+// --- Abstaende abgesetzter Elemente ---
+// Drei Stufen: Absatz (`par-spacing`) < Textblock < Abbildung. Codeblock,
+// Hinweis und Zitat liest man im Textfluss mit; Abbildungen und Tabellen sind
+// eigene Objekte mit Nummer und stehen am deutlichsten frei. Nach innen bleibt
+// es eng: die Beschriftung gehoert sichtbar zu ihrem Bild, nicht zum Text
+// darunter.
+//
+// Vielfache von `body-size` statt `em`: `em` bezieht sich auf die Schrift an
+// der Stelle, und im Codeblock ist die kleiner -- 2em waeren dort 16pt.
+#let block-spacing         = 2 * body-size    // Codeblock, Hinweis, Zitat
+#let figure-spacing        = 2.4 * body-size  // Abbildung, Tabelle, Bild
+#let caption-gap           = 0.7em // Abstand Bild/Tabelle -> Beschriftung
 
 // --- Callout Admonition Colors ---
 #let callout-colors = (
@@ -201,6 +220,15 @@
   ]
 }
 
+// Setzt ein Element vom Fliesstext ab. Schwache Abstaende: am Seitenanfang und
+// am Rand eines Kastens entfallen sie, und zwischen zwei abgesetzten Elementen
+// zaehlt nur der groessere, statt dass sie sich addieren.
+#let _set-off(body, spacing: figure-spacing) = {
+  v(spacing, weak: true)
+  body
+  v(spacing, weak: true)
+}
+
 // Helper to determine if the current page suppresses headers/footers (C2)
 #let _is-special-page(cur-page) = {
   let is-cover = query(label("cover-page")).any(it => it.location().page() == cur-page)
@@ -222,8 +250,7 @@
 //
 // `breakable` entscheidet die aufrufende Stelle, nicht dieser Helfer: was ein
 // Element ist und was laufender Text, weiss sie, und der Kasten nicht.
-#let _callout-box(border: c-quote-bar, bg: c-bg-subtle, breakable: false, body) = {
-  v(0.6em)
+#let _callout-box(border: c-quote-bar, bg: c-bg-subtle, breakable: false, body) = _set-off(
   block(
     width: 100%,
     breakable: breakable,
@@ -231,9 +258,9 @@
     stroke: (left: stroke-callout + border),
     inset: (top: 10pt, bottom: 10pt, left: 14pt, right: 14pt),
     radius: (right: radius-md),
-  )[#body]
-  v(0.6em)
-}
+  )[#body],
+  spacing: block-spacing,
+)
 
 // Callout / Admonition Box (B4, C2)
 //
@@ -518,6 +545,10 @@
   // Outline / TOC styling (B8: Führungspunkte mager belassen)
   show outline.entry: it => {
     let elem = it.element
+    // Eintraege im Abbildungs- und Tabellenverzeichnis: Typsts eigene Zeile.
+    if elem.func() != heading {
+      return text(fill: c-text-secondary)[#it]
+    }
     let all-outlined = query(selector(heading.where(outlined: true)))
     let is-first-toc = all-outlined.len() > 0 and elem.location() == all-outlined.first().location()
     let elem-idx = all-outlined.position(h => h.location() == elem.location())
@@ -576,7 +607,42 @@
   )
   show table: set par(justify: false)
   show table: set text(number-width: "tabular")
-  show table: it => block(stroke: (bottom: stroke-table-top + c-text-dark))[#it]
+  let table-rule(it) = block(stroke: (bottom: stroke-table-top + c-text-dark))[#it]
+  show table: it => _set-off(table-rule(it))
+
+  // Abbildungen und Tabellen mit Beschriftung
+  //
+  // Wort und Nummer ("Abbildung 1") setzt Typst; das Wort reicht markpublish
+  // aus der i18n-Kaskade herein. Tabellen tragen ihre Beschriftung oben, wie
+  // im Buchsatz ueblich -- gelesen wird eine Tabelle von oben, ein Bild wird
+  // erst angesehen und dann erklaert.
+  set figure(gap: caption-gap)
+  // Die Abbildung haelt den Abstand zum Text; eine Tabelle darin rueckt ohne
+  // eigenen Abstand an ihre Beschriftung.
+  show figure: it => {
+    show table: table-rule
+    _set-off(it)
+  }
+  show figure.caption: set text(size: size-caption, fill: c-text-muted)
+  show figure.caption: set par(justify: false)
+  show figure.where(kind: table): set figure.caption(position: top)
+
+  // Bilder als eigener Block: markpublish legt eine `box` mit einer Marke um
+  // jedes Bild: <mp-image>, mit `frame` <mp-image-frame>, mit `noframe`
+  // <mp-image-noframe>. Den Standard fuer <mp-image> setzt
+  // `image-frame-default`; die beiden anderen weichen davon ab. Ein Bild ohne
+  // Beschriftung steht zusaetzlich in einem Block <mp-image-block>; ihn und
+  // jede Abbildung richtet `image-align` aus.
+  let image-frame = (
+    stroke: stroke-border + c-border-strong,
+    inset: image-frame-inset,
+    radius: radius-sm,
+  )
+  show <mp-image-block>: set align(image-align)
+  show <mp-image-block>: it => _set-off(it)
+  show figure: set align(image-align)
+  show <mp-image-frame>: set box(..image-frame)
+  show <mp-image>: set box(..image-frame) if image-frame-default
 
   // Zitate
   //
@@ -613,6 +679,9 @@
   ]
 
   // Code Block styling
+  // Der Abstand haengt hier am Codeblock selbst: Typst setzt ihn als eigenen
+  // Block, und ein Abstand am Rand seines Inhalts entfiele.
+  show raw.where(block: true): set block(spacing: block-spacing)
   show raw.where(block: true): it => block(
     fill: c-bg-muted,
     stroke: stroke-border + c-border-strong,
@@ -808,4 +877,26 @@
     ]
   ]
   pagebreak()
+}
+
+// -----------------------------------------------------------------------------
+// Abbildungs- und Tabellenverzeichnis
+// -----------------------------------------------------------------------------
+
+// Eine eigene Seite an der Stelle, an der `list_of:` in der markpublish.yaml
+// steht. Die Ueberschrift ist eine gewoehnliche ohne Nummer: so steht das
+// Verzeichnis im Inhaltsverzeichnis und in der Kopfzeile wie ein Kapitel.
+#let render-list-of(
+  kind: "figures",
+  title: "",
+  slug: none,
+  in-toc: true,
+) = {
+  let target = if kind == "tables" { figure.where(kind: table) } else { figure.where(kind: image) }
+  if slug != none [
+    #heading(level: 1, outlined: in-toc, numbering: none)[#title] #label(slug)
+  ] else [
+    #heading(level: 1, outlined: in-toc, numbering: none)[#title]
+  ]
+  outline(title: none, target: target, indent: 0pt)
 }

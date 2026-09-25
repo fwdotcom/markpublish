@@ -226,6 +226,74 @@ Häufige Symbole und Operatoren werden bei der Eingabe im Fließtext automatisch
 
 ---
 
+## Bilder, Abbildungen und Tabellen
+
+Bildattribute stehen in geschweiften Klammern direkt hinter dem Bild:
+
+```markdown
+![Umsatz](img/umsatz.png){width=60%}
+![Logo](img/logo.png){width=4cm noframe}
+```
+
+| Attribut | Werte | Wirkung |
+| :--- | :--- | :--- |
+| `width`, `height` | `60%`, `4cm`, `12mm`, `100pt`, `300` (Pixel) | Größe des Bildes |
+| `frame`, `noframe` | – | Rahmen ein bzw. aus, abweichend vom Theme; auch mit Punkt (`.frame`) |
+
+Das Seitenverhältnis bleibt immer erhalten: Mit nur einer Angabe ergibt sich die andere von selbst; mit beiden wird das Bild in diese Fläche eingepasst, ohne verzerrt oder beschnitten zu werden.
+
+Ob Bilder gerahmt werden, gibt das verwendete Theme vor; `frame` und `noframe` weichen im Einzelfall davon ab. Das Standard-Theme rahmt jedes Bild, das allein im Absatz steht – `noframe` passt dort etwa für Logos oder freigestellte Grafiken.
+
+Eine Beschriftung folgt als Block unter dem Bild bzw. der Tabelle. Nummer und Wort setzt markpublish selbst:
+
+```markdown
+![markpublish-Logo](img/markpublish_logo.png){width=3cm}
+
+/// figure-caption
+    attrs: {id: fig-logo}
+Das Logo von markpublish
+///
+
+Text zwischen Abbildung und Tabelle: Abbildungen und Tabellen setzt das Standard-Theme mit etwas mehr Abstand vom Fließtext ab als zwei Absätze voneinander, ihre Beschriftung steht dagegen eng am Bild bzw. an der Tabelle.
+
+| Format | Beschriftung | Verweis |
+| :--- | :--- | :--- |
+| Abbildung | `/// figure-caption` | `[](#fig-logo)` |
+| Tabelle | `/// table-caption` | `[](#tbl-beschriftung)` |
+
+/// table-caption
+    attrs: {id: tbl-beschriftung}
+Beschriftungen und Verweise
+///
+```
+
+Ergebnis:
+
+![markpublish-Logo](../../img/markpublish_logo.png){width=3cm}
+
+/// figure-caption
+    attrs: {id: fig-logo}
+Das Logo von markpublish
+///
+
+Text zwischen Abbildung und Tabelle: Abbildungen und Tabellen setzt das Standard-Theme mit etwas mehr Abstand vom Fließtext ab als zwei Absätze voneinander, ihre Beschriftung steht dagegen eng am Bild bzw. an der Tabelle.
+
+| Format | Beschriftung | Verweis |
+| :--- | :--- | :--- |
+| Abbildung | `/// figure-caption` | `[](#fig-logo)` |
+| Tabelle | `/// table-caption` | `[](#tbl-beschriftung)` |
+
+/// table-caption
+    attrs: {id: tbl-beschriftung}
+Beschriftungen und Verweise
+///
+
+Ein Link ohne Text auf die `id` wird zum Verweis mit Nummer: `[](#fig-logo)` ergibt [](#fig-logo), `[](#tbl-beschriftung)` ergibt [](#tbl-beschriftung). Mit Text (`[siehe oben](#fig-logo)`) bleibt es ein gewöhnlicher Link.
+
+Die Wörter kommen aus der i18n-Kaskade (`figure`, `table`). Abbildungs- und Tabellenverzeichnis werden in der `markpublish.yaml` platziert (`list_of`, siehe Schema-Referenz).
+
+---
+
 ## Automatische Verlinkung und Querverweise
 
 Web- und Mailadressen werden bei direkter Eingabe automatisch erkannt und formatiert. Über Anker-Links lässt sich zudem auf jede Überschrift im Dokument verweisen:
