@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+### Fixed
+- **Table of contents page breaks (default theme)**: part and chapter entries are no longer left alone at the bottom of a page; they move to the next page along with their first sub-entry. A bit more space above chapter entries; a wrapped entry keeps the line spacing of the table of contents (`toc-leading`).
+
+---
+
 ## [2.2.0] - 2026-09-25
 
 ### Added

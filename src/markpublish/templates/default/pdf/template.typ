@@ -75,6 +75,7 @@
 #let par-spacing      = 1.5em
 #let list-spacing     = 1.2em
 #let quote-spacing    = 1.0em  // Absatzabstand *innerhalb* eines Zitats
+#let toc-leading      = 0.65em // Inhaltsverzeichnis: zwischen und innerhalb der Eintraege
 #let size-code-block    = 8.5pt
 #let size-code-inline   = 1.0em
 #let weight-code-inline = "medium"
@@ -549,6 +550,8 @@
     if elem.func() != heading {
       return text(fill: c-text-secondary)[#it]
     }
+    // Ein umbrechender Titel darf nicht lockerer stehen als zwei Eintraege.
+    set par(leading: toc-leading)
     let all-outlined = query(selector(heading.where(outlined: true)))
     let is-first-toc = all-outlined.len() > 0 and elem.location() == all-outlined.first().location()
     let elem-idx = all-outlined.position(h => h.location() == elem.location())
@@ -557,6 +560,11 @@
       prev.has("label") and str(prev.label) == "part-entry"
     } else {
       false
+    }
+    let next = if elem-idx != none and elem-idx + 1 < all-outlined.len() {
+      all-outlined.at(elem-idx + 1)
+    } else {
+      none
     }
 
     if elem.has("label") and str(elem.label) == "part-entry" {
@@ -567,27 +575,34 @@
       if not is-first-toc {
         v(1.8em)
       }
-      link(elem.location())[
-        #text(weight: "bold", size: 11pt, fill: c-text-dark)[#if num != none [#num #h(0.35em)]#elem.body]
-        #box(width: 1fr)
-        #text(weight: "bold", size: 11pt, fill: c-text-dark)[#pg]
+      block(width: 100%, breakable: false, sticky: true)[
+        #link(elem.location())[
+          #text(weight: "bold", size: 11pt, fill: c-text-dark)[#if num != none [#num #h(0.35em)]#elem.body]
+          #box(width: 1fr)
+          #text(weight: "bold", size: 11pt, fill: c-text-dark)[#pg]
+        ]
       ]
       v(0.85em)
     } else if it.level == 1 {
       if not is-first-toc and not follows-part {
-        v(0.9em)
+        v(1.1em)
       }
       let num = if elem.numbering != none {
         numbering(elem.numbering, ..counter(heading).at(elem.location()))
       } else { none }
       let pg = counter(page).at(elem.location()).first()
-      link(elem.location())[
-        #text(weight: "bold", fill: c-text-dark)[#if num != none and str(num).trim() != "" [#num #h(0.35em)]#elem.body]
-        #box(width: 1fr, text(fill: c-text-subtle)[#it.fill])
-        #text(weight: "bold", fill: c-text-dark)[#pg]
+      block(width: 100%, breakable: false, sticky: (next != none and next.level > 1))[
+        #link(elem.location())[
+          #text(weight: "bold", fill: c-text-dark)[#if num != none and str(num).trim() != "" [#num #h(0.35em)]#elem.body]
+          #box(width: 1fr, text(fill: c-text-subtle)[#it.fill])
+          #text(weight: "bold", fill: c-text-dark)[#pg]
+        ]
       ]
     } else {
-      text(weight: "regular", fill: c-text-secondary)[#it]
+      let is-sticky = (next != none and next.level > 1)
+      block(width: 100%, breakable: false, sticky: is-sticky, above: toc-leading, below: toc-leading)[
+        #text(weight: "regular", fill: c-text-secondary)[#it]
+      ]
     }
   }
 
