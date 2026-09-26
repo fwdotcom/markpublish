@@ -75,7 +75,7 @@
 #let par-spacing      = 1.5em
 #let list-spacing     = 1.2em
 #let quote-spacing    = 1.0em  // Absatzabstand *innerhalb* eines Zitats
-#let toc-leading      = 0.65em // Inhaltsverzeichnis: zwischen und innerhalb der Eintraege
+#let toc-leading      = par-leading // Inhaltsverzeichnis: zwischen und innerhalb der Eintraege
 #let size-code-block    = 8.5pt
 #let size-code-inline   = 1.0em
 #let weight-code-inline = "medium"
