@@ -34,6 +34,7 @@ Metadata and global layout toggles. Only `title` is required.
 | `status` | – | Document status (e.g. `Draft`, `Approved`) |
 | `copyright` | – | Copyright notice on the cover page |
 | `language` | system language | ISO code for static labels (`de`, `en`) |
+| `custom` | – | Own values for placeholders in the text (`{{custom.a.b}}`), may be nested |
 | `cover` | `false` | Generate a cover page |
 | `header` / `footer` | `true` | Running headers and footers |
 | `document_toc` | `full` | Main table of contents: `none`, `full` or a depth |
@@ -48,6 +49,10 @@ Metadata and global layout toggles. Only `title` is required.
 If the document consists of **exactly one chapter**, the main table of contents omits that chapter's own line: it would merely repeat the cover title, and an entry without siblings distinguishes nothing. The chapter's subheadings stay listed, and its number still appears above the text or on the divider page. `document_toc` still counts structural levels rather than visible lines: for two visible levels (H2 and H3), write `document_toc: 3`.
 
 Custom fields under `document:` (`department: "R&D"`) reach the theme through the `meta` dictionary (`meta.at("department").value`). Static labels belong in `i18n.yaml`, not here.
+
+In Markdown, `{{name}}` inserts a value from `document:` (`{{author}}`, `{{custom.procedure.name}}`). Values under `custom` do not reach the theme. A placeholder without a value stops the build; `\{{author}}` stays as written.
+
+`key: !file "path-or-url"` loads a value from another file, anywhere in the configuration. YAML files supply a nested value, any other file its text. Relative paths resolve against the referencing file.
 
 ## parts
 

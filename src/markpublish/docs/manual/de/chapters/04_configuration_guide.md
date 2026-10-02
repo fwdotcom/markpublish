@@ -96,6 +96,24 @@ Dieses Dokument beschreibt {{custom.verfahren.name}}.
 
 Werte unter `custom` erreichen das Theme nicht. Ein Platzhalter ohne Wert, auch ein vertippter, bricht den Bau mit Angabe der Datei ab. In Code (`` `{{author}}` `` oder Codeblock) bleibt der Platzhalter wörtlich stehen, im Fließtext mit vorangestelltem Backslash: `\{{author}}` ergibt `{{author}}`.
 
+#### Werte aus anderen Dateien (`!file`)
+
+Statt einen Wert direkt hinzuschreiben, lädt `!file` ihn aus einer Datei oder von einer URL nach. Beides lässt sich beliebig mischen:
+
+```yaml
+document:
+  custom:
+    a: "xxx"
+    verfahren: !file "../gemeinsam/verfahren.yaml"
+    zweck: !file "zweck.txt"
+    betreiber: !file "https://intranet.example/betreiber.yaml"
+```
+
+* **YAML-Dateien** (`.yaml`, `.yml`) setzen ihren Inhalt an die Stelle des Verweises, `{{custom.verfahren.name}}` greift also in die nachgeladene Datei. **Jede andere Datei** liefert ihren Text als einfachen Wert.
+* **Relative Pfade** gelten relativ zu der Datei, in der das `!file` steht, bei einer URL relativ zu dieser URL.
+* **Verschachtelt:** Eine nachgeladene YAML-Datei darf selbst wieder `!file` enthalten. Dieselbe Datei an mehreren Stellen ist erlaubt; ein Verweis, der über die Kette zu sich selbst zurückführt, bricht den Bau ab.
+* `!file` wirkt überall in der Konfiguration, nicht nur unter `custom`. Ein Abruf per URL wartet höchstens 10 Sekunden.
+
 ### Parts (Abschnitte)
 
 Ein Dokument wird durch `parts:` in übergeordnete Abschnitte gegliedert (z. B. „Hauptteil“, „Fallstudien“, „Anhänge“):

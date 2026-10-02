@@ -34,6 +34,7 @@ Metadaten und globale Layout-Schalter. Pflichtangabe ist allein `title`.
 | `status` | – | Dokumentstatus (z. B. `Entwurf`, `Freigegeben`) |
 | `copyright` | – | Copyright-Hinweis auf dem Deckblatt |
 | `language` | Systemsprache | ISO-Sprachcode für statische Beschriftungen (`de`, `en`) |
+| `custom` | – | Eigene Werte für Platzhalter im Text (`{{custom.a.b}}`), auch verschachtelt |
 | `cover` | `false` | Deckblatt erzeugen |
 | `header` / `footer` | `true` | Kopf- und Fußzeilen aktivieren |
 | `document_toc` | `full` | Haupt-Inhaltsverzeichnis: `none`, `full` oder Tiefe als Zahl |
@@ -48,6 +49,10 @@ Metadaten und globale Layout-Schalter. Pflichtangabe ist allein `title`.
 Besteht das Dokument aus **genau einem Kapitel**, lässt das Haupt-Inhaltsverzeichnis dessen eigene Zeile weg: sie wiederholte nur den Titel des Deckblatts, und ein Eintrag ohne Geschwister unterscheidet nichts. Die Unterüberschriften des Kapitels bleiben aufgeführt, seine Nummer steht weiterhin über dem Text bzw. auf der Trennseite. `document_toc` zählt dabei weiter Gliederungsebenen und nicht sichtbare Zeilen: für zwei sichtbare Ebenen (H2 und H3) notieren Sie `document_toc: 3`.
 
 Eigene Zusatzfelder unter `document:` (`abteilung: "F&E"`) erreichen das Theme über das Wörterbuch `meta` (`meta.at("abteilung").value`). Statische Beschriftungen gehören in die `i18n.yaml`, nicht hierher.
+
+Im Markdown setzt `{{name}}` eine Angabe aus `document:` ein (`{{author}}`, `{{custom.verfahren.name}}`). Werte unter `custom` erreichen das Theme nicht. Ein Platzhalter ohne Wert bricht den Bau ab; `\{{author}}` bleibt wörtlich stehen.
+
+`schlüssel: !file "pfad-oder-url"` lädt einen Wert aus einer anderen Datei, überall in der Konfiguration. YAML-Dateien liefern einen verschachtelten Wert, jede andere Datei ihren Text. Relative Pfade gelten ab der verweisenden Datei.
 
 ## parts
 

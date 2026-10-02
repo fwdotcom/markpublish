@@ -96,6 +96,24 @@ This document describes {{custom.procedure.name}}.
 
 Values under `custom` do not reach the theme. A placeholder without a value, including a misspelled one, stops the build and names the file. In code (`` `{{author}}` `` or a code block) the placeholder stays as written; in running text, put a backslash in front: `\{{author}}` gives `{{author}}`.
 
+#### Values from Other Files (`!file`)
+
+Instead of writing a value directly, `!file` loads it from a file or a URL. Both can be mixed freely:
+
+```yaml
+document:
+  custom:
+    a: "xxx"
+    procedure: !file "../shared/procedure.yaml"
+    purpose: !file "purpose.txt"
+    operator: !file "https://intranet.example/operator.yaml"
+```
+
+* **YAML files** (`.yaml`, `.yml`) put their content in place of the reference, so `{{custom.procedure.name}}` reaches into the loaded file. **Any other file** supplies its text as a simple value.
+* **Relative paths** are relative to the file containing the `!file`, or to the URL it was loaded from.
+* **Nested:** a loaded YAML file may itself contain `!file`. The same file may appear in several places; a reference leading back to itself through the chain stops the build.
+* `!file` works anywhere in the configuration, not only under `custom`. A URL request waits at most 10 seconds.
+
 ### Parts (Sections)
 
 A document is organized into high-level sections via `parts:` (e.g., "Main Part", "Case Studies", "Appendices"):

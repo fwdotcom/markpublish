@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.3.1] - 2026-10-02
+
+### Added
+- **`!file` in the configuration**: `key: !file "path-or-url"` loads a value from another file or a URL, e.g. `custom: {a: "xxx", c: !file "../shared/procedure.yaml"}`. YAML files become a nested value, any other file its text. Loaded YAML files may contain `!file` themselves; relative paths resolve against the referencing file (or URL); circular references stop the build.
+
+---
+
 ## [2.3.0] - 2026-10-02
 
 ### Added
