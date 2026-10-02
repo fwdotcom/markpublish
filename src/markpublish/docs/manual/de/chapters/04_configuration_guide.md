@@ -41,7 +41,35 @@ Globale Verzeichnisvorgaben
 Nummerierungsregeln
 : Vorgaben zur automatischen Nummerierung (`autonum_pattern`, `autonum_reset`).
 
-#### Eigene Metadatenfelder
+### Parts (Abschnitte)
+
+Ein Dokument wird durch `parts:` in übergeordnete Abschnitte gegliedert (z. B. „Hauptteil“, „Fallstudien“, „Anhänge“):
+
+* Ein Dokument muss immer über `parts:` aufgebaut sein; ein flaches `chapters:` direkt auf oberster Ebene wird abgewiesen.
+
+* Ein Abschnitt fasst logisch zusammengehörige Kapitel zusammen.
+
+* Ohne Angabe tritt ein Abschnitt selbst nicht in Erscheinung (`break_before: "none"`): er klammert seine Kapitel und vererbt seine Einstellungen, belegt aber keine Seite und erscheint nicht im Inhaltsverzeichnis. Mit `break_before: "divider"` erhält er eine gestaltete Trennseite, mit `break_before: "page"` eine Überschrift auf einer neuen Seite.
+
+* Auf Abschnittsebene gesetzte Einstellungen (z. B. Verzeichnistiefe oder ein `autonum_pattern`) vererben sich automatisch auf alle darin enthaltenen Kapitel.
+
+* Auf `parts:` sind ausschließlich die deklarierten Konfigurationsschlüssel erlaubt. Unbekannte Schlüssel (wie `break_befor`) werden mit Ähnlichkeitsvorschlägen abgelehnt, um unbemerkte Fehlkonfigurationen auszuschließen.
+
+### Chapters (Kapitel)
+
+Die Liste `chapters:` innerhalb eines Abschnitts verweist auf die eigentlichen Markdown-Inhaltsdateien:
+
+* Jedes Kapitel verweist auf seine Markdown-Datei (`file:`). Autoren können in ihren Markdown-Dateien ganz natürlich mit einer `#`-Überschrift beginnen.
+
+* Über **`show_title:`** (`true` oder `false`, Standard: `true`) lässt sich steuern, ob die `#`-Überschrift der Markdown-Datei auf der Inhaltsseite gerendert werden soll. Wird vor dem Kapitel eine Trennseite erzeugt (`break_before: "divider"`), kann mit `show_title: false` verhindert werden, dass der Titel auf der Folgeseite doppelt erscheint – die Inhaltsseite beginnt dann direkt mit dem Fließtext oder der ersten Zwischenüberschrift.
+
+* Über die optionalen Schlüssel **`toc_title:`** (für Inhaltsverzeichnisse und Kopfzeilen) und **`divider_title:`** (für Trennseiten) können gezielt abweichende Titel vergeben werden (z. B. eine prägnante Kurzform im Inhaltsverzeichnis gegenüber einer ausführlichen Überschrift auf der Textseite). Fehlen die Schlüssel, erben beide automatisch die `#`-Überschrift der Datei.
+
+* Soll eine Trennseite erzeugt werden (`break_before: "divider"`) oder das Kapitel im Inhaltsverzeichnis gelistet werden, muss mindestens eine `#`-Überschrift oder der entsprechende Titelschlüssel (`divider_title` / `toc_title`) vorhanden sein, andernfalls bricht der Build mit einer klaren Fehlermeldung ab.
+
+* Kapitel können über das Feld `break_before` steuern, ob vor ihnen eine Trennseite erzeugt wird, ein einfacher Seitenwechsel erfolgt oder der Text nahtlos anschließt.
+
+## Eigene Metadatenfelder
 
 Unter `document:` sind über die bekannten Schlüssel hinaus **beliebige eigene Felder** erlaubt. Sie erreichen das Theme, werden aber nicht von selbst gedruckt:
 
@@ -76,7 +104,7 @@ Drei Dinge sind dabei zu wissen:
 
 * **Der Typ bleibt erhalten.** Ein `true` ist ein Wahrheitswert und kein Text: Das Deckblatt setzt `Ja` beziehungsweise `Yes`, je nach Dokumentsprache. Die beiden Wörter stehen als `bool_true` und `bool_false` in der i18n-Kaskade.
 
-#### Platzhalter im Text
+## Platzhalter im Text
 
 Im Markdown setzt `{{name}}` eine Angabe aus `document:` ein, etwa `{{author}}`, `{{version}}` oder `{{date}}` (bei `"auto"` das errechnete Datum). Das gilt auch für eigene Metadatenfelder. Werte, die nur im Text gebraucht werden, gehören unter `custom:`. Dort dürfen sie verschachtelt sein und werden mit Punkten angesprochen:
 
@@ -96,7 +124,7 @@ Dieses Dokument beschreibt {{custom.verfahren.name}}.
 
 Werte unter `custom` erreichen das Theme nicht. Ein Platzhalter ohne Wert, auch ein vertippter, bricht den Bau mit Angabe der Datei ab. In Code (`` `{{author}}` `` oder Codeblock) bleibt der Platzhalter wörtlich stehen, im Fließtext mit vorangestelltem Backslash: `\{{author}}` ergibt `{{author}}`.
 
-#### Werte aus anderen Dateien (`!file`)
+## Werte aus anderen Dateien (`!file`)
 
 Statt einen Wert direkt hinzuschreiben, lädt `!file` ihn aus einer Datei oder von einer URL nach. Beides lässt sich beliebig mischen:
 
@@ -113,35 +141,6 @@ document:
 * **Relative Pfade** gelten relativ zu der Datei, in der das `!file` steht, bei einer URL relativ zu dieser URL.
 * **Verschachtelt:** Eine nachgeladene YAML-Datei darf selbst wieder `!file` enthalten. Dieselbe Datei an mehreren Stellen ist erlaubt; ein Verweis, der über die Kette zu sich selbst zurückführt, bricht den Bau ab.
 * `!file` wirkt überall in der Konfiguration, nicht nur unter `custom`. Ein Abruf per URL wartet höchstens 10 Sekunden.
-
-### Parts (Abschnitte)
-
-Ein Dokument wird durch `parts:` in übergeordnete Abschnitte gegliedert (z. B. „Hauptteil“, „Fallstudien“, „Anhänge“):
-
-* Ein Dokument muss immer über `parts:` aufgebaut sein; ein flaches `chapters:` direkt auf oberster Ebene wird abgewiesen.
-
-* Ein Abschnitt fasst logisch zusammengehörige Kapitel zusammen.
-
-* Ohne Angabe tritt ein Abschnitt selbst nicht in Erscheinung (`break_before: "none"`): er klammert seine Kapitel und vererbt seine Einstellungen, belegt aber keine Seite und erscheint nicht im Inhaltsverzeichnis. Mit `break_before: "divider"` erhält er eine gestaltete Trennseite, mit `break_before: "page"` eine Überschrift auf einer neuen Seite.
-
-* Auf Abschnittsebene gesetzte Einstellungen (z. B. Verzeichnistiefe oder ein `autonum_pattern`) vererben sich automatisch auf alle darin enthaltenen Kapitel.
-
-* Auf `parts:` sind ausschließlich die deklarierten Konfigurationsschlüssel erlaubt. Unbekannte Schlüssel (wie `break_befor`) werden mit Ähnlichkeitsvorschlägen abgelehnt, um unbemerkte Fehlkonfigurationen auszuschließen.
-
-### Chapters (Kapitel)
-
-Die Liste `chapters:` innerhalb eines Abschnitts verweist auf die eigentlichen Markdown-Inhaltsdateien:
-
-* Jedes Kapitel verweist auf seine Markdown-Datei (`file:`). Autoren können in ihren Markdown-Dateien ganz natürlich mit einer `#`-Überschrift beginnen.
-
-* Über **`show_title:`** (`true` oder `false`, Standard: `true`) lässt sich steuern, ob die `#`-Überschrift der Markdown-Datei auf der Inhaltsseite gerendert werden soll. Wird vor dem Kapitel eine Trennseite erzeugt (`break_before: "divider"`), kann mit `show_title: false` verhindert werden, dass der Titel auf der Folgeseite doppelt erscheint – die Inhaltsseite beginnt dann direkt mit dem Fließtext oder der ersten Zwischenüberschrift.
-
-* Über die optionalen Schlüssel **`toc_title:`** (für Inhaltsverzeichnisse und Kopfzeilen) und **`divider_title:`** (für Trennseiten) können gezielt abweichende Titel vergeben werden (z. B. eine prägnante Kurzform im Inhaltsverzeichnis gegenüber einer ausführlichen Überschrift auf der Textseite). Fehlen die Schlüssel, erben beide automatisch die `#`-Überschrift der Datei.
-
-* Soll eine Trennseite erzeugt werden (`break_before: "divider"`) oder das Kapitel im Inhaltsverzeichnis gelistet werden, muss mindestens eine `#`-Überschrift oder der entsprechende Titelschlüssel (`divider_title` / `toc_title`) vorhanden sein, andernfalls bricht der Build mit einer klaren Fehlermeldung ab.
-
-* Kapitel können über das Feld `break_before` steuern, ob vor ihnen eine Trennseite erzeugt wird, ein einfacher Seitenwechsel erfolgt oder der Text nahtlos anschließt.
-
 
 ---
 

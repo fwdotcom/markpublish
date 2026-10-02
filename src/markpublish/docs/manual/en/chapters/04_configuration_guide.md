@@ -41,7 +41,35 @@ Global Table of Contents Settings
 Numbering Rules
 : Settings for automatic numbering (`autonum_pattern`, `autonum_reset`).
 
-#### Custom Metadata Fields
+### Parts (Sections)
+
+A document is organized into high-level sections via `parts:` (e.g., "Main Part", "Case Studies", "Appendices"):
+
+* A document must always be structured using `parts:`; a flat `chapters:` list at the top level is rejected.
+
+* A part groups logically related chapters together.
+
+* By default, a part produces no separate page (`break_before: "none"`): it groups its chapters and passes down its settings, but occupies no page and does not appear in the table of contents. With `break_before: "divider"`, it receives a styled divider page; with `break_before: "page"`, it receives a heading on a fresh page.
+
+* Settings defined at the part level (such as TOC depth or an `autonum_pattern`) are automatically inherited by all chapters contained within.
+
+* Under `parts:`, only declared configuration keys are allowed. Unknown keys (such as `break_befor`) are rejected with fuzzy suggestions to prevent unnoticed misconfigurations.
+
+### Chapters (Chapters)
+
+The `chapters:` list within a part references the actual Markdown content files:
+
+* Each chapter points to its Markdown file (`file:`). Authors can write their Markdown files naturally starting with a `#` heading.
+
+* **`show_title:`** (`true` or `false`, default: `true`) controls whether the file's `#` heading should be rendered on the content page. If a divider page precedes the chapter (`break_before: "divider"`), setting `show_title: false` prevents the title from repeating on the next page – the content page then starts directly with the introductory text or the first subheading.
+
+* Optional keys **`toc_title:`** (for tables of contents and headers) and **`divider_title:`** (for divider pages) allow defining distinct alternative titles (e.g., a concise short form in the table of contents versus an extensive title on the chapter page). When omitted, both inherit the file's `#` heading.
+
+* When generating a divider page (`break_before: "divider"`) or listing the chapter in the table of contents, at least one `#` heading or the corresponding title key (`divider_title` / `toc_title`) must exist; otherwise, the build aborts with an informative error message.
+
+* Chapters can control via `break_before` whether a divider page is generated, a simple page break occurs, or content flows seamlessly.
+
+## Custom Metadata Fields
 
 Under `document:`, **arbitrary custom fields** are permitted beyond the standard keys. They are forwarded to the theme, but are not printed automatically:
 
@@ -76,7 +104,7 @@ Three essential things to keep in mind:
 
 * **Types are preserved.** A `true` is a boolean value, not raw text: the cover page typesets `Yes` or `No` (or `Ja` / `Nein`) depending on the document language. These strings are looked up as `bool_true` and `bool_false` in the i18n cascade.
 
-#### Placeholders in the Text
+## Placeholders in the Text
 
 In Markdown, `{{name}}` inserts a value from `document:`, e.g. `{{author}}`, `{{version}}` or `{{date}}` (the computed date for `"auto"`). This includes custom metadata fields. Values needed only in the text belong under `custom:`. They may be nested there and are addressed with dots:
 
@@ -96,7 +124,7 @@ This document describes {{custom.procedure.name}}.
 
 Values under `custom` do not reach the theme. A placeholder without a value, including a misspelled one, stops the build and names the file. In code (`` `{{author}}` `` or a code block) the placeholder stays as written; in running text, put a backslash in front: `\{{author}}` gives `{{author}}`.
 
-#### Values from Other Files (`!file`)
+## Values from Other Files (`!file`)
 
 Instead of writing a value directly, `!file` loads it from a file or a URL. Both can be mixed freely:
 
@@ -113,34 +141,6 @@ document:
 * **Relative paths** are relative to the file containing the `!file`, or to the URL it was loaded from.
 * **Nested:** a loaded YAML file may itself contain `!file`. The same file may appear in several places; a reference leading back to itself through the chain stops the build.
 * `!file` works anywhere in the configuration, not only under `custom`. A URL request waits at most 10 seconds.
-
-### Parts (Sections)
-
-A document is organized into high-level sections via `parts:` (e.g., "Main Part", "Case Studies", "Appendices"):
-
-* A document must always be structured using `parts:`; a flat `chapters:` list at the top level is rejected.
-
-* A part groups logically related chapters together.
-
-* By default, a part produces no separate page (`break_before: "none"`): it groups its chapters and passes down its settings, but occupies no page and does not appear in the table of contents. With `break_before: "divider"`, it receives a styled divider page; with `break_before: "page"`, it receives a heading on a fresh page.
-
-* Settings defined at the part level (such as TOC depth or an `autonum_pattern`) are automatically inherited by all chapters contained within.
-
-* Under `parts:`, only declared configuration keys are allowed. Unknown keys (such as `break_befor`) are rejected with fuzzy suggestions to prevent unnoticed misconfigurations.
-
-### Chapters (Chapters)
-
-The `chapters:` list within a part references the actual Markdown content files:
-
-* Each chapter points to its Markdown file (`file:`). Authors can write their Markdown files naturally starting with a `#` heading.
-
-* **`show_title:`** (`true` or `false`, default: `true`) controls whether the file's `#` heading should be rendered on the content page. If a divider page precedes the chapter (`break_before: "divider"`), setting `show_title: false` prevents the title from repeating on the next page – the content page then starts directly with the introductory text or the first subheading.
-
-* Optional keys **`toc_title:`** (for tables of contents and headers) and **`divider_title:`** (for divider pages) allow defining distinct alternative titles (e.g., a concise short form in the table of contents versus an extensive title on the chapter page). When omitted, both inherit the file's `#` heading.
-
-* When generating a divider page (`break_before: "divider"`) or listing the chapter in the table of contents, at least one `#` heading or the corresponding title key (`divider_title` / `toc_title`) must exist; otherwise, the build aborts with an informative error message.
-
-* Chapters can control via `break_before` whether a divider page is generated, a simple page break occurs, or content flows seamlessly.
 
 ---
 
