@@ -5,8 +5,9 @@ Pydantic data models for markpublish configuration.
 from __future__ import annotations
 
 import difflib
+import re
 from enum import Enum
-from typing import Any, List, Optional
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
@@ -165,6 +166,23 @@ def parse_toc_scope(value: Any, key_path: str) -> TocScope:
     )
 
 
+CUSTOM_KEY_RE = re.compile(r"[A-Za-z0-9_-]+")
+
+
+def _check_custom(value: Any, key_path: str) -> None:
+    """Verschachtelte Mappings mit einfachen Werten; Schluessel ohne Punkte."""
+    if not isinstance(value, dict):
+        raise ValueError(t("err.config.custom_value", key_path=key_path))
+    for key, child in value.items():
+        child_path = f"{key_path}.{key}"
+        if not CUSTOM_KEY_RE.fullmatch(str(key)):
+            raise ValueError(t("err.config.custom_key", key_path=child_path))
+        if isinstance(child, dict):
+            _check_custom(child, child_path)
+        elif child is None or isinstance(child, (list, tuple, set)):
+            raise ValueError(t("err.config.custom_value", key_path=child_path))
+
+
 class DocumentConfig(BaseModel):
     """Document-level metadata and global layout switches."""
     model_config = ConfigDict(extra="allow")
@@ -188,6 +206,11 @@ class DocumentConfig(BaseModel):
     language: str = Field(
         default_factory=default_document_language,
         description="ISO language code, e.g. 'de' or 'en'; defaults to the system language",
+    )
+    # Eigene Werte fuer Platzhalter im Text: `{{custom.verfahren.name}}`
+    custom: Dict[str, Any] = Field(
+        default_factory=dict,
+        description="Own values for placeholders like {{custom.a.b}}; may be nested",
     )
 
     # Global Layout Switches
@@ -241,6 +264,14 @@ class DocumentConfig(BaseModel):
     @classmethod
     def validate_autonum_pattern(cls, v: Any) -> Any:
         return check_pattern(v, "document")
+
+    @field_validator("custom", mode="before")
+    @classmethod
+    def validate_custom(cls, v: Any) -> Any:
+        if v is None:
+            return {}
+        _check_custom(v, "document.custom")
+        return v
 
     @field_validator("document_toc", mode="before")
     @classmethod

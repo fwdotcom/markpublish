@@ -50,8 +50,8 @@
       f5_desc: "GitHub-style Alerts (<code>[!NOTE]</code>, <code>[!WARNING]</code>), Fußnoten, Aufgabenlisten, Definitionslisten, Mathe in LaTeX-Schreibweise und erstklassiges Code-Highlighting.",
       f6_title: "Mehrsprachig gedacht",
       f6_desc: "Flexible Mehrsprachigkeit auch für statische Texte in Templates — aktuell Deutsch und Englisch.",
-      f7_title: "Keine manuellen Abhängigkeiten",
-      f7_desc: "Kein separates Typst-Binary oder Pandoc-Setup nötig. Der Typst-Compiler wird direkt über offizielle Python-Wheels eingebettet.",
+      f7_title: "Platzhalter im Text",
+      f7_desc: "<code>{{version}}</code>, <code>{{author}}</code> oder eigene Werte aus <code>markpublish.yaml</code> — einmal gepflegt, überall im Dokument aktuell.",
       f8_title: "Selbst-dokumentierend",
       f8_desc: "<code>markpublish cheatsheet</code> und <code>markpublish manual</code> generieren die Handbücher direkt aus dem installierten Paket — immer versionsgenau.",
 
@@ -162,8 +162,8 @@
       f5_desc: "GitHub-style alerts (<code>[!NOTE]</code>, <code>[!WARNING]</code>), footnotes, task lists, definition lists, math in LaTeX notation, and syntax highlighting.",
       f6_title: "Multilingual by design",
       f6_desc: "Flexible multilingual support, including static text in templates — currently German and English.",
-      f7_title: "No manual dependencies",
-      f7_desc: "No separate Typst executable or Pandoc installation required. The compiler is natively embedded via Python wheels.",
+      f7_title: "Placeholders in the text",
+      f7_desc: "<code>{{version}}</code>, <code>{{author}}</code> or your own values from <code>markpublish.yaml</code> — maintained once, current throughout the document.",
       f8_title: "Self-documenting",
       f8_desc: "<code>markpublish cheatsheet</code> and <code>markpublish manual</code> compile the references directly from the installed package — always version-accurate.",
 
@@ -254,7 +254,7 @@
   subtitle: "Technische Referenzspezifikation"
   summary: "Musterdokumentation zur Demonstration aller markpublish Kernfunktionen."
   author: "Frank Winter"
-  version: "2.2.0"
+  version: "2.3.0"
   date: "auto"
   cover: true
   autonum_pattern: "_|1|.1|+"
@@ -285,7 +285,7 @@ theme: "default"`,
   subtitle: "Technical Reference Specification"
   summary: "Sample publication demonstrating core markpublish features."
   author: "Frank Winter"
-  version: "2.2.0"
+  version: "2.3.0"
   date: "auto"
   cover: true
   autonum_pattern: "_|1|.1|+"

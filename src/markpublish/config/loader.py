@@ -13,6 +13,7 @@ import yaml
 
 from markpublish.config.models import MarkpublishConfig
 from markpublish.i18n import default_document_language, normalize_language
+from markpublish.markdown.variables import substitute_document
 from markpublish.ui import t
 
 
@@ -99,5 +100,7 @@ def load_config(config_path_or_str: Union[str, Path, Dict[str, Any]]) -> Markpub
             # mit eigenem Standard laufen frueher oder spaeter auseinander.
             doc["date"] = format_current_date(doc.get("language"))
 
-    return MarkpublishConfig(**raw_data)
+    config = MarkpublishConfig(**raw_data)
+    substitute_document(config.document)
+    return config
 

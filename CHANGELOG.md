@@ -7,7 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [Unreleased]
+## [2.3.0] - 2026-10-02
+
+### Added
+- **Placeholders in the text**: `{{author}}`, `{{version}}` etc. insert values from `document:`; `{{custom.a.b}}` inserts own, optionally nested values from `document.custom`. Code and `\{{…}}` stay literal; a placeholder without a value stops the build.
 
 ### Fixed
 - **Table of contents page breaks (default theme)**: part and chapter entries are no longer left alone at the bottom of a page; they move to the next page along with their first sub-entry. A bit more space above chapter entries; a wrapped entry keeps the line spacing of the table of contents (`toc-leading`).

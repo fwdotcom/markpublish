@@ -28,6 +28,8 @@ everything else is your text.
 - **Figures and tables with captions**: numbered captions, references in the
   text (`[](#id)` becomes "Figure 1"), lists of figures and tables where you
   place them, and image size and frame right at the image.
+- **Placeholders in the text**: `{{version}}`, `{{author}}` or your own
+  `{{custom.…}}` values from `markpublish.yaml`, maintained in one place.
 - **Bilingual both ways**: the document language drives labels and
   hyphenation, the interface language follows your system (`--ui-lang`).
 - **Self-documenting**: `markpublish cheatsheet` and `markpublish manual`

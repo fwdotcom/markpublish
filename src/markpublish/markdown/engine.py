@@ -34,6 +34,7 @@ from markpublish.markdown.typst_serializer import (
     html_to_tree,
     process_tree_headings_and_toc,
 )
+from markpublish.markdown.variables import build_variables, protect_escapes, substitute_tree
 from markpublish.ui import t
 
 #: Namen der String-Extensions. Der GitHubAlertsExtension wird pro Sprache
@@ -552,10 +553,14 @@ class MarkdownPipeline:
             self.numbering_ctx.reset_below(LEVEL_CHAPTER)
 
         # Convert markdown to HTML via python-markdown (all extensions active)
+        if raw_md and doc_cfg:
+            raw_md = protect_escapes(raw_md)
         raw_html = self.engine.convert(raw_md) if raw_md else ""
 
         # Parse HTML into ElementTree and process headings / numbering directly in the AST
         tree = html_to_tree(raw_html)
+        if doc_cfg:
+            substitute_tree(tree, build_variables(doc_cfg), chapter_cfg.file or "")
 
         # Pruefe vorab, ob die Datei mit einer H1 (Level 1) beginnt
         import re

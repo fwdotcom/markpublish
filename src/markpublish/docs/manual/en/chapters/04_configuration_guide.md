@@ -76,6 +76,26 @@ Three essential things to keep in mind:
 
 * **Types are preserved.** A `true` is a boolean value, not raw text: the cover page typesets `Yes` or `No` (or `Ja` / `Nein`) depending on the document language. These strings are looked up as `bool_true` and `bool_false` in the i18n cascade.
 
+#### Placeholders in the Text
+
+In Markdown, `{{name}}` inserts a value from `document:`, e.g. `{{author}}`, `{{version}}` or `{{date}}` (the computed date for `"auto"`). This includes custom metadata fields. Values needed only in the text belong under `custom:`. They may be nested there and are addressed with dots:
+
+```yaml
+document:
+  author: "Frank Winter"
+  custom:
+    support_mail: "support@example.com"
+    procedure:
+      name: "Procedure X"
+```
+
+```markdown
+Contact: {{author}}, {{custom.support_mail}}.
+This document describes {{custom.procedure.name}}.
+```
+
+Values under `custom` do not reach the theme. A placeholder without a value, including a misspelled one, stops the build and names the file. In code (`` `{{author}}` `` or a code block) the placeholder stays as written; in running text, put a backslash in front: `\{{author}}` gives `{{author}}`.
+
 ### Parts (Sections)
 
 A document is organized into high-level sections via `parts:` (e.g., "Main Part", "Case Studies", "Appendices"):

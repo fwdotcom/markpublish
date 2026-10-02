@@ -76,6 +76,26 @@ Drei Dinge sind dabei zu wissen:
 
 * **Der Typ bleibt erhalten.** Ein `true` ist ein Wahrheitswert und kein Text: Das Deckblatt setzt `Ja` beziehungsweise `Yes`, je nach Dokumentsprache. Die beiden Wörter stehen als `bool_true` und `bool_false` in der i18n-Kaskade.
 
+#### Platzhalter im Text
+
+Im Markdown setzt `{{name}}` eine Angabe aus `document:` ein, etwa `{{author}}`, `{{version}}` oder `{{date}}` (bei `"auto"` das errechnete Datum). Das gilt auch für eigene Metadatenfelder. Werte, die nur im Text gebraucht werden, gehören unter `custom:`. Dort dürfen sie verschachtelt sein und werden mit Punkten angesprochen:
+
+```yaml
+document:
+  author: "Frank Winter"
+  custom:
+    support_mail: "support@example.com"
+    verfahren:
+      name: "Verfahren X"
+```
+
+```markdown
+Ansprechpartner: {{author}}, {{custom.support_mail}}.
+Dieses Dokument beschreibt {{custom.verfahren.name}}.
+```
+
+Werte unter `custom` erreichen das Theme nicht. Ein Platzhalter ohne Wert, auch ein vertippter, bricht den Bau mit Angabe der Datei ab. In Code (`` `{{author}}` `` oder Codeblock) bleibt der Platzhalter wörtlich stehen, im Fließtext mit vorangestelltem Backslash: `\{{author}}` ergibt `{{author}}`.
+
 ### Parts (Abschnitte)
 
 Ein Dokument wird durch `parts:` in übergeordnete Abschnitte gegliedert (z. B. „Hauptteil“, „Fallstudien“, „Anhänge“):
