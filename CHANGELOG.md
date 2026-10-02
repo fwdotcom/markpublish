@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.3.2] - 2026-10-03
+
+### Added
+- **Loops and short names in the text**: `{% for role in custom.app.roles %}` … `{% endfor %}` repeats lines for each entry of a group (e.g. one table row per role), `{% for (role, key) in … %}` also gives the entry's name; `{% set owner = custom.app.roles.application_owner %}` defines a short name for a path. Loops nest; code and `\{% … %}` stay literal; errors stop the build with file and line.
+
+### Fixed
+- **Addresses from placeholders are links**: a placeholder whose value is an email address or URL (e.g. `{{role.email}}`) now becomes a clickable link, like the same text written directly. Inside an existing link it stays plain text.
+
+---
+
 ## [2.3.1] - 2026-10-02
 
 ### Added

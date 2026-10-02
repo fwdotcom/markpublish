@@ -34,7 +34,12 @@ from markpublish.markdown.typst_serializer import (
     html_to_tree,
     process_tree_headings_and_toc,
 )
-from markpublish.markdown.variables import build_variables, protect_escapes, substitute_tree
+from markpublish.markdown.variables import (
+    build_variables,
+    expand_statements,
+    protect_escapes,
+    substitute_tree,
+)
 from markpublish.ui import t
 
 #: Namen der String-Extensions. Der GitHubAlertsExtension wird pro Sprache
@@ -555,6 +560,7 @@ class MarkdownPipeline:
         # Convert markdown to HTML via python-markdown (all extensions active)
         if raw_md and doc_cfg:
             raw_md = protect_escapes(raw_md)
+            raw_md = expand_statements(raw_md, build_variables(doc_cfg), chapter_cfg.file or "")
         raw_html = self.engine.convert(raw_md) if raw_md else ""
 
         # Parse HTML into ElementTree and process headings / numbering directly in the AST

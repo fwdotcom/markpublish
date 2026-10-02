@@ -122,7 +122,40 @@ Ansprechpartner: {{author}}, {{custom.support_mail}}.
 Dieses Dokument beschreibt {{custom.verfahren.name}}.
 ```
 
-Werte unter `custom` erreichen das Theme nicht. Ein Platzhalter ohne Wert, auch ein vertippter, bricht den Bau mit Angabe der Datei ab. In Code (`` `{{author}}` `` oder Codeblock) bleibt der Platzhalter wörtlich stehen, im Fließtext mit vorangestelltem Backslash: `\{{author}}` ergibt `{{author}}`.
+Ist ein eingesetzter Wert eine E-Mail-Adresse oder eine URL, wird er wie direkt geschriebener Text ein Link; steht der Platzhalter schon in einem Link, bleibt es bei diesem. Werte unter `custom` erreichen das Theme nicht. Ein Platzhalter ohne Wert, auch ein vertippter, bricht den Bau mit Angabe der Datei ab. In Code (`` `{{author}}` `` oder Codeblock) bleibt der Platzhalter wörtlich stehen, im Fließtext mit vorangestelltem Backslash: `\{{author}}` ergibt `{{author}}`.
+
+### Schleifen und Kurznamen
+
+`{% for %}` wiederholt die Zeilen bis `{% endfor %}` für jeden Eintrag einer Gruppe unter `custom`, in der Reihenfolge der YAML-Datei. So entsteht etwa eine Tabelle mit einer Zeile je Rolle:
+
+```yaml
+document:
+  custom:
+    app:
+      roles:
+        application_owner: {label: "Verfahrensverantwortliche/r", name: "A. Muster"}
+        technical_administrator: {label: "Technische Administration", name: "B. Beispiel"}
+```
+
+```markdown
+| Rolle | Name | Schlüssel |
+| :--- | :--- | :--- |
+{% for (role, key) in custom.app.roles %}
+| {{role.label}} | {{role.name}} | {{key}} |
+{% endfor %}
+```
+
+`{% set %}` gibt einem langen Pfad einen Kurznamen, der bis zum Ende der Datei gilt (innerhalb einer Schleife bis zu deren Ende):
+
+```markdown
+{% set owner = custom.app.roles.application_owner %}
+Verantwortlich ist {{owner.name}}.
+```
+
+* **Anweisungen stehen allein in ihrer Zeile**; die Zeile verschwindet beim Bau vollständig, eine Tabelle bleibt also zusammenhängend. In einem Zitat oder einer Hinweisbox darf `>` davorstehen.
+* **`(role, key)`** liefert zusätzlich den Namen des Eintrags (`application_owner`); `for role in …` genügt, wenn er nicht gebraucht wird.
+* **Schleifen lassen sich schachteln.** Der Name einer Schleife gilt nur in ihr; ein Name darf keine Angabe unter `document` verdecken (`author`, `custom` …).
+* In Code und Codeblöcken bleiben Anweisungen wörtlich stehen, im Fließtext mit vorangestelltem Backslash: `\{% … %}`. Fehler wie ein fehlendes `{% endfor %}` brechen den Bau mit Datei und Zeile ab.
 
 ## Werte aus anderen Dateien (`!file`)
 
