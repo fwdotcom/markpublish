@@ -73,22 +73,23 @@ def substitute_document(document: Any) -> None:
     custom = {"custom": getattr(document, "custom", None) or {}}
     extra = getattr(document, "model_extra", None) or {}
 
-    def _replace(match: re.Match, where: str) -> str:
-        name = match.group(1)
-        value = _lookup(name, custom) if name.startswith("custom.") else None
-        if value is None:
-            raise ConfigurationError(t("err.variable.document_field", name=name, file=where))
-        return value
+    def _substitute(text: str, where: str) -> str:
+        def _replace(match: re.Match) -> str:
+            name = match.group(1)
+            value = _lookup(name, custom) if name.startswith("custom.") else None
+            if value is None:
+                raise ConfigurationError(t("err.variable.document_field", name=name, file=where))
+            return value
+
+        return PLACEHOLDER_RE.sub(_replace, text)
 
     for key in CORE_METADATA_KEYS:
         value = getattr(document, key, None)
         if isinstance(value, str):
-            where = f"document.{key}"
-            setattr(document, key, PLACEHOLDER_RE.sub(lambda m: _replace(m, where), value))
+            setattr(document, key, _substitute(value, f"document.{key}"))
     for key, value in extra.items():
         if isinstance(value, str):
-            where = f"document.{key}"
-            extra[key] = PLACEHOLDER_RE.sub(lambda m: _replace(m, where), value)
+            extra[key] = _substitute(value, f"document.{key}")
 
 
 def _unescape(text: str, literal: str) -> str:

@@ -53,7 +53,9 @@ def load_config(config_path_or_str: Union[str, Path, Dict[str, Any]]) -> Markpub
             raw_data = loaded
     elif isinstance(config_path_or_str, str):
         candidate_path = Path(config_path_or_str)
-        if candidate_path.is_file():
+        # YAML-Text mit Zeilenumbruch ist nie ein Pfad; ein langer liesse is_file()
+        # unter Linux/macOS vor Python 3.14 mit ENAMETOOLONG scheitern.
+        if "\n" not in config_path_or_str and candidate_path.is_file():
             with open(candidate_path, "r", encoding="utf-8") as f:
                 loaded = yaml.safe_load(f)
                 if loaded is None:
