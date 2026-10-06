@@ -79,7 +79,7 @@ If a compilation run aborts due to an error from the Typst engine, markpublish a
 
 ### Theme Signature Mismatch
 
-**Problem:** `markpublish labels` or the build reports that the theme and function signature do not match.
+**Problem:** `markpublish labels` or the build reports `Theme and call do not match`.
 
 **Solution:**
 

@@ -1,0 +1,3 @@
+# Die Release-Schritte brauchen tomllib und damit Python ab 3.11; sonst gelten die Regeln des Projekts.
+extend = "../../pyproject.toml"
+target-version = "py311"

@@ -12,7 +12,7 @@ The goal of markpublish is to provide developers, technical writers, and authors
 
 markpublish focuses on document quality, speed, and reliability:
 
-* **Modern Typesetting Quality with Typst:** Powered by the innovative Typst typesetting engine, documents feature outstanding typographical precision, balanced margins, and aesthetic layouts.
+* **Modern Typesetting Quality with Typst:** The Typst typesetting engine ensures typographical precision, balanced margins, and an aesthetic layout.
 
 * **Blazing Compilation Speed:** Even comprehensive documents with dozens of pages, illustrations, and tables compile in about one to two seconds.
 
@@ -26,7 +26,7 @@ markpublish focuses on document quality, speed, and reliability:
 
 * **Comprehensive Markdown Extensions:** Built-in support for GitHub-style callout boxes (admonitions), tables, definition lists, footnotes, task lists, and syntax-highlighted code blocks.
 
-* **Cascading Internationalization (i18n):** Integrated support for multilingual documents and themes (static text labels such as Table of Contents, Chapter, page numbers) through a four-tier cascade. Furthermore, the command-line interface (CLI) is fully bilingual (English and German) and automatically adapts to your operating system's language.
+* **Cascading Internationalization (i18n):** Multilingual documents and themes (static text labels such as Table of Contents, Chapter, page numbers) through a four-tier cascade. The command-line interface (CLI) is also bilingual (English and German) and follows the system language.
 
 ## Architecture Overview
 
@@ -40,3 +40,10 @@ markpublish operates along a clean processing pipeline:
 
 4. **PDF Compilation:** The Typst engine compiles the assembled document directly into a finished PDF file in a single, highly efficient run. If an error occurs, the generated Typst source code is saved to `.markpublish/last_failed_build.typ` for immediate debugging.
 
+## Use of AI in Software Development
+
+Various AI models were deliberately used as tools in the development of markpublish: for designing and writing code, as sparring partners for architectural decisions, for suggestions on usability and typography, and for mutual code reviews in which one model checks the drafts of another. This accelerated development and noticeably improved code quality.
+
+The limits were just as clear: domain context, the direction of the project, and the final polish do not come from a language model. The author reviewed and merged every change and is responsible for it.
+
+markpublish itself contains no AI features. All documents are processed exclusively on your local machine.

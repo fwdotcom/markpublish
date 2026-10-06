@@ -6,7 +6,7 @@ document:
   summary: "Praxisorientierte Anleitung und Referenz zur Konfiguration, CLI-Bedienung, Theme-Gestaltung und Dokumentenerstellung mit markpublish."
   author: "Frank Winter"
   copyright: "© 2026 Frank Winter"
-  version: "2.3.2"
+  version: "2.3.3"
   date: "auto"
   language: "de"
 
@@ -63,6 +63,5 @@ parts:
     
     chapters:
       - file: "chapters/07_appendix_yaml_spec.md"
-        break_before: "divider"
       - file: "chapters/08_appendix_troubleshooting.md"
 

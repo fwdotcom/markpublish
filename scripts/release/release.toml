@@ -1,0 +1,38 @@
+# SPDX-FileCopyrightText: 2026 Frank Winter
+# SPDX-License-Identifier: MIT
+#
+# Projektkonfiguration der Release-Schritte (markpublish).
+# Jeder Schritt unter steps/ liest den Abschnitt, der seinem Dateinamen ohne Nummer entspricht
+# (steps/40-commands.py → [commands]). Pfade sind relativ zum Projektordner.
+
+# Projektordner, relativ zu dieser Datei
+root = "../.."
+
+[release]
+tag = "v{version}"
+
+[version]
+# Alle Stellen, an denen die Version steht; der erste Eintrag gilt als aktuelle Version des Projekts
+files = [
+  { file = "pyproject.toml", pattern = '^version = "([^"]+)"' },
+  { file = "src/markpublish/__init__.py", pattern = '^__version__ = "([^"]+)"' },
+  { file = "src/markpublish/docs/manual/de/markpublish.yaml", pattern = '^[ \t]*version:[ \t]*"([^"]*)"' },
+  { file = "src/markpublish/docs/manual/en/markpublish.yaml", pattern = '^[ \t]*version:[ \t]*"([^"]*)"' },
+  { file = "src/markpublish/docs/cheatsheet/de/markpublish.yaml", pattern = '^[ \t]*version:[ \t]*"([^"]*)"' },
+  { file = "src/markpublish/docs/cheatsheet/en/markpublish.yaml", pattern = '^[ \t]*version:[ \t]*"([^"]*)"' },
+  { file = "www/sample/de/markpublish.yaml", pattern = '^[ \t]*version:[ \t]*"([^"]*)"' },
+  { file = "www/sample/en/markpublish.yaml", pattern = '^[ \t]*version:[ \t]*"([^"]*)"' },
+]
+
+[changelog]
+file = "CHANGELOG.md"
+heading = "{hashes} [{version}] - {date}"
+
+[commands]
+# Erst bauen, dann testen: tests/test_packaging.py prüft die Version in den PDFs unter www/manuals/
+run = [
+  ["python", "scripts/build_manuals.py"],
+  ["python", "scripts/build_showcase_assets.py"],
+  ["ruff", "check", "src", "tests", "scripts"],
+  ["pytest"],
+]

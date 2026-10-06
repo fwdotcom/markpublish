@@ -102,12 +102,6 @@ Markdown
 
 markpublish.yaml
 : Central project configuration file controlling document hierarchy, metadata, and numbering.
-
-Theme
-: Design template composed of Typst layouts and text labels that define visual styling.
-
-Typst
-: Modern, high-performance typesetting engine used by markpublish to generate print-ready PDFs.
 ```
 
 This renders as a distinct block featuring highlighted terms with indented definitions:
@@ -117,12 +111,6 @@ Markdown
 
 markpublish.yaml
 : Central project configuration file controlling document hierarchy, metadata, and numbering.
-
-Theme
-: Design template composed of Typst layouts and text labels that define visual styling.
-
-Typst
-: Modern, high-performance typesetting engine used by markpublish to generate print-ready PDFs.
 
 ---
 
@@ -136,7 +124,7 @@ For checklists, actionable steps, or release milestones, task lists are supporte
 - [ ] Publish your first document
 ```
 
-markpublish typesets task lists cleanly without bullet points, aligning multi-line descriptions directly beneath the first line:
+markpublish typesets task lists cleanly without bullet points, directly with the checkbox and text, aligning multi-line descriptions directly beneath the first line:
 
 - [x] Install Python 3.10 or newer
 

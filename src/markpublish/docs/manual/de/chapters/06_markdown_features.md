@@ -102,12 +102,6 @@ Markdown
 
 markpublish.yaml
 : Zentrale Projekt-Konfigurationsdatei zur Steuerung von Dokumentstruktur, Metadaten und Nummerierung.
-
-Theme
-: Gestaltungsvorlage aus Typst-Templates und Beschriftungen, die das visuelle Layout des Dokuments bestimmt.
-
-Typst
-: Moderne, hochperformante Satz-Engine, die markpublish zur typografischen Erzeugung von Druck-PDFs nutzt.
 ```
 
 Gesetzt wird daraus ein Block aus hervorgehobenem Begriff und eingerückter Erläuterung:
@@ -117,12 +111,6 @@ Markdown
 
 markpublish.yaml
 : Zentrale Projekt-Konfigurationsdatei zur Steuerung von Dokumentstruktur, Metadaten und Nummerierung.
-
-Theme
-: Gestaltungsvorlage aus Typst-Templates und Beschriftungen, die das visuelle Layout des Dokuments bestimmt.
-
-Typst
-: Moderne, hochperformante Satz-Engine, die markpublish zur typografischen Erzeugung von Druck-PDFs nutzt.
 
 ---
 
@@ -301,7 +289,7 @@ Web- und Mailadressen werden bei direkter Eingabe automatisch erkannt und format
 | Funktion | Eingabe | Ausgabe | Erläuterung |
 | :--- | :--- | :--- | :--- |
 | **Web-Adresse (Magic Link)** | `https://example.com` | https://example.com | URLs werden ohne Klammern verlinkt |
-| **E-Mail-Adresse (Magic Link)** | `kontakt@example.com` | kontakt@example.com | Mailadressen werden automatisch klickbar |
+| **E-Mail-Adresse (Magic Link)** | `kontakt@example.com` | kontakt@example.com | Mailadressen werden zu klickbaren `mailto:`-Links |
 | **Dokument-Querverweis** | `[Kapitelanfang](#besondere-markdown-features)` | [Kapitelanfang](#besondere-markdown-features) | Klickbare Sprungmarke auf Überschriften |
 
 ---

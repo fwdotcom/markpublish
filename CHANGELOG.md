@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.3.3] - 2026-10-06
+
+### Added
+- **Release script**: `python scripts/release/release.py <VERSION>` sets the version everywhere, closes this changelog section, rebuilds manuals and showcase assets, and runs linter and tests.
+
+### Changed
+- **Manual**: new section on the use of AI in development; German and English manuals aligned in wording.
+
+---
+
 ## [2.3.2] - 2026-10-03
 
 ### Added

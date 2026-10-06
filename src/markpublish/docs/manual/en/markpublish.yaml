@@ -6,7 +6,7 @@ document:
   summary: "Practical guide and reference for configuration, CLI usage, theme design, and document publishing with markpublish."
   author: "Frank Winter"
   copyright: "© 2026 Frank Winter"
-  version: "2.3.2"
+  version: "2.3.3"
   date: "auto"
   language: "en"
 
@@ -63,6 +63,5 @@ parts:
     
     chapters:
       - file: "chapters/07_appendix_yaml_spec.md"
-
       - file: "chapters/08_appendix_troubleshooting.md"
 

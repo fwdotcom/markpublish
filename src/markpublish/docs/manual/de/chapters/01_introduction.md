@@ -12,7 +12,7 @@ Das Ziel von markpublish ist es, Entwicklern, technischen Redakteuren und Autore
 
 markpublish zeichnet sich durch einen klaren Fokus auf Dokumentenqualität, Geschwindigkeit und Verlässlichkeit aus:
 
-* **Moderne Satzqualität durch Typst:** Durch die Verwendung der innovativen Satz-Engine Typst entstehen Dokumente mit herausragender typografischer Präzision, perfektem Randausgleich und ästhetischem Layout.
+* **Moderne Satzqualität durch Typst:** Die Satz-Engine Typst sorgt für typografische Präzision, perfekten Randausgleich und ein ästhetisches Layout.
 
 * **Hohe Kompiliergeschwindigkeit:** Selbst umfangreiche Dokumente mit Dutzenden von Seiten, Abbildungen und Tabellen werden in rund ein bis zwei Sekunden vollständig gesetzt.
 
@@ -26,7 +26,7 @@ markpublish zeichnet sich durch einen klaren Fokus auf Dokumentenqualität, Gesc
 
 * **Umfassende Markdown-Erweiterungen:** Standardmäßige Unterstützung von GitHub-konformen Hinweisboxen (Admonitions/Callouts), Tabellen, Definitionslisten, Fußnoten, Aufgabenlisten und Quellcode mit Syntax-Highlighting.
 
-* **Kaskadierende Mehrsprachigkeit (i18n):** Integrierte Unterstützung für mehrsprachige Dokumente und Themes (statische Texte wie Inhaltsverzeichnis, Kapitel, Seitenzahlen) über eine vierstufige Kaskade. Zudem ist auch die Programmoberfläche (CLI) vollständig zweisprachig (Deutsch und Englisch) und folgt automatisch der Systemsprache des Arbeitsplatzes.
+* **Kaskadierende Mehrsprachigkeit (i18n):** Mehrsprachige Dokumente und Themes (statische Texte wie Inhaltsverzeichnis, Kapitel, Seitenzahlen) über eine vierstufige Kaskade. Auch die Programmoberfläche (CLI) ist zweisprachig (Deutsch und Englisch) und folgt der Systemsprache.
 
 ## Architektur im Überblick
 
@@ -39,3 +39,11 @@ Die Arbeitsweise von markpublish folgt einer klaren Verarbeitungs-Pipeline:
 3. **Template-Zusammenstellung:** Das gewählte Theme (standardmäßig das integrierte Standard-Theme) stellt die Layout-Vorgaben bereit. Metadaten (gesammelt in einem typisierten `meta`-Wörterbuch), Kopf- und Fußzeilen, Trennseiten und Textinhalte werden präzise in die Typst-Umgebung übergeben.
 
 4. **Kompilierung zum PDF:** Die Typst-Engine kompiliert das Gesamtdokument in einem einzigen, hocheffizienten Durchlauf direkt in die fertige PDF-Datei. Tritt ein Fehler auf, wird der generierte Typst-Code zur schnellen Diagnose in `.markpublish/last_failed_build.typ` abgelegt.
+
+## Nutzung von KI bei der Softwareentwicklung
+
+Bei der Entwicklung von markpublish wurden verschiedene KI-Modelle bewusst als Werkzeuge eingesetzt: beim Entwerfen und Schreiben von Code ebenso wie als Gesprächspartner für Architekturentscheidungen, für Anregungen zu Bedienung und Typografie und für gegenseitige Code-Reviews, bei denen ein Modell die Entwürfe eines anderen prüft. Das hat die Entwicklung beschleunigt und die Codequalität spürbar verbessert.
+
+Die Grenzen waren ebenso deutlich: Fachlicher Kontext, die Richtung des Projekts und der letzte Feinschliff kommen nicht aus einem Sprachmodell. Jede Änderung wurde vom Autor geprüft, zusammengeführt und verantwortet.
+
+markpublish selbst enthält keine KI-Funktionen. Alle Dokumente werden ausschließlich lokal auf Ihrem Rechner verarbeitet.

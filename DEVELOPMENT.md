@@ -75,6 +75,19 @@ markpublish cheatsheet --target all
 
 ---
 
+## Preparing a Release
+
+Changes collect under `## [Unreleased]` in `CHANGELOG.md`. To set the version everywhere, close the
+changelog section, rebuild manuals and showcase assets, and run linter and tests:
+
+```
+python scripts/release/release.py 2.4.0
+```
+
+Committing, tagging and publishing stay manual; see `scripts/release/README.md`.
+
+---
+
 ## Conventions
 
 1. All tests pass (`pytest`) and the linter reports zero warnings (`ruff check`).
