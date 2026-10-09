@@ -31,10 +31,13 @@ en:
   list_of_figures: "List of Figures"
   list_of_tables: "List of Tables"
 
-  # Marken auf den Trennseiten
+  # Marken auf den Trennseiten; mit section auch Woerter der Verweise [](#id)
   chapter: "Chapter"
   part: "Part"
+  section: "Section"
   label_separator: ": "
+  quote_open: "“"
+  quote_close: "”"
 
   # Deckblatt-Metadaten
   author: "Author"
@@ -62,7 +65,7 @@ en:
 de:
   toc_title: "Inhaltsverzeichnis"
   chapter_toc_title: "Inhalt dieses Kapitels"
-  part_toc_title: "Inhalt dieses Abschnitts"
+  part_toc_title: "Inhalt dieses Teils"
 
   figure: "Abbildung"
   table: "Tabelle"
@@ -71,7 +74,10 @@ de:
 
   chapter: "Kapitel"
   part: "Teil"
+  section: "Abschnitt"
   label_separator: ": "
+  quote_open: "„"
+  quote_close: "“"
 
   author: "Autor"
   status: "Status"

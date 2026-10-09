@@ -443,7 +443,7 @@ def test_mapping_methods_are_not_mistaken_for_labels(tmp_path: Path):
 EXPECTED_KEYS = {
     "toc_title", "chapter_toc_title", "part_toc_title",
     "figure", "table", "list_of_figures", "list_of_tables",
-    "chapter", "part", "label_separator",
+    "chapter", "part", "section", "label_separator", "quote_open", "quote_close",
     "author", "status", "version", "date", "copyright",
     "bool_true", "bool_false",
     "page", "page_of",
@@ -487,8 +487,8 @@ def test_default_theme_ships_all_three_files():
 
 def test_default_theme_sets_its_own_wording():
     """
-    Das Theme spricht bewusst nicht wie der Programmstandard: "Abschnitt"
-    statt "Teil", "Auf einen Blick" statt "Inhalt dieses Kapitels". Der Test
+    Das Theme spricht bewusst nicht wie der Programmstandard: "Auf einen
+    Blick" statt "Inhalt dieses Kapitels". Der Test
     haelt fest, dass es in JEDER mitgelieferten Sprache dieselben Schluessel
     setzt - eine einseitig gepflegte Sprache faellt sonst erst im fertigen
     Dokument auf.
@@ -500,8 +500,8 @@ def test_default_theme_sets_its_own_wording():
     assert set(table["de"]) == set(table["en"]), (
         f"Sprachen weichen ab: {set(table['de']) ^ set(table['en'])}"
     )
-    assert table["de"]["part"] == "Abschnitt"
-    assert table["en"]["part"] == "Section"
+    assert table["de"]["chapter_toc_title"] == "Auf einen Blick"
+    assert table["en"]["chapter_toc_title"] == "At a glance"
 
     # Nur bekannte Programm-Schluessel - ein Tippfehler waere hier sonst ein
     # freies Label, das niemand im Template benutzt und das stumm bleibt.

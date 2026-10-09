@@ -25,6 +25,7 @@ from markpublish.markdown.pattern import (
     PatternChain,
     compile_pattern,
 )
+from markpublish.markdown.references import Level, References
 from markpublish.markdown.toc import (
     NumberingContext,
     TOCNode,
@@ -317,6 +318,7 @@ class MarkdownPipeline:
         """
         content_items: List[ContentItem] = []
         global_toc_tree: List[TOCNode] = []
+        references = References(self.labels)
 
         document_toc_root = self.config.document.document_toc
         part_toc_root = self.config.document.part_toc
@@ -357,6 +359,19 @@ class MarkdownPipeline:
             part_display_number = _labelled(
                 part_label, part_number, self.labels.get("label_separator", ": ")
             )
+
+            # Ein Part ohne Titel und Nummer ist nur eine Klammer um Kapitel und
+            # erscheint in keinem Verweis.
+            part_base: List[Level] = []
+            if part_title or part_number:
+                part_base = [Level(
+                    kind="part",
+                    slug=part_slug,
+                    word=references.word(part_label, "part"),
+                    number=part_number,
+                    title=part_title,
+                )]
+                references.add_target(part_base)
 
             part_reset = (
                 part_cfg.autonum_reset
@@ -406,7 +421,7 @@ class MarkdownPipeline:
             )
             inherited_pagenum_reset = effective_part_pagenum_reset
 
-            for ch_cfg in part_cfg.chapters:
+            for index, ch_cfg in enumerate(part_cfg.chapters):
                 ch_item, ch_toc_nodes = self._process_chapter(
                     ch_cfg,
                     inherited_document_toc=inherited_document_toc,
@@ -417,7 +432,10 @@ class MarkdownPipeline:
                     inherited_autonum_reset=part_reset,
                     inherited_pagenum_reset=inherited_pagenum_reset,
                 )
+                # Ohne eigene Seite traegt das erste Kapitel die Sprungmarke des Parts.
+                ch_item.part_anchor = part_slug if part_item is None and index == 0 else None
                 content_items.append(ch_item)
+                self._register_chapter(references, ch_item, part_base, ch_cfg.file or "")
                 if part_in_document_toc:
                     part_toc_children.extend(ch_toc_nodes)
                 else:
@@ -444,7 +462,48 @@ class MarkdownPipeline:
                 part_node.children = part_tree
                 global_toc_tree.append(part_node)
 
+        changed = references.resolve()
+        for item in content_items:
+            if item.element_tree is not None and id(item.element_tree) in changed:
+                item.typst_content, item.html_content = self._outputs(
+                    item.element_tree, item.file_base_dir, item.allowed_toc_slugs
+                )
+
         return content_items, global_toc_tree
+
+    @staticmethod
+    def _register_chapter(
+        references: References, item: ContentItem, part_base: List[Level], where: str
+    ) -> None:
+        """Meldet das Kapitel als Ziel und Verweisstelle; ohne Titel und Nummer nur seinen Inhalt."""
+        title = item.toc_title or item.divider_title or ""
+        base = list(part_base)
+        if title or item.number_prefix:
+            base.append(Level(
+                kind="chapter",
+                slug=item.slug,
+                word=references.word(item.label, "chapter"),
+                number=item.number_prefix,
+                title=title,
+            ))
+        if item.list_of:
+            references.add_target(base)
+        elif item.element_tree is not None:
+            references.add_chapter(item.element_tree, base, where)
+
+    def _outputs(
+        self, tree: Any, file_base_dir: Optional[Path], allowed_toc_slugs: Any
+    ) -> Tuple[str, str]:
+        """Typst und HTML aus dem fertigen Baum."""
+        import xml.etree.ElementTree as etree
+        serializer = TypstSerializer(
+            file_base_dir=file_base_dir,
+            labels=self.labels,
+            allowed_toc_slugs=allowed_toc_slugs,
+        )
+        typst_content = serializer.serialize(tree)
+        html_content = "".join(etree.tostring(child, encoding="unicode", method="html") for child in tree)
+        return typst_content, html_content
 
     def _process_list_of(
         self,
@@ -719,17 +778,9 @@ class MarkdownPipeline:
         if allowed_toc_slugs and self._is_single_chapter_document():
             allowed_toc_slugs = {s for s in allowed_toc_slugs if s != slug}
 
-        # Convert ElementTree to Typst markup using the clean AST serializer
-        serializer = TypstSerializer(
-            file_base_dir=file_base_dir,
-            labels=self.labels,
-            allowed_toc_slugs=allowed_toc_slugs,
+        typst_content, processed_html = (
+            self._outputs(tree, file_base_dir, allowed_toc_slugs) if raw_md else ("", "")
         )
-        typst_content = serializer.serialize(tree) if raw_md else ""
-
-        # Produce enhanced HTML for html_content
-        import xml.etree.ElementTree as etree
-        processed_html = "".join(etree.tostring(child, encoding="unicode", method="html") for child in tree) if raw_md else ""
 
         item = ContentItem(
             title=display_title,

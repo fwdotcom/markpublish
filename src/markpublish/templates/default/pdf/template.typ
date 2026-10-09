@@ -800,10 +800,10 @@
   title: "",
   subtitle: none,
   summary: none,
-  tag: "ABSCHNITT",
+  tag: "TEIL",
   number: none,
   in-toc: true,
-  toc-title: "Inhalt dieses Abschnitts",
+  toc-title: "Inhalt dieses Teils",
   toc-items: (),
 ) = {
   [#metadata("part-divider") <part-divider>]

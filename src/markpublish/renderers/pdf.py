@@ -34,6 +34,11 @@ from markpublish.templates.contract import (
 from markpublish.ui import t
 
 
+def _anchor(slug: Optional[str]) -> str:
+    """Sprungziel eines Parts; seine Ueberschrift traegt schon `<part-entry>`."""
+    return f"#metadata(none) <{slug}>\n" if slug else ""
+
+
 class PDFRenderer(BaseRenderer):
     """
     Renders documents to PDF using the native Typst compiler.
@@ -227,10 +232,12 @@ class PDFRenderer(BaseRenderer):
                     part_in_toc = bool(item.document_toc.enabled)
 
                 bb_val = item.break_before.value if getattr(item, "break_before", None) else "page"
+                anchor = _anchor(item.slug)
 
                 if bb_val == "divider":
                     if has_content:
                         parts.append("#pagebreak()\n")
+                    parts.append(anchor)
                     summary_typ = typst_string(item.summary or "")
                     part_title_esc = typst_string(getattr(item, "divider_title", None) or getattr(item, "display_title", None) or item.title)
                     part_sub_esc = typst_string(item.subtitle or "")
@@ -238,11 +245,11 @@ class PDFRenderer(BaseRenderer):
                     part_word = (
                         part_label
                         if part_label is not None
-                        else labels.get("part", "Part" if lang_code == "en" else "Abschnitt")
+                        else labels.get("part", "Part" if lang_code == "en" else "Teil")
                     )
                     part_tag_esc = typst_string(part_word)
                     part_number_esc = typst_string(getattr(item, "number_prefix", None) or "")
-                    part_toc_title_esc = typst_string(labels.get("part_toc_title", "Table of Contents" if lang_code == "en" else "Inhalt dieses Abschnitts"))
+                    part_toc_title_esc = typst_string(labels.get("part_toc_title", "Table of Contents" if lang_code == "en" else "Inhalt dieses Teils"))
 
                     toc_items_typ: List[str] = []
                     for n in getattr(item, "local_toc_items", []):
@@ -269,6 +276,7 @@ class PDFRenderer(BaseRenderer):
                     if has_content:
                         parts.append("#pagebreak()\n")
                         has_content = False
+                    parts.append(anchor)
                     if part_in_toc:
                         part_heading_title = typst_string(getattr(item, "toc_title", None) or getattr(item, "display_title", None) or item.title)
                         part_number = getattr(item, "display_number", None)
@@ -317,9 +325,9 @@ class PDFRenderer(BaseRenderer):
         walk(context.toc_tree)
 
         for item in context.content_items:
-            slug = getattr(item, "slug", None)
-            if slug:
-                targets.add(slug)
+            for slug in (getattr(item, "slug", None), getattr(item, "part_anchor", None)):
+                if slug:
+                    targets.add(slug)
 
             tree = getattr(item, "element_tree", None)
             if tree is None:
@@ -376,10 +384,12 @@ class PDFRenderer(BaseRenderer):
             else:
                 return f'#place(top + left)[#hide[#heading(level: 1, outlined: true, numbering: none)[{t_esc}]{lbl_str}]]\n'
 
+        part_anchor = _anchor(getattr(chapter_item, "part_anchor", None))
         synth_placed_on_divider = False
         if bb_val == "divider":
             if has_content:
                 res.append("#pagebreak()\n")
+            res.append(part_anchor)
             if needs_synth and (not has_file_h1 or not show_title):
                 res.append(_synthetic_heading())
                 synth_placed_on_divider = True
@@ -420,10 +430,11 @@ class PDFRenderer(BaseRenderer):
                 f'toc-title: "{ch_toc_title_esc}", toc-items: {toc_items_str})\n'
             )
             has_content = False  # Divider ends on a fresh page
-        elif bb_val == "page":
-            if has_content:
+        else:
+            if bb_val == "page" and has_content:
                 res.append("#pagebreak()\n")
                 has_content = False
+            res.append(part_anchor)
 
         if getattr(chapter_item, "pagenum_reset", False):
             res.append("#counter(page).update(1)\n")

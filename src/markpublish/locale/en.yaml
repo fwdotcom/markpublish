@@ -182,6 +182,7 @@ err.statement.stray_end: "{file}, line {line}: {{% endfor %}} without a precedin
 err.statement.unknown_path: "{file}, line {line}: {path} has no value."
 err.statement.not_group: "{file}, line {line}: {path} is a single value, not a group; {{% for %}} cannot loop over it."
 err.statement.reserved: "{file}, line {line}: the name {name} is already an entry under document. Choose another name."
+err.reference.unknown: "Reference [](#{id}) in {file}: no heading, figure or table has this id."
 err.config.toc_depth: "{key_path} needs a depth of at least 1 (was: {value}). For 'does not appear' write 'none'."
 err.config.toc_kind: "{key_path} takes 'none', 'full' or a depth as a number (was: {value})."
 err.config.document_unknown: |

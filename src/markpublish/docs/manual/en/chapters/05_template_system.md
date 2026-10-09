@@ -155,7 +155,7 @@ en:
 de:
   toc_title: "Inhaltsverzeichnis"
   chapter: "Kapitel"
-  part: "Abschnitt"
+  part: "Teil"
   page: "Seite"
   page_of: "von"
   version: "Version"

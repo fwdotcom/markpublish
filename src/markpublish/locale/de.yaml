@@ -179,6 +179,7 @@ err.statement.stray_end: "{file}, Zeile {line}: {{% endfor %}} ohne vorangehende
 err.statement.unknown_path: "{file}, Zeile {line}: {path} hat keinen Wert."
 err.statement.not_group: "{file}, Zeile {line}: {path} ist ein einzelner Wert, keine Gruppe; {{% for %}} kann nicht darüber laufen."
 err.statement.reserved: "{file}, Zeile {line}: Der Name {name} ist schon eine Angabe unter document. Wählen Sie einen anderen Namen."
+err.reference.unknown: "Verweis [](#{id}) in {file}: Keine Überschrift, Abbildung oder Tabelle hat diese id."
 err.config.toc_depth: "{key_path} braucht eine Tiefe ab 1 (war: {value}). Für 'kommt nicht vor' schreiben Sie 'none'."
 err.config.toc_kind: "{key_path} kennt 'none', 'full' oder eine Tiefe als Zahl (war: {value})."
 err.config.document_unknown: |
