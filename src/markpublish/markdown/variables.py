@@ -2,9 +2,9 @@
 Platzhalter im Text: `{{author}}` fuer Dokumentangaben, `{{custom.a.b}}` fuer
 eigene Werte unter `document.custom`.
 
-Steueranweisungen `{% for %}` und `{% set %}` loest `expand_statements` vor dem
-Markdown auf: Eine Schleife ueber Tabellenzeilen laesst sich im fertigen Baum
-nicht mehr aufloesen.
+Steueranweisungen `{% for %}`, `{% set %}` und `{% if %}` sowie das Nachschlagen
+`custom.a[b.c]` loest `expand_statements` vor dem Markdown auf: Eine Schleife
+ueber Tabellenzeilen laesst sich im fertigen Baum nicht mehr aufloesen.
 """
 
 from __future__ import annotations
@@ -128,6 +128,9 @@ def substitute_document(document: Any) -> None:
     extra = getattr(document, "model_extra", None) or {}
 
     def _substitute(text: str, where: str) -> str:
+        if LOOKUP_RE.search(text):
+            raise ConfigurationError(t("err.variable.document_lookup", file=where))
+
         def _replace(match: re.Match) -> str:
             name = match.group(1)
             value = _lookup(name, custom) if name.startswith("custom.") else None
@@ -156,12 +159,20 @@ QUOTE_RE = re.compile(r"(?:[ \t]{0,3}>[ \t]?)*")
 #: Liste, Hinweisbox, Definition, Fussnote: ihr Inhalt ist 4 Zeichen eingerueckt,
 #: ein Codeblock darin 4 weitere.
 CONTAINER_RE = re.compile(r"(?:[-*+]|\d+[.)])[ \t]|!!!|\?\?\?|:[ \t]|\[\^[^\]]+\]:")
-PATH = NAME + r"(?:\." + NAME + r")*"
+#: Ein Pfad, auch mit Nachschlagen `a[b.c].d`; den genauen Aufbau prueft `_parse_path`.
+PATH = NAME + r"(?:\[[A-Za-z0-9_.\[\]-]+\]|\." + NAME + r")*"
 FOR_RE = re.compile(
     r"for\s+(?:(" + NAME + r")|\(\s*(" + NAME + r")\s*,\s*(" + NAME + r")\s*\))"
     r"\s+in\s+(" + PATH + r")$"
 )
 SET_RE = re.compile(r"set\s+(" + NAME + r")\s*=\s*(" + PATH + r")$")
+IF_RE = re.compile(r"if\s+(" + PATH + r")(?:\s*==\s*(?:\"([^\"]*)\"|'([^']*)'))?$")
+#: Platzhalter, der auch nachschlaegt: `{{custom.systeme[d.system].name}}`
+EXPR_PLACEHOLDER_RE = re.compile(r"\{\{\s*(" + PATH + r")\s*\}\}")
+LOOKUP_RE = re.compile(r"\{\{[^}]*\[")
+NAME_RE = re.compile(NAME)
+#: Was eine Anweisung beendet, je oeffnender Anweisung
+CLOSERS = {"for": ("endfor",), "if": ("else", "endif"), "else": ("endif",)}
 
 #: Ein Name im Geltungsbereich steht fuer einen Pfad (`role` -> `custom.app.roles.x`)
 #: oder fuer einen festen Text (den Schluessel einer Schleife).
@@ -184,8 +195,8 @@ class _Expander:
     def error(self, key: str, line: int, **kwargs: Any) -> ConfigurationError:
         return ConfigurationError(t(key, file=self.where, line=line, **kwargs))
 
-    def parse(self, lines: List[Line], pos: int = 0, opener: int = 0):
-        """Zeilen zu Knoten; liefert (Knoten, Position hinter `endfor`)."""
+    def parse(self, lines: List[Line], pos: int = 0, opener: str = "", opened: int = 0):
+        """Zeilen zu Knoten; liefert (Knoten, Position dahinter, schliessende Anweisung)."""
         nodes: List[Any] = []
         while pos < len(lines):
             number, text, in_code, in_comment = lines[pos]
@@ -195,13 +206,14 @@ class _Expander:
                 nodes.append(("text", number, text, in_code, in_comment))
                 continue
             statement = match.group(1)
-            if statement == "endfor":
-                if not opener:
-                    raise self.error("err.statement.stray_end", number)
-                return nodes, pos
+            if statement in ("endfor", "else", "endif"):
+                if statement not in CLOSERS.get(opener, ()):
+                    start = "for" if statement == "endfor" else "if"
+                    raise self.error("err.statement.stray_end", number, end=statement, start=start)
+                return nodes, pos, statement
             loop = FOR_RE.match(statement)
             if loop:
-                body, pos = self.parse(lines, pos, number)
+                body, pos, _ = self.parse(lines, pos, "for", number)
                 var = loop.group(1) or loop.group(2)
                 nodes.append(("for", number, var, loop.group(3), loop.group(4), body))
                 continue
@@ -209,26 +221,103 @@ class _Expander:
             if alias:
                 nodes.append(("set", number, alias.group(1), alias.group(2)))
                 continue
+            condition = IF_RE.match(statement)
+            if condition:
+                then, pos, closer = self.parse(lines, pos, "if", number)
+                otherwise: List[Any] = []
+                if closer == "else":
+                    otherwise, pos, _ = self.parse(lines, pos, "else", number)
+                literal = condition.group(2) if condition.group(2) is not None else condition.group(3)
+                nodes.append(("if", number, condition.group(1), literal, then, otherwise))
+                continue
             raise self.error("err.statement.syntax", number, text=statement)
         if opener:
-            raise self.error("err.statement.unclosed", opener)
-        return nodes, pos
+            end = "endfor" if opener == "for" else "endif"
+            raise self.error("err.statement.unclosed", opened, start=opener.replace("else", "if"), end=end)
+        return nodes, pos, ""
 
-    def resolve(self, path: str, scope: Dict[str, Binding], line: int) -> Tuple[Binding, Any]:
-        first, _, rest = path.partition(".")
+    def parse_path(self, path: str, line: int) -> List[Any]:
+        """`a.b[c.d].e` in Teile: ein Name oder, als Liste, ein nachzuschlagender Pfad."""
+        pos = 0
+
+        def parts() -> List[Any]:
+            nonlocal pos
+            result: List[Any] = []
+            while True:
+                name = NAME_RE.match(path, pos)
+                if not name:
+                    raise self.error("err.statement.bad_path", line, path=path)
+                result.append(name.group(0))
+                pos = name.end()
+                while path.startswith("[", pos):
+                    pos += 1
+                    result.append(parts())
+                    if not path.startswith("]", pos):
+                        raise self.error("err.statement.bad_path", line, path=path)
+                    pos += 1
+                if not path.startswith(".", pos):
+                    return result
+                pos += 1
+
+        result = parts()
+        if pos != len(path):
+            raise self.error("err.statement.bad_path", line, path=path)
+        return result
+
+    def binding(self, parts: List[Any], scope: Dict[str, Binding], line: int) -> Binding:
+        """Kurznamen ersetzt, Nachschlagen eingesetzt: der volle Pfad oder ein fester Text."""
+        first, rest = parts[0], parts[1:]
+        path = first
         if first in scope:
             kind, target = scope[first]
             if kind == "value":
                 if rest:
-                    raise self.error("err.statement.unknown_path", line, path=path)
-                return scope[first], target
-            path = target + ("." + rest if rest else "")
+                    raise self.error("err.statement.unknown_path", line, path=first + ".…")
+                return scope[first]
+            path = target
+        for part in rest:
+            if isinstance(part, str):
+                path += "." + part
+                continue
+            path += "." + self.key(part, scope, line)
+            self.value(path, line)
+        return ("path", path)
+
+    def key(self, parts: List[Any], scope: Dict[str, Binding], line: int) -> str:
+        """Der Wert in `[...]`: ein einzelner Wert, der ein Schluessel sein kann."""
+        kind, target = self.binding(parts, scope, line)
+        if kind == "value":
+            return target
+        value = self.value(target, line)
+        if value is None or isinstance(value, (dict, list)):
+            raise self.error("err.statement.not_single", line, path=target)
+        if not NAME_RE.fullmatch(str(value)):
+            raise self.error("err.statement.unknown_path", line, path=f"[{value}]")
+        return str(value)
+
+    def value(self, path: str, line: int) -> Any:
         value: Any = self.variables
         for part in path.split("."):
             value = _child(value, part)
             if value is _MISSING:
                 raise self.error("err.statement.unknown_path", line, path=path)
-        return ("path", path), value
+        return value
+
+    def resolve(self, path: str, scope: Dict[str, Binding], line: int) -> Tuple[Binding, Any]:
+        binding = self.binding(self.parse_path(path, line), scope, line)
+        kind, target = binding
+        return binding, (target if kind == "value" else self.value(target, line))
+
+    def test(self, path: str, literal: Optional[str], scope: Dict[str, Binding], line: int) -> bool:
+        """`if pfad` verlangt true/false, `if pfad == "wert"` einen einzelnen Wert."""
+        (_, target), value = self.resolve(path, scope, line)
+        if literal is None:
+            if not isinstance(value, bool):
+                raise self.error("err.statement.not_bool", line, path=target)
+            return value
+        if value is None or isinstance(value, (dict, list)):
+            raise self.error("err.statement.not_single", line, path=target)
+        return str(value) == literal
 
     def bind(self, scope: Dict[str, Binding], name: str, binding: Binding, line: int) -> None:
         if name in self.variables:
@@ -245,6 +334,9 @@ class _Expander:
             elif node[0] == "set":
                 _, line, name, path = node
                 self.bind(scope, name, self.resolve(path, scope, line)[0], line)
+            elif node[0] == "if":
+                _, line, path, literal, then, otherwise = node
+                out.extend(self.render(then if self.test(path, literal, scope, line) else otherwise, scope))
             else:
                 _, line, var, key_var, path, body = node
                 (_, target), group = self.resolve(path, scope, line)
@@ -260,6 +352,9 @@ class _Expander:
 
     def rewrite(self, text: str, in_comment: bool, scope: Dict[str, Binding], line: int) -> str:
         def _placeholder(match: re.Match) -> str:
+            if "[" in match.group(1):
+                kind, target = self.binding(self.parse_path(match.group(1), line), scope, line)
+                return target if kind == "value" else "{{" + target + "}}"
             first, _, rest = match.group(1).partition(".")
             if first not in scope:
                 return match.group(0)
@@ -284,7 +379,7 @@ class _Expander:
     def _rewrite_prose(self, text: str, replace: Any, line: int) -> str:
         if INLINE_STATEMENT_RE.search(text):
             raise self.error("err.statement.inline", line)
-        return PLACEHOLDER_RE.sub(replace, text)
+        return EXPR_PLACEHOLDER_RE.sub(replace, text)
 
 
 def _split_comments(text: str, open_: bool) -> Tuple[List[Tuple[bool, str]], bool]:
@@ -355,11 +450,11 @@ def _mark_code(markdown: str) -> List[Line]:
 
 
 def expand_statements(markdown: str, variables: Dict[str, Any], where: str) -> str:
-    """Loest `{% for %}`, `{% endfor %}` und `{% set %}` im Markdown auf."""
-    if "{%" not in markdown:
+    """Loest Anweisungen `{% ... %}` und Nachschlagen `{{a[b]}}` im Markdown auf."""
+    if "{%" not in markdown and not LOOKUP_RE.search(markdown):
         return markdown
     expander = _Expander(variables, where)
-    nodes, _ = expander.parse(_mark_code(markdown))
+    nodes, _, _ = expander.parse(_mark_code(markdown))
     return "".join(expander.render(nodes, {}))
 
 

@@ -241,3 +241,93 @@ def test_address_values_become_links(tmp_path):
     assert ", Text: Frank." in typst
     assert typst.count('link("mailto:a@b.de")') == 3
     assert typst.count("#link") == 5
+
+
+LOOKUP_YAML = YAML.replace(
+    "    verfahren:\n",
+    "    systeme:\n"
+    "      crm: {name: Salesforce, ort: Frankfurt, extern: true}\n"
+    "      erp: {name: SAP, ort: Walldorf, extern: false}\n"
+    "    fluesse:\n"
+    "      kunden: {titel: Kundendaten, system: crm}\n"
+    "      rechnungen: {titel: Rechnungen, system: erp}\n"
+    "    haupt: crm\n"
+    "    verfahren:\n",
+)
+
+
+def test_lookup_in_placeholder_without_statements(tmp_path):
+    typst, _ = _render(tmp_path, "System: {{custom.systeme[custom.haupt].name}}.\n", LOOKUP_YAML)
+    assert "System: Salesforce." in typst
+
+
+def test_lookup_in_loop_and_with_set(tmp_path):
+    typst, _ = _render(
+        tmp_path,
+        "{% set systeme = custom.systeme %}\n"
+        "| Fluss | System | Ort |\n| --- | --- | --- |\n"
+        "{% for (d, key) in custom.fluesse %}\n"
+        "{% set sys = systeme[d.system] %}\n"
+        "| {{d.titel}} | {{custom.systeme[d.system].name}} | {{sys.ort}} |\n"
+        "{% endfor %}\n",
+        LOOKUP_YAML,
+    )
+    assert re.search(r"Kundendaten.*Salesforce.*Frankfurt.*Rechnungen.*SAP.*Walldorf", typst, re.S)
+
+
+def test_lookup_with_loop_key_and_nested_lookup(tmp_path):
+    yaml = LOOKUP_YAML.replace("    haupt: crm\n", "    haupt: crm\n    wahl: {crm: kunden}\n")
+    typst, _ = _render(
+        tmp_path,
+        "{% for (s, key) in custom.systeme %}\n- {{custom.systeme[key].name}}\n{% endfor %}\n\n"
+        "{{custom.fluesse[custom.wahl[custom.haupt]].titel}}\n",
+        yaml,
+    )
+    assert "Salesforce" in typst and "SAP" in typst and "Kundendaten" in typst
+
+
+def test_if_else(tmp_path):
+    typst, _ = _render(
+        tmp_path,
+        "{% for d in custom.fluesse %}\n"
+        "{% set sys = custom.systeme[d.system] %}\n"
+        "{% if sys.extern %}\n- {{d.titel}}: extern\n{% else %}\n- {{d.titel}}: intern\n{% endif %}\n"
+        "{% if d.system == \"erp\" %}\n- {{d.titel}} im ERP\n{% endif %}\n"
+        "{% endfor %}\n",
+        LOOKUP_YAML,
+    )
+    assert "Kundendaten: extern" in typst and "Rechnungen: intern" in typst
+    assert "Rechnungen im ERP" in typst and "Kundendaten im ERP" not in typst
+    assert "Kundendaten: intern" not in typst
+
+
+@pytest.mark.parametrize(
+    "markdown, message",
+    [
+        ("{{custom.systeme[custom.nope].name}}\n", "line 3: custom.nope has no value"),
+        ("{% set s = custom.systeme[custom.verfahren] %}\n", "line 3: custom.verfahren is a group"),
+        ("{{custom.fluesse[custom.mail].titel}}\n", r"line 3: \[a@b.de\] has no value"),
+        ("{% set s = custom.systeme[custom.count] %}\n", "line 3: custom.systeme.3 has no value"),
+        ("{% set s = custom.systeme[haupt %}\n", r"line 3: \{% set"),
+        ("{% for d in custom.fluesse %}\n{{custom.systeme[d.titel].name}}\n{% endfor %}\n",
+         "line 4: custom.systeme.Kundendaten has no value"),
+        ("{% if custom.haupt %}\n{% endif %}\n", r"line 3: \{% if custom.haupt %\} needs true or false"),
+        ("{% if custom.nope %}\n{% endif %}\n", "line 3: custom.nope has no value"),
+        ("{% if custom.systeme == \"x\" %}\n{% endif %}\n", "line 3: custom.systeme is a group"),
+        ("{% if custom.systeme.crm.extern %}\nx\n", r"line 3: this \{% if %\} has no \{% endif %\}"),
+        ("{% if custom.systeme.crm.extern %}\n{% else %}\n{% else %}\n{% endif %}\n",
+         r"line 5: \{% else %\} without a preceding \{% if %\}"),
+        ("{% for d in custom.fluesse %}\n{% if custom.systeme.crm.extern %}\n{% endfor %}\n",
+         r"line 5: \{% endfor %\} without a preceding \{% for %\}"),
+        ("{% endif %}\n", r"line 3: \{% endif %\} without a preceding \{% if %\}"),
+    ],
+)
+def test_lookup_and_if_errors(tmp_path, markdown, message):
+    with pytest.raises(ConfigurationError, match=r"c\.md, " + message):
+        _render(tmp_path, markdown, LOOKUP_YAML)
+
+
+def test_document_fields_reject_lookup():
+    yaml = LOOKUP_YAML.replace('  title: "T"\n', '  title: "{{custom.systeme[custom.haupt].name}}"\n')
+    with pytest.raises(ConfigurationError, match=r"\[ \].*document\.title"):
+        load_config(yaml)

@@ -360,10 +360,11 @@ class MarkdownPipeline:
                 part_label, part_number, self.labels.get("label_separator", ": ")
             )
 
-            # Ein Part ohne Titel und Nummer ist nur eine Klammer um Kapitel und
-            # erscheint in keinem Verweis.
+            # Ein Part ohne Titel und Nummer oder ohne Seite und Verzeichniseintrag
+            # ist nur eine Klammer um Kapitel und erscheint in keinem Verweis.
+            part_visible = part_cfg.effective_break_before != BreakBefore.NONE or part_in_document_toc
             part_base: List[Level] = []
-            if part_title or part_number:
+            if (part_title or part_number) and part_visible:
                 part_base = [Level(
                     kind="part",
                     slug=part_slug,

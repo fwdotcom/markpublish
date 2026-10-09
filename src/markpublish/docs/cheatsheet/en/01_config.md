@@ -50,7 +50,7 @@ If the document consists of **exactly one chapter**, the main table of contents 
 
 Custom fields under `document:` (`department: "R&D"`) reach the theme through the `meta` dictionary (`meta.at("department").value`). Static labels belong in `i18n.yaml`, not here.
 
-In Markdown, `{{name}}` inserts a value from `document:` (`{{author}}`, `{{custom.procedure.name}}`). Values under `custom` do not reach the theme. A placeholder without a value stops the build; `\{{author}}` stays as written.
+Values under `custom` do not reach the theme; in Markdown, `{{custom.a.b}}` inserts them (see [](#data-in-the-text)).
 
 `key: !file "path-or-url"` loads a value from another file, anywhere in the configuration. YAML files supply a nested value, any other file its text. Relative paths resolve against the referencing file.
 

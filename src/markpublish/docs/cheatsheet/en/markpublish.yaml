@@ -7,11 +7,11 @@
 # identical tables. Only the language differs.
 document:
   title: "markpublish Quick Reference"
-  subtitle: "Configuration and Templates"
-  summary: "Reference for every key of markpublish.yaml and the building blocks of a theme."
+  subtitle: "Configuration, Data in the Text and Templates"
+  summary: "Reference for every key of markpublish.yaml, placeholders and statements in the text, and the building blocks of a theme."
   author: "Frank Winter"
   copyright: "© 2026 Frank Winter"
-  version: "2.3.3"
+  version: "2.4.0"
   date: "auto"
   language: "en"
 
@@ -29,5 +29,7 @@ parts:
     chapters:
       - file: "01_config.md"
 
-      - file: "02_templates.md"
+      - file: "02_data.md"
+
+      - file: "03_templates.md"
 

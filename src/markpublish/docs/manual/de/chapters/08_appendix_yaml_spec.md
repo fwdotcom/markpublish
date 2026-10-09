@@ -19,7 +19,7 @@ Die Sektion `document:` legt globale Metadaten, Layoutschalter, Verzeichnisvorga
 | `date` | String | `"auto"` | Datum des Dokuments. Bei `"auto"` oder `"today"` wird das aktuelle Tagesdatum eingesetzt. |
 | `version` | String | `None` | Versionskennung (z. B. `"2.0.0"`). Wird nur gedruckt, wenn explizit gesetzt. |
 | `language` | String | *(Systemsprache)* | ISO-Sprachcode (z. B. `"de"` oder `"en"`). Steuert Silbentrennung und UI-Texte. |
-| `custom` | Mapping | `{}` | Eigene Werte für Platzhalter im Text (`{{custom.a.b}}`), auch verschachtelt. Siehe *Platzhalter im Text*. Einzelne Werte oder Gruppen lassen sich mit `!file` nachladen. |
+| `custom` | Mapping | `{}` | Eigene Werte für Platzhalter im Text (`{{custom.a.b}}`), auch verschachtelt. Siehe [](#daten-im-text). Einzelne Werte oder Gruppen lassen sich mit `!file` nachladen. |
 | `cover` | Boolean | `false` | Steuert, ob eine gestaltete Deckblattseite erzeugt wird. Ohne Angabe beginnt das Dokument mit dem ersten Inhalt. |
 | `header` | Boolean | `true` | Aktiviert oder deaktiviert die laufende Kopfzeile im Dokument. |
 | `footer` | Boolean | `true` | Aktiviert oder deaktiviert die laufende Fußzeile (inkl. Seitennummerierung). |

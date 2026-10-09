@@ -7,11 +7,11 @@
 # gleiche Tabellen. Nur die Sprache unterscheidet sich.
 document:
   title: "markpublish Kurzreferenz"
-  subtitle: "Konfiguration und Templates"
-  summary: "Nachschlagewerk zu allen Schlüsseln der markpublish.yaml und den Bausteinen eines Themes."
+  subtitle: "Konfiguration, Daten im Text und Templates"
+  summary: "Nachschlagewerk zu allen Schlüsseln der markpublish.yaml, zu Platzhaltern und Anweisungen im Text und zu den Bausteinen eines Themes."
   author: "Frank Winter"
   copyright: "© 2026 Frank Winter"
-  version: "2.3.3"
+  version: "2.4.0"
   date: "auto"
   language: "de"
 
@@ -29,4 +29,6 @@ parts:
     chapters:
       - file: "01_config.md"
 
-      - file: "02_templates.md"
+      - file: "02_data.md"
+
+      - file: "03_templates.md"

@@ -6,9 +6,18 @@ document:
   summary: "Praxisorientierte Anleitung und Referenz zur Konfiguration, CLI-Bedienung, Theme-Gestaltung und Dokumentenerstellung mit markpublish."
   author: "Frank Winter"
   copyright: "© 2026 Frank Winter"
-  version: "2.3.3"
+  version: "2.4.0"
   date: "auto"
   language: "de"
+
+  custom:
+    # Beispieldaten fuer das Kapitel "Daten im Text"
+    systeme:
+      crm: {name: "Salesforce CRM", standort: "EU (Frankfurt)", extern: true}
+      erp: {name: "SAP S/4HANA", standort: "Deutschland", extern: false}
+    datenfluesse:
+      kunden: {bezeichnung: "Kundenstammdaten", system: crm}
+      rechnungen: {bezeichnung: "Rechnungsdaten", system: erp}
 
   cover: true
   document_toc: 2
@@ -54,6 +63,11 @@ parts:
         break_before: "divider"
         show_title: false
 
+      - file: "chapters/07_data_in_text.md"
+        summary: "Platzhalter, Schleifen, Kurznamen, Nachschlagen und Bedingungen für Werte aus der markpublish.yaml."
+        break_before: "divider"
+        show_title: false
+
   - part: "Anhänge"
     summary: "Vollständige Spezifikations-Tabellen und Hilfestellungen zur Fehlerbehebung."
     break_before: "divider"
@@ -62,6 +76,6 @@ parts:
     chapter_label: "Anhang"
     
     chapters:
-      - file: "chapters/07_appendix_yaml_spec.md"
-      - file: "chapters/08_appendix_troubleshooting.md"
+      - file: "chapters/08_appendix_yaml_spec.md"
+      - file: "chapters/09_appendix_troubleshooting.md"
 

@@ -140,3 +140,13 @@ def test_references_compile_and_jump_to_parts_without_a_page(tmp_path: Path):
 
     text = "".join(page.get_textpage().get_text_range() for page in pdfium.PdfDocument(out_pdf))
     assert "Kapitel 1, Abschnitt 1.1" in text
+
+
+def test_a_part_without_page_or_toc_entry_is_left_out(tmp_path: Path):
+    """Den Part sieht die Leserin nirgends, also nennt ihn auch kein Verweis."""
+    config = CONFIG.replace(
+        '  - part: "Grundlagen"\n', '  - part: "Grundlagen"\n    document_toc: "none"\n'
+    )
+    files = dict(FILES, **{"c.md": "# Daten {#daten}\n\nZurück: [](#tief).\n"})
+    links = _links(_process(tmp_path, config, files))
+    assert links[("daten", "#tief")] == "Kapitel 1, Abschnitt 1.1.1 „Tief“"

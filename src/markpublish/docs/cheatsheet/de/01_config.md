@@ -50,7 +50,7 @@ Besteht das Dokument aus **genau einem Kapitel**, lässt das Haupt-Inhaltsverzei
 
 Eigene Zusatzfelder unter `document:` (`abteilung: "F&E"`) erreichen das Theme über das Wörterbuch `meta` (`meta.at("abteilung").value`). Statische Beschriftungen gehören in die `i18n.yaml`, nicht hierher.
 
-Im Markdown setzt `{{name}}` eine Angabe aus `document:` ein (`{{author}}`, `{{custom.verfahren.name}}`). Werte unter `custom` erreichen das Theme nicht. Ein Platzhalter ohne Wert bricht den Bau ab; `\{{author}}` bleibt wörtlich stehen.
+Werte unter `custom` erreichen das Theme nicht; im Markdown setzt sie `{{custom.a.b}}` ein (siehe [](#daten-im-text)).
 
 `schlüssel: !file "pfad-oder-url"` lädt einen Wert aus einer anderen Datei, überall in der Konfiguration. YAML-Dateien liefern einen verschachtelten Wert, jede andere Datei ihren Text. Relative Pfade gelten ab der verweisenden Datei.
 

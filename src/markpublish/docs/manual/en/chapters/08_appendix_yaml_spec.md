@@ -19,7 +19,7 @@ The `document:` section defines global metadata, layout switches, table of conte
 | `date` | String | `"auto"` | Document date. Set to `"auto"` or `"today"` to use current date. |
 | `version` | String | `None` | Version identifier (e.g., `"2.0.0"`). Only printed when explicitly set. |
 | `language` | String | *(System language)* | ISO language code (e.g., `"en"` or `"de"`). Governs hyphenation and UI strings. |
-| `custom` | Mapping | `{}` | Own values for placeholders in the text (`{{custom.a.b}}`), may be nested. See *Placeholders in the Text*. Single values or groups can be loaded with `!file`. |
+| `custom` | Mapping | `{}` | Own values for placeholders in the text (`{{custom.a.b}}`), may be nested. See [](#data-in-the-text). Single values or groups can be loaded with `!file`. |
 | `cover` | Boolean | `false` | Controls whether a styled cover page is generated. |
 | `header` | Boolean | `true` | Enables or disables running headers throughout the document. |
 | `footer` | Boolean | `true` | Enables or disables running footers (including page numbering). |

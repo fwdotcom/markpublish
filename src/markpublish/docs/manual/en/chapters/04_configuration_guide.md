@@ -106,58 +106,9 @@ Three essential things to keep in mind:
 
 ## Placeholders in the Text
 
-In Markdown, `{{name}}` inserts a value from `document:`, e.g. `{{author}}`, `{{version}}` or `{{date}}` (the computed date for `"auto"`). This includes custom metadata fields. Values needed only in the text belong under `custom:`. They may be nested there and are addressed with dots:
+In Markdown, `{{author}}` inserts a value from `document:`, `{{custom.procedure.name}}` a custom value under `custom:`. Values there may be nested; they do not reach the theme. Loops, short names, lookups and conditions are covered in [](#data-in-the-text).
 
-```yaml
-document:
-  author: "Frank Winter"
-  custom:
-    support_mail: "support@example.com"
-    procedure:
-      name: "Procedure X"
-```
-
-```markdown
-Contact: {{author}}, {{custom.support_mail}}.
-This document describes {{custom.procedure.name}}.
-```
-
-If an inserted value is an email address or a URL, it becomes a link, just like text written directly; a placeholder already inside a link keeps that link. Values under `custom` do not reach the theme. A placeholder without a value, including a misspelled one, stops the build and names the file. In code (`` `{{author}}` `` or a code block) the placeholder stays as written; in running text, put a backslash in front: `\{{author}}` gives `{{author}}`.
-
-### Loops and Short Names
-
-`{% for %}` repeats the lines up to `{% endfor %}` for each entry of a group under `custom`, in the order of the YAML file. This gives, for example, a table with one row per role:
-
-```yaml
-document:
-  custom:
-    app:
-      roles:
-        application_owner: {label: "Application owner", name: "A. Sample"}
-        technical_administrator: {label: "Technical administration", name: "B. Example"}
-```
-
-```markdown
-| Role | Name | Key |
-| :--- | :--- | :--- |
-{% for (role, key) in custom.app.roles %}
-| {{role.label}} | {{role.name}} | {{key}} |
-{% endfor %}
-```
-
-`{% set %}` gives a long path a short name, valid up to the end of the file (inside a loop, up to the end of that loop):
-
-```markdown
-{% set owner = custom.app.roles.application_owner %}
-Responsible: {{owner.name}}.
-```
-
-* **Statements stand alone on their line**; the line disappears completely in the build, so a table stays in one piece. Inside a quote or callout, `>` may precede it.
-* **`(role, key)`** also provides the entry's name (`application_owner`); `for role in …` is enough when it is not needed.
-* **Loops can be nested.** A loop's name is valid only inside it; a name must not hide an entry under `document` (`author`, `custom` …).
-* In code and code blocks statements stay as written; in running text, put a backslash in front: `\{% … %}`. Errors such as a missing `{% endfor %}` stop the build and name file and line.
-
-## Values from Other Files (`!file`)
+## Values from Other Files (`!file`) {#values-from-other-files}
 
 Instead of writing a value directly, `!file` loads it from a file or a URL. Both can be mixed freely:
 

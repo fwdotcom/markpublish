@@ -7,10 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [Unreleased]
+## [2.4.0] - 2026-10-09
 
 ### Added
-- **Numbered references**: `[](#id)` on a heading yields e.g. `Part II, Chapter 5, Section 5.3 “Title”`, across files; only the levels that differ from the referring place are named. New i18n keys `section`, `quote_open`, `quote_close`. An empty link to an unknown `id` stops the build.
+- **Numbered references**: `[](#id)` on a heading yields e.g. `Part II, Chapter 5, Section 5.3 “Title”`, across files; only the levels that differ from the referring place are named. New i18n keys `section`, `quote_open`, `quote_close`. An empty link to an unknown `id` stops the build. Parts that appear nowhere in the document (no page, no TOC entry) are left out.
+- **Conditions in the text**: `{% if custom.a %}` (true/false) and `{% if custom.a == "value" %}`, with optional `{% else %}` and `{% endif %}`; a missing path stops the build.
+- **Lookups**: `{{custom.systems[f.system].name}}` uses a value as the key into another group, also in `{% for %}` and `{% set sys = custom.systems[f.system] %}`; a missing entry stops the build.
+- **Manual and quick reference**: new chapter "Data in the Text" covering placeholders, loops, short names, lookups and conditions, with a live example.
 
 ### Changed
 - **Cover (default theme)**: title, subtitle and summary are centred as one block, 1.5 cm above the middle of the page (was 2 cm below the top); the metadata stay at the bottom.
