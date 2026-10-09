@@ -26,6 +26,7 @@ LABELS = {
 CONFIG = """\
 document:
   title: "T"
+  language: "de"
   autonum_pattern: "I|1|.1|+"
 parts:
   - part: "Grundlagen"
