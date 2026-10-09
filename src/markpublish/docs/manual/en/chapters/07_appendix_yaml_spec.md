@@ -102,7 +102,7 @@ The `parts:` list subdivides the document into high-level sections. A part group
 
 ---
 
-## Chapter Level (chapters)
+## Chapter Level (chapters) {#schema-chapters}
 
 The `chapters:` list specifies the content files. Chapters always sit directly under an entry of `parts:`.
 

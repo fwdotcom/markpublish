@@ -731,35 +731,45 @@
     [#metadata("cover") <cover-page>]
     set par(justify: false)
     set text(hyphenate: false)
-    v(2cm)
-    text(size: size-cover-title, weight: "bold", fill: c-text-dark)[#title]
-    v(0.5em)
-    if subtitle != none and subtitle != "" {
-      text(size: size-cover-subtitle, fill: c-text-muted)[#subtitle]
-      v(1.5em)
+    // Titel, Untertitel und Kurzbeschreibung als ein Block, 1,5 cm ueber der
+    // Blattmitte (optische Mitte). Der Block bleibt im Fluss: wird er zu hoch,
+    // schiebt er die Metadaten weiter, statt sie zu ueberdecken.
+    let title-block = {
+      text(size: size-cover-title, weight: "bold", fill: c-text-dark)[#title]
+      v(0.5em)
+      if subtitle != none and subtitle != "" {
+        text(size: size-cover-subtitle, fill: c-text-muted)[#subtitle]
+        v(1.5em)
+      }
+      line(length: 100%, stroke: stroke-accent + c-primary)
+      if summary != none and summary != "" {
+        v(1.5em)
+        _render-summary-box(
+          summary,
+          accent-color: c-primary,
+          accent-bar: 4pt,
+          font-size: size-cover-summary,
+          text-color: c-text-secondary,
+          inset: (x: 14pt, y: 12pt),
+          style: "italic",
+        )
+      }
     }
-    line(length: 100%, stroke: stroke-accent + c-primary)
-    v(1.5em)
-
-    if summary != none and summary != "" {
-      _render-summary-box(
-        summary,
-        accent-color: c-primary,
-        accent-bar: 4pt,
-        font-size: size-cover-summary,
-        text-color: c-text-secondary,
-        inset: (x: 14pt, y: 12pt),
-        style: "italic",
-      )
-      v(2em)
+    context {
+      let area-width = page.width - page-margin.left - page-margin.right
+      let block-height = measure(block(width: area-width, title-block)).height
+      // Abstand von der Blattoberkante bis zum Block, abzueglich des oberen Rands
+      let offset = (page.height - block-height) / 2 - 1.5cm - page-margin.top
+      v(calc.max(0pt, offset))
     }
+    title-block
 
-    // Metadata Grid
+    // Metadaten am unteren Rand
+    v(2em)
     v(1fr)
     let meta-items = cover-fields(meta).filter(
       it => it != none and it.value != "" and it.value != none and it.value != ()
     )
-
     grid(
       columns: (auto, 1fr),
       row-gutter: 10pt,

@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Numbered references**: `[](#id)` on a heading yields e.g. `Part II, Chapter 5, Section 5.3 “Title”`, across files; only the levels that differ from the referring place are named. New i18n keys `section`, `quote_open`, `quote_close`. An empty link to an unknown `id` stops the build.
 
 ### Changed
+- **Cover (default theme)**: title, subtitle and summary are centred as one block, 1.5 cm above the middle of the page (was 2 cm below the top); the metadata stay at the bottom.
 - **Default theme**: parts are called "Teil" / "Part" again (was "Abschnitt" / "Section", which clashed with sections in references).
 
 ### Fixed

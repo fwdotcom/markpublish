@@ -103,7 +103,7 @@ Die Liste `parts:` unterteilt das Dokument in übergeordnete Abschnitte. Ein Abs
 
 ---
 
-## Kapitel-Ebene (chapters)
+## Kapitel-Ebene (chapters) {#schema-chapters}
 
 Die Liste `chapters:` definiert die Inhaltsdateien. Kapitel stehen immer unmittelbar unter einem Eintrag aus `parts:`.
 

@@ -214,7 +214,7 @@ Frequent symbols and operators typed in plain text are automatically converted i
 
 ---
 
-## Images, Figures and Tables
+## Images, Figures and Tables {#figures}
 
 Image attributes go in curly braces right after the image:
 
@@ -291,9 +291,10 @@ Web URLs and email addresses are automatically recognized and turned into clicka
 | **Web Address (Magic Link)** | `https://example.com` | https://example.com | URLs are linked without explicit Markdown brackets |
 | **Email Address (Magic Link)** | `contact@example.com` | contact@example.com | Email addresses become clickable `mailto:` links |
 | **Document Cross-Reference** | `[Chapter top](#advanced-markdown-features)` | [Chapter top](#advanced-markdown-features) | Clickable internal link pointing to a heading anchor |
-| **Numbered Reference** | `[](#advanced-markdown-features)` | [](#advanced-markdown-features) | markpublish sets word, number and title |
+| **Reference into an appendix** | `[](#schema-chapters)` | [](#schema-chapters) | Other part: every level from the part down |
+| **Reference within the chapter** | `[](#figures)` | [](#figures) | Just the section |
 
-A link without text to a heading becomes a numbered reference, across files as well. It names the levels from the first one in which the reference and its target differ: from another part `Part II, Chapter 5, Section 5.3 “Test section”`, within the same chapter just `Section 5.3 “Test section”`. A level without a number appears with its title.
+A link without text to a heading becomes a numbered reference, across files as well; markpublish sets word, number and title. It names the levels from the first one in which the reference and its target differ. A level without a number appears with its title – here the part “Appendices”.
 
 References are best given a fixed `id` on the heading (`## Residual risks {#residual-risks}`): the automatic one follows the text and changes with it. A reference to an unknown `id` stops the build. The words come from the i18n cascade (`part`, `chapter`, `section`, `quote_open`, `quote_close`) or from `label` and `chapter_label`.
 

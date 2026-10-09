@@ -214,7 +214,7 @@ Häufige Symbole und Operatoren werden bei der Eingabe im Fließtext automatisch
 
 ---
 
-## Bilder, Abbildungen und Tabellen
+## Bilder, Abbildungen und Tabellen {#abbildungen}
 
 Bildattribute stehen in geschweiften Klammern direkt hinter dem Bild:
 
@@ -291,9 +291,10 @@ Web- und Mailadressen werden bei direkter Eingabe automatisch erkannt und format
 | **Web-Adresse (Magic Link)** | `https://example.com` | https://example.com | URLs werden ohne Klammern verlinkt |
 | **E-Mail-Adresse (Magic Link)** | `kontakt@example.com` | kontakt@example.com | Mailadressen werden zu klickbaren `mailto:`-Links |
 | **Dokument-Querverweis** | `[Kapitelanfang](#besondere-markdown-features)` | [Kapitelanfang](#besondere-markdown-features) | Klickbare Sprungmarke auf Überschriften |
-| **Nummerierter Verweis** | `[](#besondere-markdown-features)` | [](#besondere-markdown-features) | Wort, Nummer und Titel setzt markpublish |
+| **Verweis in einen Anhang** | `[](#schema-chapters)` | [](#schema-chapters) | Anderer Teil: alle Ebenen ab dem Teil |
+| **Verweis im selben Kapitel** | `[](#abbildungen)` | [](#abbildungen) | Nur der Abschnitt |
 
-Ein Link ohne Text auf eine Überschrift wird zum nummerierten Verweis, auch über Dateien hinweg. Genannt werden die Ebenen ab der ersten, in der sich Verweisstelle und Ziel unterscheiden: aus einem anderen Teil `Teil II, Kapitel 5, Abschnitt 5.3 „Testabschnitt“`, im selben Kapitel nur `Abschnitt 5.3 „Testabschnitt“`. Eine Ebene ohne Nummer erscheint mit ihrem Titel.
+Ein Link ohne Text auf eine Überschrift wird zum nummerierten Verweis, auch über Dateien hinweg; Wort, Nummer und Titel setzt markpublish. Genannt werden die Ebenen ab der ersten, in der sich Verweisstelle und Ziel unterscheiden. Eine Ebene ohne Nummer erscheint mit ihrem Titel – hier der Teil „Anhänge“.
 
 Für Verweise lohnt eine feste `id` an der Überschrift (`## Restrisiken {#restrisiken}`): die automatische folgt dem Text und ändert sich mit ihm. Ein Verweis auf eine unbekannte `id` bricht den Build ab. Die Wörter kommen aus der i18n-Kaskade (`part`, `chapter`, `section`, `quote_open`, `quote_close`) bzw. aus `label` und `chapter_label`.
 
