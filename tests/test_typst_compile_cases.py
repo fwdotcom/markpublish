@@ -471,3 +471,197 @@ parts:
     assert positions == sorted(positions), (
         f"Reihenfolge weicht ab: {list(zip(expected, positions, strict=True))}"
     )
+
+
+def test_long_chapter_divider_breaks_cleanly_without_header_bleed(tmp_path: Path):
+    """
+    Sehr lange Kapitel-TOCs auf Trennseiten (Divider Pages) dürfen am Seitenende
+    nicht gestaucht werden, sondern müssen sauber auf eine Folgeseite umbrechen.
+    Auf allen Folgeseiten der Trennseite muss die Kopfzeile unterdrückt bleiben
+    (kein Durchbluten des vorigen Kapitels).
+    """
+    yaml_text = """\
+document:
+  title: "Trennseiten-Test"
+  language: "de"
+  cover: false
+  document_toc: "none"
+  chapter_toc: "full"
+  header: true
+  footer: true
+
+parts:
+  - part: "Hauptteil"
+    break_before: "none"
+    chapters:
+      - file: "ch1.md"
+        break_before: "none"
+      - file: "ch2.md"
+        break_before: "divider"
+"""
+    ch1_content = "# Erstes Kapitel\n\nErster Text.\n"
+    ch2_sections = "\n\n".join(f"## Unterabschnitt {i}\n\nInhalt {i}." for i in range(1, 45))
+    ch2_content = f"# Zweites Kapitel\n\nEinleitung zu Kapitel 2.\n\n{ch2_sections}\n"
+
+    out_pdf = _compile_pdf(
+        tmp_path,
+        yaml_text,
+        {
+            "ch1.md": ch1_content,
+            "ch2.md": ch2_content,
+        },
+    )
+    doc = pdfium.PdfDocument(out_pdf)
+
+    # ch1 ist auf Seite 1.
+    p1_text = doc[0].get_textpage().get_text_range()
+    assert "Erstes Kapitel" in p1_text
+
+    # ch2 Divider beginnt auf Seite 2.
+    p2_text = doc[1].get_textpage().get_text_range()
+    assert "Zweites Kapitel" in p2_text
+    assert "AUF EINEN BLICK" in p2_text
+
+    # Seite 3 ist die Fortsetzungsseite der Trennseite.
+    # Das lokale TOC setzt sich hier fort, und die Kopfzeile darf das vorige Kapitel nicht anzeigen.
+    p3_text = doc[2].get_textpage().get_text_range()
+    assert "Unterabschnitt" in p3_text
+    assert "Erstes Kapitel" not in p3_text
+
+
+def test_long_part_divider_breaks_cleanly(tmp_path: Path):
+    """
+    Sehr lange Teil-TOCs auf Trennseiten (Part Dividers) dürfen am Seitenende
+    nicht gestaucht werden, sondern müssen sauber auf Folgeseiten umbrechen.
+    """
+    files = {}
+    chapters_yaml = []
+    for i in range(1, 70):
+        fn = f"ch_{i}.md"
+        files[fn] = f"# Kapitel {i}\n\nInhalt für Kapitel {i}.\n"
+        chapters_yaml.append(f'      - file: "{fn}"\n        break_before: "none"')
+
+    ch_list_str = "\n".join(chapters_yaml)
+    yaml_text = f"""\
+document:
+  title: "Part-Divider-Test"
+  language: "de"
+  cover: false
+  document_toc: "full"
+  part_toc: "full"
+  header: true
+  footer: true
+
+parts:
+  - part: "Umfangreicher Teil"
+    break_before: "divider"
+    chapters:
+{ch_list_str}
+"""
+    out_pdf = _compile_pdf(tmp_path, yaml_text, files)
+    doc = pdfium.PdfDocument(out_pdf)
+
+    # Das Dokument-TOC nimmt die ersten Seiten ein.
+    # Der Part-Divider beginnt danach (auf Seite 4).
+    p4_text = doc[3].get_textpage().get_text_range()
+    assert "Umfangreicher Teil" in p4_text
+    assert "Kapitel 1" in p4_text
+
+    # Der Part-Divider bricht sauber auf Folgeseiten (Seite 5) um:
+    p5_text = doc[4].get_textpage().get_text_range()
+    assert "Kapitel 25" in p5_text
+    # Und unterdrückt die Kopfzeile auf der Fortsetzungsseite der Trennseite:
+    assert "Part-Divider-Test" not in p5_text
+
+
+def test_chapter_local_toc_items_include_heading_levels(tmp_path: Path):
+    """
+    Stellt sicher, dass lokale Inhaltsverzeichnisse auf Kapitel-Trennseiten
+    die Überschriftenebene (level) an das Theme übergeben, damit die
+    Zusammenhalt-Logik (sticky: true bei übergeordneten Einträgen) greift.
+    """
+    yaml_text = """\
+document:
+  title: "Sticky-TOC-Test"
+  language: "de"
+  cover: false
+  document_toc: "none"
+  chapter_toc: "full"
+  header: false
+  footer: false
+
+parts:
+  - part: "Hauptteil"
+    break_before: "none"
+    chapters:
+      - file: "ch.md"
+        break_before: "divider"
+"""
+    ch_content = """\
+# Hauptkapitel
+
+## Abschnitt 1
+Text 1.
+
+### Unterabschnitt 1.1
+Text 1.1.
+
+## Abschnitt 2
+Text 2.
+"""
+    out_pdf = _compile_pdf(tmp_path, yaml_text, {"ch.md": ch_content})
+    doc = pdfium.PdfDocument(out_pdf)
+    assert len(doc) >= 1
+    # Erste Seite ist der Chapter-Divider
+    p1_text = doc[0].get_textpage().get_text_range()
+    assert "Hauptkapitel" in p1_text
+    assert "Abschnitt 1" in p1_text
+    assert "Unterabschnitt 1.1" in p1_text
+    assert "Abschnitt 2" in p1_text
+
+
+def test_list_types_compile_cleanly(tmp_path: Path):
+    """
+    Stellt sicher, dass ungeordnete Listen, nummerierte Listen, Definitionslisten
+    und Aufgabenlisten mit den Flatterrand-Regeln (justify: false) sauber kompilieren.
+    """
+    yaml_text = """\
+document:
+  title: "Listen-Test"
+  language: "de"
+  cover: false
+  document_toc: "none"
+  header: false
+  footer: false
+
+parts:
+  - part: "Hauptteil"
+    break_before: "none"
+    chapters:
+      - file: "lists.md"
+        break_before: "none"
+"""
+    lists_content = """\
+# Listen im Test
+
+- Ungeordneter Punkt 1 mit laengerem Text zur Pruefung des Flatterrands.
+- Ungeordneter Punkt 2 mit Inline-Code `markpublish --format pdf`.
+  - Verschachtelter Punkt 2.1
+
+1. Erster nummerierter Schritt
+2. Zweiter nummerierter Schritt
+
+- [ ] Offene Aufgabe
+- [x] Erledigte Aufgabe
+
+Begriff A
+: Definition von Begriff A
+"""
+    out_pdf = _compile_pdf(tmp_path, yaml_text, {"lists.md": lists_content})
+    doc = pdfium.PdfDocument(out_pdf)
+    assert len(doc) >= 1
+    text = doc[0].get_textpage().get_text_range()
+    assert "Ungeordneter Punkt 1" in text
+    assert "Erster nummerierter Schritt" in text
+    assert "Offene Aufgabe" in text
+    assert "Begriff A" in text

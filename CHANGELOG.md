@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.4.1] - 2026-10-13
+
+### Changed
+- **List formatting (PDF)**: Lists (`list`, `enum`, `terms`, and `task-item`) now render with ragged-right alignment (`justify: false`) while keeping hyphenation active, preventing overstretched inter-word spacing.
+
+### Fixed
+- **Divider pages (PDF)**: Long TOCs on Part and Chapter divider pages now break cleanly onto continuation pages (`breakable: true`) instead of being squashed; running headers remain suppressed on all divider continuation pages.
+- **Local TOC layout (PDF)**: Added vertical spacing (`10pt`) above major headings in Part and Chapter divider TOCs, keeping headings together with subsequent entries (`sticky: true`) and applying distinct bold styling.
+
+---
+
 ## [2.4.0] - 2026-10-09
 
 ### Added

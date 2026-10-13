@@ -163,58 +163,73 @@
   if toc-items == none or toc-items.len() == 0 { return }
   block(
     width: 100%,
+    breakable: true,
     fill: c-bg-subtle,
     inset: (x: 14pt, y: if is-chapter { 12pt } else { 14pt }),
     radius: radius-md,
     stroke: stroke-border + c-border,
   )[
-    #text(size: 8.5pt, weight: "bold", fill: rgb("#475569"), tracking: 0.08em)[#upper(toc-title)]
-    #v(if is-chapter { 8pt } else { 10pt })
+    #block(width: 100%, breakable: false, sticky: true)[
+      #text(size: 8.5pt, weight: "bold", fill: rgb("#475569"), tracking: 0.08em)[#upper(toc-title)]
+      #v(if is-chapter { 8pt } else { 10pt })
+    ]
     #{
       let ch-count = 0
-      for item in toc-items {
+      for (idx, item) in toc-items.enumerate() {
+        let next = if idx + 1 < toc-items.len() { toc-items.at(idx + 1) } else { none }
         if item.at("is_header", default: false) [
-          #v(6pt)
-          #text(weight: "bold", size: 9.5pt, fill: c-text-dark)[#item.title]
-          #v(2pt)
+          #block(width: 100%, breakable: false, sticky: true)[
+            #v(6pt)
+            #text(weight: "bold", size: 9.5pt, fill: c-text-dark)[#item.title]
+            #v(2pt)
+          ]
         ] else {
           let lvl = item.at("level", default: if is-chapter { 2 } else { 1 })
-          let is-lvl1 = not is-chapter and (lvl == 1)
-          if is-lvl1 {
+          let is-top = if is-chapter { lvl <= 2 } else { lvl == 1 }
+          if is-top {
             ch-count += 1
             if ch-count > 1 {
-              v(8pt)
+              v(10pt)
             }
           }
 
-          let item-weight = if is-lvl1 { "bold" } else { "regular" }
-          let item-size = if is-lvl1 { 9.5pt } else { 9pt }
-          let item-color = if is-lvl1 { c-text-dark } else { c-text-secondary }
-          let item-indent = if is-lvl1 { 0pt } else { item.at("indent", default: if is-chapter { 0pt } else { 12pt }) }
+          let item-weight = if is-top { "bold" } else { "regular" }
+          let item-size = if is-top { 9.5pt } else { 9pt }
+          let item-color = if is-top { c-text-dark } else { c-text-secondary }
+          let item-indent = if is-top { 0pt } else { item.at("indent", default: if is-chapter { 0pt } else { 12pt }) }
 
-          grid(
-            columns: (1fr, auto),
-            align: (left + horizon, right + horizon),
-            [
-              #h(item-indent)
-              #if item.at("slug", default: "") != "" [
-                #link(label(item.slug))[#text(size: item-size, weight: item-weight, fill: item-color)[#item.title]]
-              ] else [
-                #text(size: item-size, weight: item-weight, fill: item-color)[#item.title]
-              ]
-            ],
-            [
-              #if item.at("slug", default: "") != "" [
-                #context {
-                  let locs = query(label(item.slug))
-                  if locs.len() > 0 [
-                    #text(size: item-size, weight: item-weight, fill: c-text-muted)[#counter(page).at(locs.first().location()).first()]
-                  ]
-                }
-              ]
-            ],
-          )
-          v(if is-lvl1 { 3pt } else { 2.5pt })
+          let next-lvl = if next != none and not next.at("is_header", default: false) {
+            next.at("level", default: if is-chapter { 2 } else { 1 })
+          } else {
+            none
+          }
+          let is-sticky = next-lvl != none and next-lvl > lvl
+
+          block(width: 100%, breakable: false, sticky: is-sticky)[
+            #grid(
+              columns: (1fr, auto),
+              align: (left + horizon, right + horizon),
+              [
+                #h(item-indent)
+                #if item.at("slug", default: "") != "" [
+                  #link(label(item.slug))[#text(size: item-size, weight: item-weight, fill: item-color)[#item.title]]
+                ] else [
+                  #text(size: item-size, weight: item-weight, fill: item-color)[#item.title]
+                ]
+              ],
+              [
+                #if item.at("slug", default: "") != "" [
+                  #context {
+                    let locs = query(label(item.slug))
+                    if locs.len() > 0 [
+                      #text(size: item-size, weight: item-weight, fill: c-text-muted)[#counter(page).at(locs.first().location()).first()]
+                    ]
+                  }
+                ]
+              ],
+            )
+          ]
+          v(if is-top { 3pt } else { 2.5pt })
         }
       }
     }
@@ -233,7 +248,17 @@
 // Helper to determine if the current page suppresses headers/footers (C2)
 #let _is-special-page(cur-page) = {
   let is-cover = query(label("cover-page")).any(it => it.location().page() == cur-page)
-  let is-divider = query(selector(label("part-divider")).or(selector(label("chapter-divider")))).any(it => it.location().page() == cur-page)
+  let starts = query(label("divider-start"))
+  let ends = query(label("divider-end"))
+  let is-divider = if starts.len() > 0 and starts.len() == ends.len() {
+    range(starts.len()).any(i => {
+      let p-start = starts.at(i).location().page()
+      let p-end = ends.at(i).location().page()
+      cur-page >= p-start and cur-page <= p-end
+    })
+  } else {
+    query(selector(label("part-divider")).or(selector(label("chapter-divider")))).any(it => it.location().page() == cur-page)
+  }
   is-cover or is-divider
 }
 
@@ -303,6 +328,7 @@
 // Task Item Checkbox (C3, B3)
 #let task-item(checked: false, body) = {
   block(spacing: list-spacing)[
+    #set par(justify: false)
     #grid(
       columns: (14pt, 1fr),
       align: (left + top, left + top),
@@ -497,6 +523,9 @@
     spacing: list-spacing,
     tight: false,
   )
+  show list: set par(justify: false)
+  show enum: set par(justify: false)
+  show terms: set par(justify: false)
 
   // Heading Styling (A1: kein Blocksatz, keine Silbentrennung; B6, A8: Skalierung)
   show heading: it => {
@@ -805,7 +834,7 @@
 // Divider Pages (Part & Chapter)
 // -----------------------------------------------------------------------------
 
-// Part Divider Page (A1: kein Blocksatz/Silbentrennung, A4: breakable: false)
+// Part Divider Page (A1: kein Blocksatz/Silbentrennung)
 #let render-part-divider(
   title: "",
   subtitle: none,
@@ -817,7 +846,8 @@
   toc-items: (),
 ) = {
   [#metadata("part-divider") <part-divider>]
-  block(width: 100%, breakable: false)[
+  [#metadata("divider-start") <divider-start>]
+  block(width: 100%, breakable: true)[
     #set par(justify: false)
     #set text(hyphenate: false)
     #v(3cm)
@@ -865,10 +895,11 @@
       #_render-local-toc(toc-title, toc-items, is-chapter: false)
     ]
   ]
+  [#metadata("divider-end") <divider-end>]
   pagebreak()
 }
 
-// Chapter Divider Page (A1: kein Blocksatz/Silbentrennung, A4: breakable: false)
+// Chapter Divider Page (A1: kein Blocksatz/Silbentrennung)
 #let render-chapter-divider(
   title: "",
   subtitle: none,
@@ -878,7 +909,8 @@
   toc-items: (),
 ) = {
   [#heading(level: 1, outlined: false, numbering: none)[#title] <chapter-divider>]
-  block(width: 100%, breakable: false)[
+  [#metadata("divider-start") <divider-start>]
+  block(width: 100%, breakable: true)[
     #set par(justify: false)
     #set text(hyphenate: false)
     #v(3cm)
@@ -913,6 +945,7 @@
       #_render-local-toc(toc-title, toc-items, is-chapter: true)
     ]
   ]
+  [#metadata("divider-end") <divider-end>]
   pagebreak()
 }
 

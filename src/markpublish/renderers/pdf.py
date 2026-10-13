@@ -416,12 +416,16 @@ class PDFRenderer(BaseRenderer):
 
             toc_items_typ: List[str] = []
             for n in getattr(chapter_item, "local_toc_items", []):
-                indent = max(0, (n.level - 2)) * 8
-                raw_title = f"{n.number} {n.title}" if getattr(n, "number", None) else (getattr(n, "display_title", None) or n.title)
-                t_esc = typst_string(raw_title)
-                toc_items_typ.append(
-                    f'(title: "{t_esc}", slug: "{n.slug}", indent: {indent}pt)'
-                )
+                if getattr(n, "is_header", False):
+                    t_esc = typst_string(n.title)
+                    toc_items_typ.append(f'(title: "{t_esc}", is_header: true)')
+                else:
+                    indent = max(0, (n.level - 2)) * 8
+                    raw_title = f"{n.number} {n.title}" if getattr(n, "number", None) else (getattr(n, "display_title", None) or n.title)
+                    t_esc = typst_string(raw_title)
+                    toc_items_typ.append(
+                        f'(title: "{t_esc}", slug: "{n.slug}", level: {n.level}, indent: {indent}pt)'
+                    )
 
             toc_items_str = f"({toc_items_typ[0]},)" if len(toc_items_typ) == 1 else (f"({', '.join(toc_items_typ)})" if toc_items_typ else "()")
             res.append(
