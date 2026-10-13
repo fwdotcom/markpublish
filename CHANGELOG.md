@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.4.1] - 2026-10-13
 
+### Added
+- **Python 3.15 support**: Added official Python 3.15 support to package classifiers and the CI test matrix.
+
 ### Changed
 - **List formatting (PDF)**: Lists (`list`, `enum`, `terms`, and `task-item`) now render with ragged-right alignment (`justify: false`) while keeping hyphenation active, preventing overstretched inter-word spacing.
 
